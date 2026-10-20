@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Response;
 use Laravel\Fortify\Contracts\EmailVerificationNotificationSentResponse;
-use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
 use Laravel\Fortify\Contracts\PasswordConfirmedResponse as PasswordConfirmedResponseContract;
@@ -34,7 +33,6 @@ final class FortifyIntegration
         LoginResponseContract::class => LoginResponse::class,
         LogoutResponseContract::class => LogoutResponse::class,
         SuccessfulPasswordResetLinkRequestResponse::class => PasswordResetLinkResponse::class,
-        FailedPasswordResetLinkRequestResponse::class => PasswordResetLinkResponse::class,
         PasswordResetResponseContract::class => PasswordResetResponse::class,
         VerifyEmailResponseContract::class => VerifyEmailResponse::class,
         EmailVerificationNotificationSentResponse::class => VerificationLinkSentResponse::class,

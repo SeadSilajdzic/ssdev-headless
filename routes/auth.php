@@ -11,6 +11,7 @@ use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 use Ssdev\Headless\Auth\RateLimits;
 use Ssdev\Headless\Http\Controllers\Auth\RegistrationController;
+use Ssdev\Headless\Http\Controllers\Auth\SendPasswordResetLinkController;
 use Ssdev\Headless\Http\Middleware\EnsureRegistrationIsEnabled;
 use Ssdev\Headless\Http\Middleware\RejectHoneypotSubmissions;
 
@@ -28,7 +29,7 @@ Route::middleware('guest')->group(function () {
     });
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+    Route::post('forgot-password', [SendPasswordResetLinkController::class, 'store'])
         ->middleware(['throttle:'.RateLimits::PASSWORD_RESET, RejectHoneypotSubmissions::class])
         ->name('password.email');
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');

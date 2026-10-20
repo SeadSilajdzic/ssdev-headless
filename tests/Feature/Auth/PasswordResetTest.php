@@ -2,6 +2,7 @@
 
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
@@ -48,6 +49,20 @@ it('responds identically for unknown and throttled emails', function () {
     }
 
     Notification::assertSentToTimes($user, ResetPassword::class, 1);
+});
+
+it('sends the reset link only after the response is ready', function () {
+    $user = User::factory()->create();
+    $sentBeforeResponse = null;
+    Event::listen(RequestHandled::class, function () use ($user, &$sentBeforeResponse) {
+        $sentBeforeResponse = Notification::sent($user, ResetPassword::class)->count();
+    });
+
+    post(route('password.email'), ['email' => $user->email])->assertSessionHas('status', __('headless::auth.passwords.link_sent'));
+
+    // Sending inside the request would make known emails answer slower than unknown ones.
+    expect($sentBeforeResponse)->toBe(0);
+    Notification::assertSentTo($user, ResetPassword::class);
 });
 
 it('renders the reset password page with the token and email', function () {
