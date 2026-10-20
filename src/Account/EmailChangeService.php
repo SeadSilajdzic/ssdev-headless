@@ -14,7 +14,7 @@ use Ssdev\Headless\Notifications\EmailChangedNotification;
 
 /**
  * The confirmation link carries everything it needs, signed: the user, the new email and a
- * fingerprint of the email it was issued for, so a link becomes useless once the email changes again.
+ * fingerprint of the account's current email, so a link becomes useless once the email changes again.
  */
 final class EmailChangeService
 {
@@ -32,7 +32,7 @@ final class EmailChangeService
         $url = URL::temporarySignedRoute(
             self::CONFIRM_ROUTE,
             now()->addMinutes((int) $this->config->get('auth.verification.expire', 60)),
-            ['user' => $user->getKey(), 'email' => $newEmail, 'current' => $this->fingerprint((string) $user->getAttribute('email'))],
+            ['user' => $user->getKey(), 'email' => $newEmail, 'current' => $this->fingerprint($user)],
         );
 
         Notification::route('mail', $newEmail)->notify(new ConfirmEmailChangeNotification($url));
@@ -44,7 +44,7 @@ final class EmailChangeService
             $locked = $this->users->findForUpdate($user->getKey());
 
             if ($locked === null
-                || ! hash_equals($this->fingerprint((string) $locked->getAttribute('email')), $currentFingerprint)
+                || ! hash_equals($this->fingerprint($locked), $currentFingerprint)
                 || $this->users->emailTaken($newEmail, $locked->getKey())) {
                 return null;
             }
@@ -66,10 +66,13 @@ final class EmailChangeService
     }
 
     /**
-     * Keyed so whoever receives the link at the new address cannot recover the current one.
+     * Keyed so whoever receives the link at the new address cannot recover the current one. The verification
+     * time changes with every confirmed change, so an old link stays dead even if the address comes back.
      */
-    private function fingerprint(string $email): string
+    private function fingerprint(User $user): string
     {
-        return hash_hmac('sha256', $email, (string) $this->config->get('app.key'));
+        $state = $user->getAttribute('email').'|'.$user->getRawOriginal('email_verified_at');
+
+        return hash_hmac('sha256', $state, (string) $this->config->get('app.key'));
     }
 }

@@ -4,7 +4,7 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\URL;
+use Ssdev\Headless\Account\EmailChangeService;
 use Ssdev\Headless\Events\EmailChanged;
 use Ssdev\Headless\Notifications\ConfirmEmailChangeNotification;
 use Ssdev\Headless\Notifications\EmailChangedNotification;
@@ -17,13 +17,24 @@ use function Pest\Laravel\travel;
 
 beforeEach(fn () => Notification::fake());
 
-function confirmationUrl(User $user, string $email, ?string $issuedFor = null): string
+/**
+ * Requests the change through the service and returns the link that was mailed to the new address.
+ */
+function issueConfirmationUrl(User $user, string $email): string
 {
-    return URL::temporarySignedRoute('headless.email-change.confirm', now()->addHour(), [
-        'user' => $user->id,
-        'email' => $email,
-        'current' => hash_hmac('sha256', $issuedFor ?? $user->email, config('app.key')),
-    ]);
+    app(EmailChangeService::class)->request($user, $email);
+
+    $url = null;
+    Notification::assertSentOnDemand(
+        ConfirmEmailChangeNotification::class,
+        function (ConfirmEmailChangeNotification $notification, array $channels, AnonymousNotifiable $notifiable) use ($email, &$url) {
+            $url = $notification->url;
+
+            return $notifiable->routes['mail'] === $email;
+        },
+    );
+
+    return $url;
 }
 
 it('sends a confirmation link to the new address and keeps the old one active', function () {
@@ -42,20 +53,16 @@ it('sends a confirmation link to the new address and keeps the old one active', 
 it('does not put the current email in the confirmation link', function () {
     $user = User::factory()->create(['email' => 'old@example.com']);
 
-    actingAs($user)->put(route('headless.profile.update'), ['name' => $user->name, 'email' => 'new@example.com', 'current_password' => 'password']);
+    $url = issueConfirmationUrl($user, 'new@example.com');
 
-    Notification::assertSentOnDemand(
-        ConfirmEmailChangeNotification::class,
-        fn (ConfirmEmailChangeNotification $notification) => ! str_contains($notification->url, 'old%40example.com')
-            && ! str_contains($notification->url, sha1('old@example.com')),
-    );
+    expect($url)->not->toContain('old%40example.com')->not->toContain(sha1('old@example.com'));
 });
 
 it('applies the new email from the confirmation link', function () {
     Event::fake([EmailChanged::class]);
     $user = User::factory()->create(['email' => 'old@example.com']);
 
-    get(confirmationUrl($user, 'new@example.com'))
+    get(issueConfirmationUrl($user, 'new@example.com'))
         ->assertRedirect(route('login'))
         ->assertSessionHas(Flash::STATUS, __('headless::settings.email_change.confirmed'));
 
@@ -70,42 +77,60 @@ it('applies the new email from the confirmation link', function () {
 
 it('returns signed in users to their profile after confirming', function () {
     $user = User::factory()->create(['email' => 'old@example.com']);
+    $url = issueConfirmationUrl($user, 'new@example.com');
 
-    actingAs($user)->get(confirmationUrl($user, 'new@example.com'))
+    actingAs($user)->get($url)
         ->assertRedirect(route('headless.profile.edit'))
         ->assertSessionHas(Flash::SUCCESS, __('headless::settings.email_change.confirmed'));
 });
 
 it('rejects a link issued before a newer email change', function () {
-    $user = User::factory()->create(['email' => 'second@example.com']);
+    $user = User::factory()->create(['email' => 'first@example.com']);
+    $url = issueConfirmationUrl($user, 'typo@example.com');
+    $user->forceFill(['email' => 'second@example.com', 'email_verified_at' => now()])->save();
 
-    get(confirmationUrl($user, 'first@example.com', issuedFor: 'original@example.com'))
-        ->assertSessionHas(Flash::STATUS, __('headless::settings.email_change.invalid'));
+    get($url)->assertSessionHas(Flash::STATUS, __('headless::settings.email_change.invalid'));
 
     expect($user->fresh()->email)->toBe('second@example.com');
-    Notification::assertNothingSent();
+    Notification::assertSentOnDemandTimes(EmailChangedNotification::class, 0);
+});
+
+it('rejects a link once the email changed away and back again', function () {
+    $user = User::factory()->create(['email' => 'old@example.com']);
+    $url = issueConfirmationUrl($user, 'typo@example.com');
+
+    travel(1)->minute();
+    $user->forceFill(['email' => 'other@example.com', 'email_verified_at' => now()])->save();
+    travel(1)->minute();
+    $user->forceFill(['email' => 'old@example.com', 'email_verified_at' => now()])->save();
+
+    get($url)->assertSessionHas(Flash::STATUS, __('headless::settings.email_change.invalid'));
+
+    expect($user->fresh()->email)->toBe('old@example.com');
 });
 
 it('rejects a link for an email another account took meanwhile', function () {
     $user = User::factory()->create(['email' => 'old@example.com']);
+    $url = issueConfirmationUrl($user, 'new@example.com');
     User::factory()->create(['email' => 'new@example.com']);
 
-    get(confirmationUrl($user, 'new@example.com'));
+    get($url);
 
     expect($user->fresh()->email)->toBe('old@example.com');
 });
 
 it('rejects a tampered link', function () {
     $user = User::factory()->create(['email' => 'old@example.com']);
+    $url = issueConfirmationUrl($user, 'new@example.com');
 
-    get(str_replace('new%40example.com', 'evil%40example.com', confirmationUrl($user, 'new@example.com')))->assertForbidden();
+    get(str_replace('new%40example.com', 'evil%40example.com', $url))->assertForbidden();
 
     expect($user->fresh()->email)->toBe('old@example.com');
 });
 
 it('rejects an expired link', function () {
     $user = User::factory()->create(['email' => 'old@example.com']);
-    $url = confirmationUrl($user, 'new@example.com');
+    $url = issueConfirmationUrl($user, 'new@example.com');
 
     travel(2)->hours();
 
