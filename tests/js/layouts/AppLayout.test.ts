@@ -14,6 +14,14 @@ it('renders navigation sections and marks the active item', () => {
     expect(wrapper.text()).toContain('Account');
 });
 
+it('opens the mobile navigation from the menu button', async () => {
+    setPageProps({ headless: { navigation } });
+    mount(AppLayout, { props: { title: 'Dashboard' }, attachTo: document.body });
+    document.querySelector<HTMLElement>('[aria-label="Open menu"]')!.click();
+    await flushPromises();
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Profile');
+});
+
 it('shows a toast for flash messages', async () => {
     setPageProps({ flash: { success: 'Saved.', error: null } });
     mount(AppLayout, { props: { title: 'Dashboard' }, attachTo: document.body, global: { stubs: { Head: true } } });
