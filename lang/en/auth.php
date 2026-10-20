@@ -32,4 +32,34 @@ return [
         'check_inbox' => 'Thanks for signing up! Check your inbox to continue.',
     ],
 
+    'passwords' => [
+        'forgot_title' => 'Forgot your password?',
+        'forgot_subtitle' => 'Enter the email tied to your account and we will send you a reset link.',
+        'send_link' => 'Send reset link',
+        'link_sent' => 'If an account exists for that email, a reset link is on its way.',
+        'remembered' => 'Remembered it?',
+        'back_to_login' => 'Sign in',
+        'reset_title' => 'Set a new password',
+        'reset_subtitle' => 'Choose a strong password you do not use anywhere else.',
+        'reset_submit' => 'Reset password',
+        'reset' => 'Your password has been reset. You can sign in now.',
+    ],
+
+    'verification' => [
+        'title' => 'Check your inbox',
+        'intro' => 'We sent a verification link to :email. Click it to activate your account.',
+        'help' => 'Did not get it? Check your spam folder or send the email again.',
+        'resend' => 'Resend verification email',
+        'link_sent' => 'A new verification link has been sent.',
+        'verified' => 'Your email address is verified.',
+        'wrong_email' => 'Wrong email?',
+        'update_address' => 'Update your address',
+    ],
+
+    'confirm' => [
+        'title' => 'Confirm your password',
+        'subtitle' => 'This is a secure area. Enter your password to continue.',
+        'submit' => 'Confirm',
+    ],
+
 ];
