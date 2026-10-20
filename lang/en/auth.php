@@ -20,4 +20,16 @@ return [
         'register' => 'Create one',
     ],
 
+    'register' => [
+        'title' => 'Create your account',
+        'subtitle' => 'It only takes a minute.',
+        'submit' => 'Create account',
+        'have_account' => 'Already have an account?',
+        'login' => 'Sign in',
+    ],
+
+    'registration' => [
+        'check_inbox' => 'Thanks for signing up! Check your inbox to continue.',
+    ],
+
 ];

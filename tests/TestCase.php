@@ -2,7 +2,10 @@
 
 namespace Ssdev\Headless\Tests;
 
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Support\Facades\Event;
 use Inertia\ServiceProvider as InertiaServiceProvider;
 use Laravel\Fortify\FortifyServiceProvider;
 use Orchestra\Testbench\Concerns\WithLaravelMigrations;
@@ -23,6 +26,9 @@ abstract class TestCase extends Orchestra
         $this->withoutVite();
 
         $this->app->make(Kernel::class)->appendMiddlewareToGroup('web', HandleHeadlessInertiaRequests::class);
+
+        // Laravel applications register this listener themselves; the Testbench skeleton does not.
+        Event::listen(Registered::class, SendEmailVerificationNotification::class);
     }
 
     protected function getPackageProviders($app): array
