@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
-import { LogOut } from 'lucide-vue-next';
+import { LogOut } from '@lucide/vue';
 import { computed } from 'vue';
 import BaseAvatar from '@headless/components/ui/BaseAvatar.vue';
 import BaseDropdown from '@headless/components/ui/BaseDropdown.vue';

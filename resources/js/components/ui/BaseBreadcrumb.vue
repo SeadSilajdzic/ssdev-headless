@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ChevronRight, LayoutGrid } from 'lucide-vue-next';
+import { ChevronRight, LayoutGrid } from '@lucide/vue';
 import { useTrans } from '@headless/i18n';
 
 defineProps<{ items: { label: string; href?: string }[] }>();

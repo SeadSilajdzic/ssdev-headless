@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Menu } from 'lucide-vue-next';
+import { Menu } from '@lucide/vue';
 import BaseIconButton from '@headless/components/ui/BaseIconButton.vue';
 import UserMenu from '@headless/components/layout/UserMenu.vue';
 import { useTrans } from '@headless/i18n';

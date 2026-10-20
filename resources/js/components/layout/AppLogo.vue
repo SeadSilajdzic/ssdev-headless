@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
-import { LayoutGrid } from 'lucide-vue-next';
+import { LayoutGrid } from '@lucide/vue';
 
 const page = usePage();
 </script>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft } from '@lucide/vue';
 import BaseButton from '@headless/components/ui/BaseButton.vue';
 import { useTrans } from '@headless/i18n';
 

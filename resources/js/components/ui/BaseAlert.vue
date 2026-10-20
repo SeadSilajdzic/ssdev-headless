@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleCheck, CircleX, Info, TriangleAlert, X } from 'lucide-vue-next';
+import { CircleCheck, CircleX, Info, TriangleAlert, X } from '@lucide/vue';
 import { useTrans } from '@headless/i18n';
 
 const props = defineProps<{

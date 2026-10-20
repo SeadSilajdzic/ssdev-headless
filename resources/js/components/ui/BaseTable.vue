@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-vue-next';
+import { ChevronDown, ChevronsUpDown, ChevronUp } from '@lucide/vue';
 import { useTrans } from '@headless/i18n';
 
 export interface TableColumn {

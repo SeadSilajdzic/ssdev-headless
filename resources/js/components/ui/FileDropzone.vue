@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CloudUpload } from 'lucide-vue-next';
+import { CloudUpload } from '@lucide/vue';
 import { useTrans } from '@headless/i18n';
 
 const props = defineProps<{ accept: string[]; maxSizeKb: number; hint?: string }>();

@@ -1,4 +1,4 @@
-import { Building2, Circle, Key, LayoutDashboard, Shield, ShieldCheck, User, UserCog, Users } from 'lucide-vue-next';
+import { Building2, Circle, Key, LayoutDashboard, Shield, ShieldCheck, User, UserCog, Users } from '@lucide/vue';
 import type { Component } from 'vue';
 
 const icons: Record<string, Component> = {

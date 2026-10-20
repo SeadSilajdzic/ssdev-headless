@@ -14,7 +14,7 @@ final class AddNpmDependencies implements InstallStep
         '@inertiajs/vue3' => '^3.9',
         'vue' => '^3.5',
         'reka-ui' => '^2.11',
-        'lucide-vue-next' => '^1.0',
+        '@lucide/vue' => '^1.60',
         '@vitejs/plugin-vue' => '^6.0',
         'typescript' => '~6.0',
         'vue-tsc' => '^3.3',

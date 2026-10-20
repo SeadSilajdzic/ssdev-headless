@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleCheck, CircleX, X } from 'lucide-vue-next';
+import { CircleCheck, CircleX, X } from '@lucide/vue';
 import { ToastClose, ToastDescription, ToastProvider, ToastRoot, ToastViewport } from 'reka-ui';
 import { useToast } from '@headless/composables/useToast';
 import { useTrans } from '@headless/i18n';
