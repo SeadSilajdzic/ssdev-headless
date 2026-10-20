@@ -2,9 +2,12 @@
 
 namespace Ssdev\Headless\Tests;
 
+use Illuminate\Contracts\Http\Kernel;
+use Inertia\ServiceProvider as InertiaServiceProvider;
 use Orchestra\Testbench\Concerns\WithLaravelMigrations;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Ssdev\Headless\HeadlessServiceProvider;
+use Ssdev\Headless\Http\Middleware\HandleHeadlessInertiaRequests;
 use Workbench\App\Models\User;
 
 abstract class TestCase extends Orchestra
@@ -16,11 +19,13 @@ abstract class TestCase extends Orchestra
         parent::setUp();
 
         $this->withoutVite();
+
+        $this->app->make(Kernel::class)->appendMiddlewareToGroup('web', HandleHeadlessInertiaRequests::class);
     }
 
     protected function getPackageProviders($app): array
     {
-        return [HeadlessServiceProvider::class];
+        return [InertiaServiceProvider::class, HeadlessServiceProvider::class];
     }
 
     protected function defineEnvironment($app): void
