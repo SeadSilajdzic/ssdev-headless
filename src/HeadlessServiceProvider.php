@@ -67,6 +67,14 @@ class HeadlessServiceProvider extends ServiceProvider
             NavigationGroup::Main,
         ));
 
+        $navigation->add(new NavigationItem(
+            'profile',
+            'headless::navigation.profile',
+            'headless.profile.edit',
+            'user',
+            NavigationGroup::Account,
+        ));
+
         $this->publishes([
             __DIR__.'/../config/headless.php' => config_path('headless.php'),
         ], 'headless-config');
@@ -91,6 +99,7 @@ class HeadlessServiceProvider extends ServiceProvider
             ->group(function () {
                 $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
                 $this->loadRoutesFrom(__DIR__.'/../routes/auth.php');
+                $this->loadRoutesFrom(__DIR__.'/../routes/settings.php');
             });
     }
 }

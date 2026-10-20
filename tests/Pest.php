@@ -57,13 +57,16 @@ function useDatabaseSessions(): void
 
 function expectNoSensitiveProps(TestResponse $response, Model $user): void
 {
-    $props = json_encode($response->viewData('page')['props'], JSON_THROW_ON_ERROR);
+    $props = $response->viewData('page')['props'];
+    expect(json_encode($props, JSON_THROW_ON_ERROR))->not->toContain(json_encode($user->getAuthPassword(), JSON_THROW_ON_ERROR));
+
+    // Translation keys such as "auth.fields.password" are labels, not data.
+    unset($props['headless']['translations']);
+    $data = json_encode($props, JSON_THROW_ON_ERROR);
 
     foreach (['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'] as $key) {
-        expect($props)->not->toContain("\"{$key}\"");
+        expect($data)->not->toContain("\"{$key}\"");
     }
-
-    expect($props)->not->toContain(json_encode($user->getAuthPassword(), JSON_THROW_ON_ERROR));
 }
 
 /**

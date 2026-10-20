@@ -15,6 +15,11 @@ final class UserRepository
         return $this->query()->find($key);
     }
 
+    public function findForUpdate(int|string $key): ?User
+    {
+        return $this->query()->lockForUpdate()->find($key);
+    }
+
     public function findByEmail(string $email): ?User
     {
         return $this->query()->where('email', $email)->first();

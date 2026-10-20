@@ -19,7 +19,7 @@ const accountLinks = computed(() => page.props.headless.navigation.find((section
 <template>
     <BaseDropdown v-if="user" :label="t('common.layout.user_menu')" align="end">
         <template #trigger>
-            <BaseAvatar :name="user.name" />
+            <BaseAvatar :name="user.name" :src="user.avatar_url" />
             <span class="hidden text-left leading-tight sm:block">
                 <span class="block text-sm font-semibold">{{ user.name }}</span>
                 <span class="block text-xs text-ink-500">{{ user.email }}</span>

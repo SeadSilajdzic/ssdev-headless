@@ -9,5 +9,6 @@ return [
     ],
 
     'dashboard' => 'Dashboard',
+    'profile' => 'Profile',
 
 ];

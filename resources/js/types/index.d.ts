@@ -3,6 +3,7 @@ export interface AuthUser {
     name: string;
     email: string;
     email_verified: boolean;
+    avatar_url: string | null;
 }
 
 export interface NavigationLink {
