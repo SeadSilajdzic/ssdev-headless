@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { defineComponent, reactive } from 'vue';
 import type { HeadlessSharedProps } from '@headless/types';
 
 export const fixtureTranslations = {
@@ -72,6 +72,8 @@ export function setPageProps(partial: DeepPartial<HeadlessSharedProps>): void {
 vi.mock('@inertiajs/vue3', async (importOriginal) => ({
     ...(await importOriginal<typeof import('@inertiajs/vue3')>()),
     usePage: () => page,
+    // The real Head needs a mounted Inertia app to provide its head manager.
+    Head: defineComponent({ name: 'Head', render: () => null }),
 }));
 
 globalThis.ResizeObserver ??= class {
