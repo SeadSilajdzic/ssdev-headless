@@ -73,7 +73,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Database Transactions | Covered | Email change, account deletion and admin creation |
 | Database Row Locking | Covered | `EmailChangeService::confirm()` uses `lockForUpdate()` |
 | Atomic Operations | Covered | Registration is a single insert guarded by the unique email index |
-| Replay Attack Protection | Covered | `Feature/Settings/EmailChangeTest › rejects a link issued before a newer email change`; reset tokens are single use |
+| Replay Attack Protection | Covered | `Feature/Settings/EmailChangeTest › rejects a link issued before a newer email change`, `› rejects a link once the email changed away and back again`; reset tokens are single use |
 | Idempotency | Partial | Email confirmation and registration are safe to repeat; invitations and tenant creation arrive with Plans 7–8 |
 | Business Logic Abuse Protection | Partial | Enumeration-safe registration and reset, throttled mail endpoints; more rules arrive with each feature |
 | Webhook Signature Verification | Not applicable | No webhooks in v1 |
@@ -149,7 +149,7 @@ Tests are named `file › test`, relative to `tests/`.
 | OTP/verification rate limiting | Partial | Email verification is throttled; two-factor codes arrive in Plan 4 |
 | Brute-force protection | Covered | See Brute Force Protection |
 | Credential stuffing protection | Covered | See Credential Stuffing Protection |
-| Account enumeration protection | Covered | `Feature/Auth/RegistrationTest › responds identically when the email is already registered`, `Feature/Auth/PasswordResetTest › responds identically for unknown and throttled emails` |
+| Account enumeration protection | Covered | `Feature/Auth/RegistrationTest › responds identically when the email is already registered`, `Feature/Auth/PasswordResetTest › responds identically for unknown and throttled emails`; reset mails go out after the response, so timing does not reveal accounts (`Feature/Auth/PasswordResetTest › sends the reset link only after the response is ready`) |
 | Session regeneration after login | Covered | `Feature/Auth/LoginTest › logs in and regenerates the session` |
 | Secure session cookies | Covered | Installer check |
 | HttpOnly cookies | Covered | `Feature/Installation/CheckSessionConfigurationTest › warns about cookies readable by scripts or sent cross-site` |
