@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "jsx": "preserve",
+        "noEmit": true,
+        "isolatedModules": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "allowJs": true,
+        "types": ["vite/client", "vitest/globals", "node"],
+        "paths": {
+            "@headless/*": ["./resources/js/*"]
+        }
+    },
+    "include": ["resources/js/**/*", "tests/js/**/*", "vitest.config.ts"]
+}

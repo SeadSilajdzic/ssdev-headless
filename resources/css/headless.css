@@ -1,0 +1,33 @@
+@source "../js";
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    --color-mint-50: #F0FDFA; --color-mint-100: #CCFBF1; --color-mint-200: #99F6E4; --color-mint-300: #5EEAD4;
+    --color-mint-400: #2DD4BF; --color-mint-500: #14B8A6; --color-mint-600: #0D9488; --color-mint-700: #0F766E;
+    --color-mint-800: #115E59; --color-mint-900: #134E4A; --color-mint-950: #042F2E;
+    --color-ink-50: #F8FAFC; --color-ink-100: #F1F5F9; --color-ink-200: #E2E8F0; --color-ink-300: #CBD5E1;
+    --color-ink-400: #94A3B8; --color-ink-500: #64748B; --color-ink-600: #475569; --color-ink-700: #334155;
+    --color-ink-800: #1E293B; --color-ink-900: #0F172A;
+    --radius-card: 20px; --radius-btn: 10px; --radius-pill: 999px;
+    --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.03);
+    --shadow-pop: 0 10px 30px rgba(15, 23, 42, 0.08);
+    --shadow-ring-mint: 0 0 0 4px rgba(94, 234, 212, 0.25);
+    --text-display: 32px; --text-display--line-height: 1.15; --text-display--letter-spacing: -0.02em; --text-display--font-weight: 700;
+}
+
+@layer base {
+    body { @apply font-sans text-ink-900 antialiased; }
+    :focus-visible { outline: 2px solid var(--color-mint-500); outline-offset: 2px; }
+}
+
+@utility scrollbar-thin {
+    &::-webkit-scrollbar { width: 6px; height: 6px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: var(--color-ink-300); border-radius: 999px; }
+    &::-webkit-scrollbar-thumb:hover { background: var(--color-ink-400); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+}
