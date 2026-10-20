@@ -23,10 +23,71 @@ php artisan headless:install
 
 The installer asks which features you want, wires up Inertia, Vue, Tailwind and the error pages, and never overwrites a file you changed without asking first. It is safe to run again.
 
+It also publishes the migrations, adds `HasRoles` (and `MustVerifyEmail` when email verification is on) to `app/Models/User.php`, checks your session settings, and offers to run the migrations and create the first admin account.
+
 Non-interactive installs (CI, scripts):
 
 ```bash
-php artisan headless:install --features=teams,two-factor --no-interaction --force --npm
+php artisan headless:install --features=teams,two-factor --no-interaction --force --migrate --npm
+php artisan headless:create-admin
+```
+
+`headless:create-admin` always asks for the password in a hidden prompt, so it never ends up in your shell history.
+
+## What the core gives you
+
+- Sign in, registration, forgot and reset password, email verification and password confirmation, with Laravel Fortify doing the work behind package routes.
+- Profile settings: name, email (confirmed through a link sent to the new address), photo, password and account deletion.
+- Security settings: browser sessions, with log out per device or for every other device. Sessions are listed when `SESSION_DRIVER=database`.
+- Permissions with `spatie/laravel-permission`, always available, so `can('...')` works with or without the roles feature.
+
+Registration and password reset never reveal whether an email has an account. Passwords follow `Password::defaults()`, which you configure in your `AppServiceProvider`.
+
+## Configuration
+
+`config/headless.php` covers:
+
+- `registration.enabled` — turn public sign-up off.
+- `email_verification` — require a verified email for the dashboard.
+- `honeypot.field` — name of the hidden field that traps bots.
+- `rate_limits` — attempts per minute for login (per email and IP, and per IP), registration, password reset, verification, password checks and email changes.
+- `avatars` — disk, directory, maximum size and dimensions, allowed formats.
+- `permissions` — your own permission enums (see below).
+
+## Permissions
+
+Permissions are defined in code as backed enums, so every permission the UI offers is one the code actually checks:
+
+```php
+use Ssdev\Headless\Permissions\HeadlessPermission;
+
+enum ReportPermission: string implements HeadlessPermission
+{
+    case View = 'reports.view';
+    case Export = 'reports.export';
+
+    public function group(): string
+    {
+        return 'reports';
+    }
+}
+```
+
+Register the enum in `config/headless.php` (`'permissions' => [ReportPermission::class]`), then:
+
+```bash
+php artisan headless:permissions:sync
+php artisan headless:permissions:grant ada@example.com reports.view
+php artisan headless:permissions:grant ada@example.com --all
+```
+
+Check access with permissions, never with role names: `$user->can('reports.view')` in PHP and `useCan()` in Vue:
+
+```ts
+import { useCan } from '@headless/composables/useCan';
+
+const can = useCan();
+// v-if="can('reports.view')"
 ```
 
 ## Customization
@@ -49,10 +110,16 @@ Translations and the root Blade view can be published with `vendor:publish --tag
 
 ```bash
 composer update ssdev/laravel-headless
+php artisan headless:upgrade
+php artisan migrate
 npm run build
 ```
 
-Everything you have not published is updated. Changes that need action on your side are listed in `CHANGELOG.md`. The package follows semantic versioning: breaking changes to the API, config or swappable classes only happen in major versions.
+`headless:upgrade` publishes the migrations a new version added. Everything you have not published is updated. Changes that need action on your side are listed in `UPGRADE.md` and `CHANGELOG.md`. The package follows semantic versioning: breaking changes to the API, config or swappable classes only happen in major versions.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for how to report a vulnerability and how the package handles each item of its security checklist.
 
 ## Contributing
 

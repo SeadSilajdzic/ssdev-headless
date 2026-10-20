@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added
+
+- Sign in, registration, forgot and reset password, email verification and password confirmation through Laravel Fortify, served by package routes.
+- Registration and password reset that never reveal whether an email has an account.
+- Rate limits for login (per email and IP, and per IP), registration, password reset, verification, password checks and email changes, configured in `config/headless.php`.
+- Honeypot field on public forms.
+- Profile settings: name, email change confirmed through the new address, photo upload, password change and account deletion.
+- Security settings: browser sessions with log out per device and for every other device.
+- Code-defined permissions on `spatie/laravel-permission`, shared with the frontend as `auth.permissions` and checked with `useCan()`.
+- Commands `headless:permissions:sync`, `headless:permissions:grant`, `headless:create-admin` and `headless:upgrade`.
+- Installer steps that publish migrations, prepare the `User` model and check session settings; `--migrate` runs the migrations and offers to create the first admin.
+- Events `PasswordChanged`, `EmailChanged` and `AccountDeleted`.
+- `SECURITY.md` with the security matrix and `UPGRADE.md`.
+
+### Fixed
+
+- Form fields now pass their `id` and ARIA attributes to the input element, so labels and error messages are linked for screen readers.
+
 ## [0.1.1] - 2026-10-21
 
 ### Changed
