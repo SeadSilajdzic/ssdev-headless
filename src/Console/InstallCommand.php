@@ -25,6 +25,8 @@ final class InstallCommand extends Command
 
     protected $description = 'Install the headless core and the selected features';
 
+    private const NO_FEATURES_NOTICE = 'No optional features are available in this version yet. Coming next: two-factor authentication, roles & permissions, user management, teams and multi-tenancy.';
+
     public function handle(FeatureRegistry $registry, Installer $installer, ProjectFiles $files): int
     {
         try {
@@ -51,7 +53,10 @@ final class InstallCommand extends Command
 
         if (is_string($option) && $option !== '') {
             $keys = array_values(array_filter(array_map('trim', explode(',', $option))));
-        } elseif ($this->input->isInteractive() && $registry->available() !== []) {
+        } elseif ($registry->available() === []) {
+            $this->components->info(self::NO_FEATURES_NOTICE);
+            $keys = [];
+        } elseif ($this->input->isInteractive()) {
             $keys = multiselect(
                 label: 'Which features would you like to install?',
                 options: collect($registry->available())

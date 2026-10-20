@@ -47,3 +47,20 @@ it('asks which features to install and runs their steps', function () {
     expect($files->get('config/headless.php'))->toContain("'fake',")
         ->and($files->exists('fake-step.txt'))->toBeTrue();
 });
+
+it('explains that no optional features are available yet', function () {
+    fixtureProject();
+
+    artisan('headless:install', ['--no-interaction' => true])
+        ->expectsOutputToContain('No optional features are available in this version yet.')
+        ->assertSuccessful();
+});
+
+it('does not print the notice when features are available', function () {
+    fixtureProject();
+    useFeatures([new FakeModule]);
+
+    artisan('headless:install', ['--no-interaction' => true])
+        ->doesntExpectOutputToContain('No optional features are available')
+        ->assertSuccessful();
+});
