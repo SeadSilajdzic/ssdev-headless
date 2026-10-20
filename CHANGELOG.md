@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-21
+
+### Changed
+
+- `headless:install` explains that no optional features are available yet instead of silently skipping the feature selection.
+
 ## [0.1.0] - 2026-10-21
 
 ### Added
@@ -16,5 +22,6 @@ All notable changes to this project are documented in this file. The format foll
 - App, auth and settings layouts, dashboard page and error pages for 403, 404, 419, 429, 500 and 503.
 - Shared Inertia props: authenticated user, navigation, enabled features, translations and flash messages.
 
-[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/SeadSilajdzic/ssdev-headless/releases/tag/v0.1.0
