@@ -106,3 +106,11 @@ it('logs out and invalidates the session', function () {
 it('redirects signed in users away from the login page', function () {
     actingAs(User::factory()->create())->get(route('login'))->assertRedirect(route('headless.dashboard'));
 });
+
+it('rejects an email sent as an array without a server error', function () {
+    post(route('login.store'), ['email' => ['ada@example.com'], 'password' => 'password'])
+        ->assertRedirect()
+        ->assertSessionHasErrors('email');
+
+    assertGuest();
+});

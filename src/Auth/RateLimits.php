@@ -69,7 +69,10 @@ final class RateLimits
 
     private function emailKey(Request $request): string
     {
-        return Str::transliterate(Str::lower((string) $request->input(self::EMAIL_FIELD))).'|'.$request->ip();
+        // Runs before validation, so a crafted array must not reach the string functions.
+        $email = $request->input(self::EMAIL_FIELD);
+
+        return Str::transliterate(Str::lower(is_string($email) ? $email : '')).'|'.$request->ip();
     }
 
     private function userKey(Request $request): string
