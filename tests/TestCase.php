@@ -2,12 +2,15 @@
 
 namespace Ssdev\Headless\Tests;
 
+use Orchestra\Testbench\Concerns\WithLaravelMigrations;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Ssdev\Headless\HeadlessServiceProvider;
 use Workbench\App\Models\User;
 
 abstract class TestCase extends Orchestra
 {
+    use WithLaravelMigrations;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -25,10 +28,5 @@ abstract class TestCase extends Orchestra
         $app['config']->set('database.default', 'testing');
         $app['config']->set('auth.providers.users.model', User::class);
         $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('a', 32)));
-    }
-
-    protected function defineDatabaseMigrations(): void
-    {
-        $this->loadLaravelMigrations();
     }
 }
