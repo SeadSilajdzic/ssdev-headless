@@ -42,6 +42,16 @@ final class InertiaErrorRenderer
             return $response;
         }
 
+        try {
+            return $this->renderErrorPage($request, $status);
+        } catch (Throwable) {
+            // The error page must never break error handling itself, e.g. while the database is down.
+            return $response;
+        }
+    }
+
+    private function renderErrorPage(Request $request, int $status): Response
+    {
         // Unmatched routes never pass through the web middleware, so shared props are added here.
         Inertia::setRootView('headless::app');
         Inertia::share($this->sharedProps->toArray($request));

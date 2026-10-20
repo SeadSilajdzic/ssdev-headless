@@ -17,7 +17,9 @@ final class InstallFrontendScaffolding implements InstallStep
 
     private const TAILWIND_IMPORT = '/@import [\'"]tailwindcss[\'"];\R/';
 
-    private const DEFAULT_FONT_THEME = "/\R@theme \{\s*--font-sans: 'Instrument Sans'[^}]*\}\R?/";
+    private const DEFAULT_FONT_DECLARATION = "/\R[ \t]*--font-sans: 'Instrument Sans'[^;]*;/";
+
+    private const EMPTY_THEME = "/\R@theme \{\s*\}\R?/";
 
     public function handle(InstallContext $context): StepResult
     {
@@ -35,6 +37,13 @@ final class InstallFrontendScaffolding implements InstallStep
 
         if ($files->contains('vite.config.ts', 'headless(')) {
             return StepResult::skipped('vite.config.ts');
+        }
+
+        if ($files->exists('vite.config.ts') && ! $context->mayOverwrite('vite.config.ts')) {
+            return StepResult::manual(
+                'vite.config.ts',
+                'Add the vue() and headless() plugins to your Vite config and use resources/js/app.ts as the input.',
+            );
         }
 
         if ($files->exists('vite.config.js')) {
@@ -61,6 +70,13 @@ final class InstallFrontendScaffolding implements InstallStep
             return StepResult::skipped('resources/js/app.ts');
         }
 
+        if ($files->exists('resources/js/app.ts') && ! $context->mayOverwrite('resources/js/app.ts')) {
+            return StepResult::manual(
+                'resources/js/app.ts',
+                "Boot the app from resources/js/app.ts with: createHeadlessApp({ pages: import.meta.glob('./pages/**/*.vue') })",
+            );
+        }
+
         $files->put('resources/js/app.ts', Stub::get('app.ts'));
 
         if ($files->exists('resources/js/app.js') && $this->mayRemoveAppJs($context)) {
@@ -72,6 +88,11 @@ final class InstallFrontendScaffolding implements InstallStep
 
     private function mayRemoveAppJs(InstallContext $context): bool
     {
+        // The old Vite config still points at app.js until it is converted.
+        if (! $context->files->contains('vite.config.ts', 'headless(')) {
+            return false;
+        }
+
         return in_array(trim($context->files->get('resources/js/app.js')), ['', '//'], true)
             || $context->mayOverwrite('resources/js/app.js');
     }
@@ -111,7 +132,8 @@ final class InstallFrontendScaffolding implements InstallStep
             );
         }
 
-        $files->put(self::STYLESHEET_PATH, (string) preg_replace(self::DEFAULT_FONT_THEME, '', $files->get(self::STYLESHEET_PATH)));
+        $stylesheet = (string) preg_replace(self::DEFAULT_FONT_DECLARATION, '', $files->get(self::STYLESHEET_PATH));
+        $files->put(self::STYLESHEET_PATH, (string) preg_replace(self::EMPTY_THEME, '', $stylesheet));
 
         return StepResult::changed(self::STYLESHEET_PATH);
     }

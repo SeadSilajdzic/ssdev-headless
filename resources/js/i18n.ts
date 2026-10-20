@@ -7,7 +7,7 @@ export function translate(translations: Translations, key: string, replacements:
     let value: string | Translations | undefined = translations;
 
     for (const segment of key.split('.')) {
-        value = typeof value === 'object' ? value[segment] : undefined;
+        value = typeof value === 'object' && value !== null ? value[segment] : undefined;
     }
 
     if (typeof value !== 'string') {

@@ -38,6 +38,33 @@ it('keeps a customized app.js unless overwriting is allowed', function () {
         ->and($files->get('resources/js/app.ts'))->toContain('createHeadlessApp');
 });
 
+it('keeps a customized app.ts and vite.config.ts unless overwriting is allowed', function () {
+    $files = fixtureProject();
+    $files->delete('vite.config.js');
+    $files->put('vite.config.ts', '// custom vite');
+    $files->put('resources/js/app.ts', '// custom app');
+
+    $result = app(InstallFrontendScaffolding::class)->handle(installContext($files));
+
+    expect($result->status)->toBe(StepStatus::Manual)
+        ->and($files->get('vite.config.ts'))->toBe('// custom vite')
+        ->and($files->get('resources/js/app.ts'))->toBe('// custom app');
+
+    app(InstallFrontendScaffolding::class)->handle(installContext($files, overwrite: true));
+
+    expect($files->get('vite.config.ts'))->toContain('headless()')
+        ->and($files->get('resources/js/app.ts'))->toContain('createHeadlessApp');
+});
+
+it('keeps app.js while the vite config still needs manual changes', function () {
+    $files = fixtureProject();
+    $files->put('vite.config.js', '// custom');
+
+    app(InstallFrontendScaffolding::class)->handle(installContext($files));
+
+    expect($files->exists('resources/js/app.js'))->toBeTrue();
+});
+
 it('imports the headless stylesheet and removes the default font theme', function () {
     $files = fixtureProject();
 
@@ -45,6 +72,18 @@ it('imports the headless stylesheet and removes the default font theme', functio
 
     expect($files->get('resources/css/app.css'))
         ->toContain("@import 'tailwindcss';\n@import '../../vendor/ssdev/laravel-headless/resources/css/headless.css';")
+        ->not->toContain('Instrument Sans')
+        ->not->toContain('@theme');
+});
+
+it('keeps custom theme variables when removing the default font', function () {
+    $files = fixtureProject();
+    $files->put('resources/css/app.css', "@import 'tailwindcss';\n\n@theme {\n    --font-sans: 'Instrument Sans', sans-serif;\n    --color-brand: #ff0000;\n}\n");
+
+    app(InstallFrontendScaffolding::class)->handle(installContext($files, overwrite: true));
+
+    expect($files->get('resources/css/app.css'))
+        ->toContain('--color-brand: #ff0000;')
         ->not->toContain('Instrument Sans');
 });
 

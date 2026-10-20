@@ -1,11 +1,13 @@
 <?php
 
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 use Ssdev\Headless\Exceptions\InertiaErrorRenderer;
 use Ssdev\Headless\Support\Flash;
+use Ssdev\Headless\Translations\HeadlessTranslations;
 
 use function Pest\Laravel\from;
 use function Pest\Laravel\get;
@@ -40,6 +42,18 @@ it('redirects back with a flash message on expired pages', function () {
     Route::post('expire', fn () => abort(419))->middleware('web');
 
     from('/somewhere')->post('/expire')->assertRedirect('/somewhere')->assertSessionHas(Flash::ERROR);
+});
+
+it('falls back to the default error response when the error page itself fails', function () {
+    $translator = Mockery::mock(Translator::class);
+    $translator->shouldReceive('get')->andThrow(new RuntimeException('database is down'));
+    app()->instance(HeadlessTranslations::class, new HeadlessTranslations($translator, __DIR__.'/../../../lang'));
+    Route::get('boom', fn () => throw new RuntimeException('boom'))->middleware('web');
+
+    get('/boom')
+        ->assertStatus(500)
+        ->assertDontSee('database is down')
+        ->assertHeaderMissing('X-Inertia');
 });
 
 it('renders server errors without exposing the exception message', function () {
