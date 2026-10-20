@@ -2,11 +2,14 @@
 
 namespace Ssdev\Headless;
 
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Ssdev\Headless\Console\InstallCommand;
 use Ssdev\Headless\Features\FeatureBootstrapper;
 use Ssdev\Headless\Features\FeatureCatalog;
 use Ssdev\Headless\Features\FeatureRegistry;
+use Ssdev\Headless\Installation\ProjectFiles;
 use Ssdev\Headless\Navigation\NavigationGroup;
 use Ssdev\Headless\Navigation\NavigationItem;
 use Ssdev\Headless\Navigation\NavigationRegistry;
@@ -29,6 +32,8 @@ class HeadlessServiceProvider extends ServiceProvider
         ));
 
         $this->app->singleton(NavigationRegistry::class);
+
+        $this->app->bind(ProjectFiles::class, fn ($app) => new ProjectFiles($app->basePath(), $app->make(Filesystem::class)));
     }
 
     public function boot(FeatureBootstrapper $bootstrapper, FeatureRegistry $registry, NavigationRegistry $navigation): void
@@ -58,6 +63,10 @@ class HeadlessServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../resources/views' => resource_path('views/vendor/headless'),
         ], 'headless-views');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([InstallCommand::class]);
+        }
     }
 
     private function registerRoutes(): void

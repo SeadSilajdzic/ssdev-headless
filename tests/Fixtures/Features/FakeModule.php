@@ -3,12 +3,13 @@
 namespace Ssdev\Headless\Tests\Fixtures\Features;
 
 use Ssdev\Headless\Features\FeatureModule;
+use Ssdev\Headless\Installation\InstallStep;
 
 final class FakeModule implements FeatureModule
 {
     /**
      * @param  array<string, string>  $packages
-     * @param  list<class-string>  $installSteps
+     * @param  list<class-string<InstallStep>>  $installSteps
      */
     public function __construct(
         private string $key = 'fake',
@@ -34,5 +35,10 @@ final class FakeModule implements FeatureModule
     public function serviceProvider(): string
     {
         return FakeFeatureServiceProvider::class;
+    }
+
+    public function installSteps(): array
+    {
+        return $this->installSteps;
     }
 }

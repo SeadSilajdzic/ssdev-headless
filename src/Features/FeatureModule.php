@@ -3,6 +3,7 @@
 namespace Ssdev\Headless\Features;
 
 use Illuminate\Support\ServiceProvider;
+use Ssdev\Headless\Installation\InstallStep;
 
 interface FeatureModule
 {
@@ -19,4 +20,9 @@ interface FeatureModule
      * @return class-string<ServiceProvider>
      */
     public function serviceProvider(): string;
+
+    /**
+     * @return list<class-string<InstallStep>>
+     */
+    public function installSteps(): array;
 }
