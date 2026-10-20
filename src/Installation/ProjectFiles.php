@@ -37,6 +37,19 @@ final class ProjectFiles
         $this->filesystem->delete($this->path($relative));
     }
 
+    /**
+     * @return list<string> paths relative to the project root
+     */
+    public function glob(string $pattern): array
+    {
+        $prefix = strlen($this->path(''));
+
+        return array_values(array_map(
+            fn (string $path) => str_replace('\\', '/', substr($path, $prefix)),
+            $this->filesystem->glob($this->path($pattern)),
+        ));
+    }
+
     public function contains(string $relative, string $needle): bool
     {
         return $this->exists($relative) && str_contains($this->get($relative), $needle);

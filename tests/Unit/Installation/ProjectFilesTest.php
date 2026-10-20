@@ -21,3 +21,12 @@ it('writes pretty printed json with unescaped slashes', function () {
 
     expect($files->get('x.json'))->toBe("{\n    \"a\": \"b/c\"\n}\n");
 });
+
+it('globs project paths relative to the root', function () {
+    $files = fixtureProject();
+    $files->put('database/migrations/2026_01_01_000000_a.php', '<?php');
+    $files->put('database/migrations/2026_01_01_000001_b.php', '<?php');
+
+    expect($files->glob('database/migrations/*_a.php'))->toBe(['database/migrations/2026_01_01_000000_a.php'])
+        ->and($files->glob('missing/*.php'))->toBe([]);
+});

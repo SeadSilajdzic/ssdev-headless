@@ -12,6 +12,7 @@ use Ssdev\Headless\Console\GrantPermissionsCommand;
 use Ssdev\Headless\Console\InstallCommand;
 use Ssdev\Headless\Console\PublishCommand;
 use Ssdev\Headless\Console\SyncPermissionsCommand;
+use Ssdev\Headless\Console\UpgradeCommand;
 use Ssdev\Headless\Features\FeatureBootstrapper;
 use Ssdev\Headless\Features\FeatureCatalog;
 use Ssdev\Headless\Features\FeatureRegistry;
@@ -97,7 +98,7 @@ class HeadlessServiceProvider extends ServiceProvider
         ], 'headless-views');
 
         if ($this->app->runningInConsole()) {
-            $this->commands([InstallCommand::class, PublishCommand::class, SyncPermissionsCommand::class, GrantPermissionsCommand::class]);
+            $this->commands([InstallCommand::class, PublishCommand::class, SyncPermissionsCommand::class, GrantPermissionsCommand::class, UpgradeCommand::class]);
         }
     }
 

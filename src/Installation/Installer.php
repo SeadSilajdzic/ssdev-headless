@@ -8,12 +8,14 @@ use Ssdev\Headless\Installation\Steps\ConfigureExceptionRendering;
 use Ssdev\Headless\Installation\Steps\InstallFrontendScaffolding;
 use Ssdev\Headless\Installation\Steps\InstallInertiaMiddleware;
 use Ssdev\Headless\Installation\Steps\PublishConfig;
+use Ssdev\Headless\Installation\Steps\PublishMigrations;
 use Ssdev\Headless\Installation\Steps\RequireComposerPackages;
 
 final class Installer
 {
     public const BASE_STEPS = [
         PublishConfig::class,
+        PublishMigrations::class,
         InstallInertiaMiddleware::class,
         ConfigureExceptionRendering::class,
         InstallFrontendScaffolding::class,
