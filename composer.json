@@ -1,0 +1,58 @@
+{
+    "name": "ssdev/laravel-headless",
+    "description": "Installable Laravel foundation with authentication, teams, roles, 2FA and multi-tenancy, shipped with a Vue + Inertia UI and a JSON API.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "inertia", "vue", "starter-kit", "multi-tenancy", "teams", "two-factor"],
+    "authors": [
+        {
+            "name": "Sead Silajdzic"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "illuminate/contracts": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0",
+        "inertiajs/inertia-laravel": "^3.5",
+        "laravel/prompts": "^0.3"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.13",
+        "laravel/pint": "^1.27",
+        "orchestra/testbench": "^10.0|^11.0",
+        "pestphp/pest": "^4.7",
+        "pestphp/pest-plugin-laravel": "^4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ssdev\\Headless\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ssdev\\Headless\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ssdev\\Headless\\HeadlessServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "analyse": "phpstan analyse",
+        "format": "pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
