@@ -1,0 +1,23 @@
+<?php
+
+namespace Ssdev\Headless\Http\Requests\Settings;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class LogoutOtherSessionsRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user() !== null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
+    {
+        return [
+            'password' => ['required', 'string', 'current_password'],
+        ];
+    }
+}

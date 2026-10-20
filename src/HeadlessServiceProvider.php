@@ -75,6 +75,15 @@ class HeadlessServiceProvider extends ServiceProvider
             NavigationGroup::Account,
         ));
 
+        $navigation->add(new NavigationItem(
+            'security',
+            'headless::navigation.security',
+            'headless.security.edit',
+            'shield',
+            NavigationGroup::Account,
+            order: 10,
+        ));
+
         $this->publishes([
             __DIR__.'/../config/headless.php' => config_path('headless.php'),
         ], 'headless-config');

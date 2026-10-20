@@ -10,5 +10,6 @@ return [
 
     'dashboard' => 'Dashboard',
     'profile' => 'Profile',
+    'security' => 'Security',
 
 ];

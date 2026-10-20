@@ -39,6 +39,25 @@ return [
         'confirm_description' => 'This cannot be undone. Enter your password to confirm.',
     ],
 
+    'security' => [
+        'title' => 'Security',
+    ],
+
+    'sessions' => [
+        'title' => 'Browser sessions',
+        'description' => 'Manage and log out your active sessions on other browsers and devices.',
+        'unsupported' => 'Browser sessions are listed only when the application stores sessions in the database (SESSION_DRIVER=database).',
+        'this_device' => 'This device',
+        'unknown' => 'Unknown device',
+        'log_out' => 'Log out',
+        'log_out_others' => 'Log out other sessions',
+        'log_out_others_hint' => 'Sign out of all sessions except this device.',
+        'confirm_title' => 'Log out other sessions?',
+        'confirm_description' => 'Enter your password to sign out of every other browser and device.',
+        'logged_out' => 'The session has been logged out.',
+        'others_logged_out' => 'Your other sessions have been logged out.',
+    ],
+
     'email_change' => [
         'confirmed' => 'Your email address has been changed.',
         'invalid' => 'This confirmation link is invalid or has expired.',

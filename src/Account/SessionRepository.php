@@ -6,6 +6,7 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Collection;
 
 final class SessionRepository
 {
@@ -19,6 +20,26 @@ final class SessionRepository
     public function supportsBrowserSessions(): bool
     {
         return $this->config->get('session.driver') === self::DATABASE_DRIVER;
+    }
+
+    /**
+     * @return Collection<int, \stdClass>
+     */
+    public function forUser(User $user): Collection
+    {
+        if (! $this->supportsBrowserSessions()) {
+            return new Collection;
+        }
+
+        return $this->table()
+            ->where('user_id', $user->getAuthIdentifier())
+            ->orderByDesc('last_activity')
+            ->get(['id', 'ip_address', 'user_agent', 'last_activity']);
+    }
+
+    public function delete(string $sessionId): void
+    {
+        $this->table()->where('id', $sessionId)->delete();
     }
 
     /**
