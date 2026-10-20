@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "jsx": "preserve",
+        "noEmit": true,
+        "isolatedModules": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "types": ["vite/client"],
+        "paths": {
+            "@headless/*": ["./resources/js/vendor/headless/*", "./vendor/ssdev/laravel-headless/resources/js/*"]
+        }
+    },
+    "include": ["resources/js/**/*.ts", "resources/js/**/*.vue", "vendor/ssdev/laravel-headless/resources/js/types/*.d.ts"]
+}

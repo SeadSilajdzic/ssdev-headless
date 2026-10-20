@@ -21,12 +21,26 @@ it('fails on unknown feature keys', function () {
         ->assertFailed();
 });
 
+it('is idempotent', function () {
+    $files = fixtureProject();
+    artisan('headless:install', ['--no-interaction' => true, '--force' => true])->assertSuccessful();
+    $snapshot = collect(['bootstrap/app.php', 'vite.config.ts', 'resources/css/app.css', 'resources/js/app.ts', 'package.json', 'config/headless.php'])
+        ->mapWithKeys(fn (string $path) => [$path => $files->get($path)]);
+
+    artisan('headless:install', ['--no-interaction' => true])
+        ->doesntExpectOutputToContain('changed')
+        ->assertSuccessful();
+
+    $snapshot->each(fn (string $contents, string $path) => expect($files->get($path))->toBe($contents));
+});
+
 it('asks which features to install and runs their steps', function () {
     $files = fixtureProject();
     useFeatures([new FakeModule('fake', installSteps: [FakeInstallStep::class])]);
 
     artisan('headless:install')
         ->expectsChoice('Which features would you like to install?', ['fake'], ['fake' => 'Fake feature'])
+        ->expectsConfirmation('Overwrite vite.config.js?', 'yes')
         ->expectsConfirmation('Run npm install and npm run build now?', 'no')
         ->assertSuccessful();
 

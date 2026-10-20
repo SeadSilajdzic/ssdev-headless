@@ -1,0 +1,4 @@
+import '../css/app.css';
+import { createHeadlessApp } from '@headless/app';
+
+createHeadlessApp({ pages: import.meta.glob('./pages/**/*.vue') });

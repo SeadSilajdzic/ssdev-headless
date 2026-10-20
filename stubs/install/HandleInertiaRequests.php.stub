@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Illuminate\Http\Request;
+use Ssdev\Headless\Http\Middleware\HandleHeadlessInertiaRequests;
+
+class HandleInertiaRequests extends HandleHeadlessInertiaRequests
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function share(Request $request): array
+    {
+        return [
+            ...parent::share($request),
+        ];
+    }
+}
