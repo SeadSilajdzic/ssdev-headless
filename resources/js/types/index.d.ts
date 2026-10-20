@@ -32,6 +32,7 @@ export interface HeadlessSharedProps {
         navigation: NavigationSection[];
         translations: Translations;
         logoutUrl: string | null;
+        honeypot: string;
     };
     flash: { success: string | null; error: string | null };
 }

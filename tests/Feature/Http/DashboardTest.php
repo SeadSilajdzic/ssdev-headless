@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 use Ssdev\Headless\Support\Flash;
 use Workbench\App\Models\User;
@@ -24,14 +23,12 @@ it('renders the dashboard with shared props', function () {
             ->where('headless.navigation.0.items.0.key', 'dashboard')
             ->where('headless.navigation.0.items.0.active', true)
             ->where('headless.translations.common.actions.save', 'Save')
-            ->where('headless.logoutUrl', null)
+            ->where('headless.logoutUrl', route('logout'))
             ->where('flash.success', null));
 });
 
 it('redirects guests to the login route', function () {
-    Route::get('login', fn () => 'login')->name('login');
-
-    get(route('headless.dashboard'))->assertRedirect('/login');
+    get(route('headless.dashboard'))->assertRedirect(route('login'));
 });
 
 it('shares flash messages', function () {

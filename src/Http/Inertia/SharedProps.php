@@ -39,6 +39,7 @@ final class SharedProps
                 'navigation' => fn () => $this->navigation->forUser($request->user(), $request->route()?->getName()),
                 'translations' => fn () => $this->translations->forLocale(app()->getLocale()),
                 'logoutUrl' => fn () => Route::has('logout') ? route('logout') : null,
+                'honeypot' => config('headless.honeypot.field'),
             ],
             'flash' => fn () => [
                 'success' => $request->hasSession() ? $request->session()->get(Flash::SUCCESS) : null,

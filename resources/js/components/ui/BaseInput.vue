@@ -3,6 +3,9 @@ import { inputClasses } from '@headless/components/ui/inputClasses';
 
 withDefaults(defineProps<{ type?: string; invalid?: boolean; placeholder?: string; autocomplete?: string }>(), { type: 'text' });
 
+// Attributes from FormField (id, aria-*) belong on the input, not on the wrapper.
+defineOptions({ inheritAttrs: false });
+
 const model = defineModel<string>({ default: '' });
 </script>
 
@@ -12,6 +15,7 @@ const model = defineModel<string>({ default: '' });
             <slot name="prefix" />
         </span>
         <input
+            v-bind="$attrs"
             v-model="model"
             :type="type"
             :placeholder="placeholder"

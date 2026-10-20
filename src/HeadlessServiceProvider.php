@@ -2,10 +2,12 @@
 
 namespace Ssdev\Headless;
 
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Ssdev\Headless\Auth\FortifyIntegration;
+use Ssdev\Headless\Auth\RateLimits;
 use Ssdev\Headless\Console\GrantPermissionsCommand;
 use Ssdev\Headless\Console\InstallCommand;
 use Ssdev\Headless\Console\PublishCommand;
@@ -46,9 +48,11 @@ class HeadlessServiceProvider extends ServiceProvider
         $this->app->bind(ProjectFiles::class, fn ($app) => new ProjectFiles($app->basePath(), $app->make(Filesystem::class)));
     }
 
-    public function boot(FeatureBootstrapper $bootstrapper, FeatureRegistry $registry, NavigationRegistry $navigation, FortifyIntegration $fortify): void
+    public function boot(FeatureBootstrapper $bootstrapper, FeatureRegistry $registry, NavigationRegistry $navigation, FortifyIntegration $fortify, RateLimits $rateLimits): void
     {
         $fortify->boot();
+        $rateLimits->register();
+        RedirectIfAuthenticated::redirectUsing(fn () => route('headless.dashboard'));
         $bootstrapper->registerProviders($registry);
 
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'headless');
@@ -84,6 +88,9 @@ class HeadlessServiceProvider extends ServiceProvider
     {
         Route::middleware(config('headless.routes.middleware'))
             ->prefix(config('headless.routes.prefix'))
-            ->group(__DIR__.'/../routes/web.php');
+            ->group(function () {
+                $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+                $this->loadRoutesFrom(__DIR__.'/../routes/auth.php');
+            });
     }
 }

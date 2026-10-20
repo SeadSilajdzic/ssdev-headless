@@ -6,6 +6,9 @@ import { useTrans } from '@headless/i18n';
 
 withDefaults(defineProps<{ invalid?: boolean; autocomplete?: string; placeholder?: string }>(), { autocomplete: 'current-password' });
 
+// Attributes from FormField (id, aria-*) belong on the input, not on the wrapper.
+defineOptions({ inheritAttrs: false });
+
 const model = defineModel<string>({ default: '' });
 const visible = ref(false);
 const t = useTrans();
@@ -14,6 +17,7 @@ const t = useTrans();
 <template>
     <div class="relative">
         <input
+            v-bind="$attrs"
             v-model="model"
             :type="visible ? 'text' : 'password'"
             :autocomplete="autocomplete"
