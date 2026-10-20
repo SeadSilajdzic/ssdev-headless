@@ -21,6 +21,12 @@ final class InstallFrontendScaffolding implements InstallStep
 
     private const EMPTY_THEME = "/\R@theme \{\s*\}\R?/";
 
+    private const WELCOME_VIEW_PATH = 'resources/views/welcome.blade.php';
+
+    private const DEFAULT_WELCOME_ASSETS = "@vite(['resources/css/app.css', 'resources/js/app.js'])";
+
+    private const STYLESHEET_ASSETS = "@vite(['resources/css/app.css'])";
+
     public function handle(InstallContext $context): StepResult
     {
         return StepResult::combine(self::DESCRIPTION, [
@@ -28,6 +34,7 @@ final class InstallFrontendScaffolding implements InstallStep
             $this->installEntryPoint($context),
             $this->installTsConfig($context),
             $this->installStylesheet($context),
+            $this->installWelcomeView($context),
         ]);
     }
 
@@ -136,5 +143,26 @@ final class InstallFrontendScaffolding implements InstallStep
         $files->put(self::STYLESHEET_PATH, (string) preg_replace(self::EMPTY_THEME, '', $stylesheet));
 
         return StepResult::changed(self::STYLESHEET_PATH);
+    }
+
+    private function installWelcomeView(InstallContext $context): StepResult
+    {
+        $files = $context->files;
+
+        // A Vite config that still needs manual changes may keep app.js as an entry.
+        if (! $files->contains('vite.config.ts', 'headless(') || ! $files->contains(self::WELCOME_VIEW_PATH, 'resources/js/app.js')) {
+            return StepResult::skipped(self::WELCOME_VIEW_PATH);
+        }
+
+        if (! $files->contains(self::WELCOME_VIEW_PATH, self::DEFAULT_WELCOME_ASSETS)) {
+            return StepResult::manual(
+                self::WELCOME_VIEW_PATH,
+                'Remove resources/js/app.js from the @vite directive in resources/views/welcome.blade.php; the Vue entry point is resources/js/app.ts.',
+            );
+        }
+
+        $files->put(self::WELCOME_VIEW_PATH, str_replace(self::DEFAULT_WELCOME_ASSETS, self::STYLESHEET_ASSETS, $files->get(self::WELCOME_VIEW_PATH)));
+
+        return StepResult::changed(self::WELCOME_VIEW_PATH);
     }
 }

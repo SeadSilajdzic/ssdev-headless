@@ -117,3 +117,32 @@ it('skips when the frontend is already scaffolded', function () {
     expect(app(InstallFrontendScaffolding::class)->handle(installContext($files))->status)->toBe(StepStatus::Skipped)
         ->and($files->get('resources/css/app.css'))->toBe($css);
 });
+
+it('keeps app.css as a vite entry for blade pages', function () {
+    $files = fixtureProject();
+
+    app(InstallFrontendScaffolding::class)->handle(installContext($files, overwrite: true));
+
+    expect($files->get('vite.config.ts'))->toContain("input: ['resources/css/app.css', 'resources/js/app.ts']");
+});
+
+it('points the welcome page at the stylesheet only', function () {
+    $files = fixtureProject();
+
+    app(InstallFrontendScaffolding::class)->handle(installContext($files, overwrite: true));
+
+    expect($files->get('resources/views/welcome.blade.php'))
+        ->toContain("@vite(['resources/css/app.css'])")
+        ->not->toContain('resources/js/app.js');
+});
+
+it('returns manual instructions when the welcome page loads app.js differently', function () {
+    $files = fixtureProject();
+    $files->put('resources/views/welcome.blade.php', "@vite('resources/js/app.js')\n");
+
+    $result = app(InstallFrontendScaffolding::class)->handle(installContext($files, overwrite: true));
+
+    expect($result->status)->toBe(StepStatus::Manual)
+        ->and($result->instructions)->toContain('welcome.blade.php')
+        ->and($files->get('resources/views/welcome.blade.php'))->toBe("@vite('resources/js/app.js')\n");
+});
