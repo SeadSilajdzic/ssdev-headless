@@ -1,7 +1,10 @@
 <?php
 
+use Spatie\Permission\Models\Permission;
 use Ssdev\Headless\Tests\Fixtures\Features\FakeInstallStep;
 use Ssdev\Headless\Tests\Fixtures\Features\FakeModule;
+use Ssdev\Headless\Tests\Fixtures\Permissions\FakePermission;
+use Workbench\App\Models\User;
 
 use function Pest\Laravel\artisan;
 
@@ -41,6 +44,7 @@ it('asks which features to install and runs their steps', function () {
     artisan('headless:install')
         ->expectsChoice('Which features would you like to install?', ['fake'], ['fake' => 'Fake feature'])
         ->expectsConfirmation('Overwrite vite.config.js?', 'yes')
+        ->expectsConfirmation('Run database migrations now?', 'no')
         ->expectsConfirmation('Run npm install and npm run build now?', 'no')
         ->assertSuccessful();
 
@@ -63,4 +67,43 @@ it('does not print the notice when features are available', function () {
     artisan('headless:install', ['--no-interaction' => true])
         ->doesntExpectOutputToContain('No optional features are available')
         ->assertSuccessful();
+});
+
+it('runs migrations and syncs permissions with --migrate', function () {
+    fixtureProject();
+    usePermissions(FakePermission::class);
+
+    artisan('headless:install', ['--migrate' => true, '--no-interaction' => true])->assertSuccessful();
+
+    expect(Permission::count())->toBe(2);
+});
+
+it('offers to create the first admin after migrating', function () {
+    fixtureProject();
+
+    artisan('headless:install')
+        ->expectsConfirmation('Overwrite vite.config.js?', 'yes')
+        ->expectsConfirmation('Run database migrations now?', 'yes')
+        ->expectsConfirmation('Create the first admin account now?', 'yes')
+        ->expectsQuestion('Name', 'Ada Lovelace')
+        ->expectsQuestion('Email', 'ada@example.com')
+        ->expectsQuestion('Password', 'S3cure-password!')
+        ->expectsQuestion('Confirm password', 'S3cure-password!')
+        ->expectsConfirmation('Run npm install and npm run build now?', 'no')
+        ->assertSuccessful();
+
+    expect(User::where('email', 'ada@example.com')->exists())->toBeTrue();
+});
+
+it('skips the admin question when migrations were not run', function () {
+    fixtureProject();
+
+    artisan('headless:install')
+        ->expectsConfirmation('Overwrite vite.config.js?', 'yes')
+        ->expectsConfirmation('Run database migrations now?', 'no')
+        ->doesntExpectOutputToContain('Create the first admin account now?')
+        ->expectsConfirmation('Run npm install and npm run build now?', 'no')
+        ->assertSuccessful();
+
+    expect(User::count())->toBe(0);
 });

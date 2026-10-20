@@ -21,6 +21,7 @@ final class InstallCommand extends Command
     protected $signature = 'headless:install
         {--features= : Comma-separated feature keys}
         {--force : Overwrite changed files without asking}
+        {--migrate : Run the database migrations and sync permissions}
         {--npm : Run npm install and npm run build}';
 
     protected $description = 'Install the headless core and the selected features';
@@ -41,7 +42,33 @@ final class InstallCommand extends Command
 
         $this->report($results);
 
+        if ($this->runMigrations()) {
+            $this->offerFirstAdmin();
+        }
+
         return $this->runNpm() ? self::SUCCESS : self::FAILURE;
+    }
+
+    private function runMigrations(): bool
+    {
+        $shouldRun = $this->option('migrate')
+            || ($this->input->isInteractive() && confirm('Run database migrations now?', default: true));
+
+        if (! $shouldRun) {
+            return false;
+        }
+
+        $this->call('migrate', ['--force' => true]);
+        $this->call('headless:permissions:sync');
+
+        return true;
+    }
+
+    private function offerFirstAdmin(): void
+    {
+        if ($this->input->isInteractive() && confirm('Create the first admin account now?', default: true)) {
+            $this->call('headless:create-admin');
+        }
     }
 
     /**

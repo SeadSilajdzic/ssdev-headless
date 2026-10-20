@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Ssdev\Headless\Auth\FortifyIntegration;
 use Ssdev\Headless\Auth\RateLimits;
+use Ssdev\Headless\Console\CreateAdminCommand;
 use Ssdev\Headless\Console\GrantPermissionsCommand;
 use Ssdev\Headless\Console\InstallCommand;
 use Ssdev\Headless\Console\PublishCommand;
@@ -98,7 +99,7 @@ class HeadlessServiceProvider extends ServiceProvider
         ], 'headless-views');
 
         if ($this->app->runningInConsole()) {
-            $this->commands([InstallCommand::class, PublishCommand::class, SyncPermissionsCommand::class, GrantPermissionsCommand::class, UpgradeCommand::class]);
+            $this->commands([InstallCommand::class, PublishCommand::class, SyncPermissionsCommand::class, GrantPermissionsCommand::class, UpgradeCommand::class, CreateAdminCommand::class]);
         }
     }
 
