@@ -6,8 +6,10 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Ssdev\Headless\Auth\FortifyIntegration;
+use Ssdev\Headless\Console\GrantPermissionsCommand;
 use Ssdev\Headless\Console\InstallCommand;
 use Ssdev\Headless\Console\PublishCommand;
+use Ssdev\Headless\Console\SyncPermissionsCommand;
 use Ssdev\Headless\Features\FeatureBootstrapper;
 use Ssdev\Headless\Features\FeatureCatalog;
 use Ssdev\Headless\Features\FeatureRegistry;
@@ -15,6 +17,7 @@ use Ssdev\Headless\Installation\ProjectFiles;
 use Ssdev\Headless\Navigation\NavigationGroup;
 use Ssdev\Headless\Navigation\NavigationItem;
 use Ssdev\Headless\Navigation\NavigationRegistry;
+use Ssdev\Headless\Permissions\PermissionRegistry;
 use Ssdev\Headless\Translations\HeadlessTranslations;
 
 class HeadlessServiceProvider extends ServiceProvider
@@ -37,6 +40,8 @@ class HeadlessServiceProvider extends ServiceProvider
         ));
 
         $this->app->singleton(NavigationRegistry::class);
+
+        $this->app->singleton(PermissionRegistry::class, fn ($app) => new PermissionRegistry($app['config']->get('headless.permissions', [])));
 
         $this->app->bind(ProjectFiles::class, fn ($app) => new ProjectFiles($app->basePath(), $app->make(Filesystem::class)));
     }
@@ -71,7 +76,7 @@ class HeadlessServiceProvider extends ServiceProvider
         ], 'headless-views');
 
         if ($this->app->runningInConsole()) {
-            $this->commands([InstallCommand::class, PublishCommand::class]);
+            $this->commands([InstallCommand::class, PublishCommand::class, SyncPermissionsCommand::class, GrantPermissionsCommand::class]);
         }
     }
 

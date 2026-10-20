@@ -36,7 +36,7 @@ type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]>
 
 function defaultProps(): HeadlessSharedProps {
     return {
-        auth: { user: { id: 1, name: 'Ada Lovelace', email: 'ada@example.com', email_verified: true } },
+        auth: { user: { id: 1, name: 'Ada Lovelace', email: 'ada@example.com', email_verified: true }, permissions: [] },
         headless: {
             appName: 'Laravel',
             locale: 'en',

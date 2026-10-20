@@ -24,7 +24,7 @@ export interface Translations {
 }
 
 export interface HeadlessSharedProps {
-    auth: { user: AuthUser | null };
+    auth: { user: AuthUser | null; permissions: string[] };
     headless: {
         appName: string;
         locale: string;

@@ -7,6 +7,8 @@ use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Installation\InstallContext;
 use Ssdev\Headless\Installation\ProjectFiles;
+use Ssdev\Headless\Permissions\HeadlessPermission;
+use Ssdev\Headless\Permissions\PermissionRegistry;
 use Ssdev\Headless\Tests\Support\FixtureProject;
 use Ssdev\Headless\Tests\TestCase;
 
@@ -62,4 +64,14 @@ function expectNoSensitiveProps(TestResponse $response, Model $user): void
     }
 
     expect($props)->not->toContain(json_encode($user->getAuthPassword(), JSON_THROW_ON_ERROR));
+}
+
+/**
+ * @param  class-string<HeadlessPermission>  ...$enums
+ */
+function usePermissions(string ...$enums): void
+{
+    foreach ($enums as $enum) {
+        app(PermissionRegistry::class)->register($enum);
+    }
 }
