@@ -22,6 +22,8 @@ final class ProfileController
             'updateUrl' => route('headless.profile.update'),
             'avatarUrl' => route('headless.avatar.store'),
             'verificationUrl' => route('verification.send'),
+            'passwordUrl' => route('headless.password.update'),
+            'deleteUrl' => route('headless.account.destroy'),
         ]);
     }
 

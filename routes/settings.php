@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use Ssdev\Headless\Account\EmailChangeService;
 use Ssdev\Headless\Auth\RateLimits;
+use Ssdev\Headless\Http\Controllers\Settings\AccountController;
 use Ssdev\Headless\Http\Controllers\Settings\AvatarController;
 use Ssdev\Headless\Http\Controllers\Settings\EmailChangeController;
+use Ssdev\Headless\Http\Controllers\Settings\PasswordController;
 use Ssdev\Headless\Http\Controllers\Settings\ProfileController;
 
 // Settings stay reachable without a verified email, so a mistyped address can still be fixed.
@@ -14,8 +16,16 @@ Route::middleware('auth')->prefix('settings')->group(function () {
         ->middleware('throttle:'.RateLimits::REAUTHENTICATION)
         ->name('headless.profile.update');
 
+    Route::delete('profile', [AccountController::class, 'destroy'])
+        ->middleware('throttle:'.RateLimits::REAUTHENTICATION)
+        ->name('headless.account.destroy');
+
     Route::post('profile/avatar', [AvatarController::class, 'store'])->name('headless.avatar.store');
     Route::delete('profile/avatar', [AvatarController::class, 'destroy'])->name('headless.avatar.destroy');
+
+    Route::put('password', [PasswordController::class, 'update'])
+        ->middleware('throttle:'.RateLimits::REAUTHENTICATION)
+        ->name('headless.password.update');
 });
 
 // Opened from the new mailbox, possibly on another device, so it relies on the signature instead of a session.

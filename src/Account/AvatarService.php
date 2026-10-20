@@ -45,6 +45,11 @@ final class AvatarService
         }
     }
 
+    public function discard(string $path): void
+    {
+        $this->disk()->delete($path);
+    }
+
     public function url(User $user): ?string
     {
         return is_string($user->getAttribute('avatar_path')) ? $this->disk()->url($user->getAttribute('avatar_path')) : null;

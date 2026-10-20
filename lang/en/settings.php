@@ -23,6 +23,22 @@ return [
         'removed' => 'Photo removed.',
     ],
 
+    'password' => [
+        'title' => 'Update password',
+        'description' => 'Use a long, random password to keep your account secure.',
+        'new' => 'New password',
+        'submit' => 'Update password',
+        'updated' => 'Password updated. Your other sessions have been signed out.',
+    ],
+
+    'delete' => [
+        'title' => 'Delete account',
+        'description' => 'Permanently delete your account and all of its data. This cannot be undone.',
+        'button' => 'Delete account',
+        'confirm_title' => 'Delete account?',
+        'confirm_description' => 'This cannot be undone. Enter your password to confirm.',
+    ],
+
     'email_change' => [
         'confirmed' => 'Your email address has been changed.',
         'invalid' => 'This confirmation link is invalid or has expired.',
