@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Installation\InstallContext;
@@ -42,4 +44,22 @@ function installContext(ProjectFiles $files, array $features = [], bool $overwri
 function useFeatures(array $available, array $enabled = []): void
 {
     app()->instance(FeatureRegistry::class, new FeatureRegistry($available, $enabled));
+}
+
+function useDatabaseSessions(): void
+{
+    config(['session.driver' => 'database']);
+    app('session')->forgetDrivers();
+    app()->forgetInstance('session.store');
+}
+
+function expectNoSensitiveProps(TestResponse $response, Model $user): void
+{
+    $props = json_encode($response->viewData('page')['props'], JSON_THROW_ON_ERROR);
+
+    foreach (['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'] as $key) {
+        expect($props)->not->toContain("\"{$key}\"");
+    }
+
+    expect($props)->not->toContain(json_encode($user->getAuthPassword(), JSON_THROW_ON_ERROR));
 }

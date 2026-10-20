@@ -5,6 +5,7 @@ namespace Ssdev\Headless;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Ssdev\Headless\Auth\FortifyIntegration;
 use Ssdev\Headless\Console\InstallCommand;
 use Ssdev\Headless\Console\PublishCommand;
 use Ssdev\Headless\Features\FeatureBootstrapper;
@@ -22,6 +23,9 @@ class HeadlessServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/headless.php', 'headless');
 
+        $this->app->singleton(FortifyIntegration::class);
+        $this->app->make(FortifyIntegration::class)->register();
+
         $this->app->singleton(FeatureRegistry::class, fn ($app) => new FeatureRegistry(
             $app->make(FeatureCatalog::class)->modules(),
             $app['config']->get('headless.features', []),
@@ -37,8 +41,9 @@ class HeadlessServiceProvider extends ServiceProvider
         $this->app->bind(ProjectFiles::class, fn ($app) => new ProjectFiles($app->basePath(), $app->make(Filesystem::class)));
     }
 
-    public function boot(FeatureBootstrapper $bootstrapper, FeatureRegistry $registry, NavigationRegistry $navigation): void
+    public function boot(FeatureBootstrapper $bootstrapper, FeatureRegistry $registry, NavigationRegistry $navigation, FortifyIntegration $fortify): void
     {
+        $fortify->boot();
         $bootstrapper->registerProviders($registry);
 
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'headless');

@@ -10,6 +10,9 @@ final class Flash
 
     public const ERROR = 'headless.flash.error';
 
+    // Fortify flashes its own status messages under this key.
+    public const STATUS = 'status';
+
     public function __construct(private Session $session) {}
 
     public function success(string $message): void
