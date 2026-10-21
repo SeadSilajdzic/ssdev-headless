@@ -2,6 +2,7 @@
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PermissionPicker, { type PermissionGroup } from '@headless/components/permissions/PermissionPicker.vue';
+import RoleMembers, { type RoleMemberPage } from '@headless/components/roles/RoleMembers.vue';
 import BaseAlert from '@headless/components/ui/BaseAlert.vue';
 import BaseBadge from '@headless/components/ui/BaseBadge.vue';
 import BaseButton from '@headless/components/ui/BaseButton.vue';
@@ -27,6 +28,8 @@ const props = defineProps<{
     indexUrl: string;
     saveUrl: string;
     deleteUrl: string | null;
+    members: RoleMemberPage | null;
+    membersUrl: string | null;
 }>();
 
 const t = useTrans();
@@ -46,6 +49,10 @@ function submit(): void {
     } else {
         form.post(props.saveUrl, options);
     }
+}
+
+function membersPageUrl(page: number): string {
+    return `${props.indexUrl}/${props.role?.id}?members_page=${page}`;
 }
 
 function destroy(): void {
@@ -94,6 +101,10 @@ function destroy(): void {
                         <BaseBadge v-for="permission in role.permissions" :key="permission" color="ink">{{ permission }}</BaseBadge>
                     </div>
                 </div>
+            </BaseCard>
+
+            <BaseCard v-if="role && members && membersUrl" :title="t('roles.members.title')" :description="t('roles.members.description')">
+                <RoleMembers :members="members" :members-url="membersUrl" :page-url="membersPageUrl" :can-manage="can.manage" />
             </BaseCard>
         </div>
 

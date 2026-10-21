@@ -31,6 +31,17 @@ return [
         'permissions' => 'Permissions',
     ],
 
+    'members' => [
+        'title' => 'Members',
+        'description' => 'People who have this role.',
+        'email' => 'Email of the person to add',
+        'add' => 'Add member',
+        'remove' => 'Remove',
+        'empty' => 'No one has this role yet.',
+        'added' => 'Member added.',
+        'removed' => 'Member removed.',
+    ],
+
     'delete' => [
         'button' => 'Delete role',
         'confirm_title' => 'Delete this role?',
@@ -42,6 +53,7 @@ return [
         'unknown_permission' => 'One of the permissions does not exist.',
         'role_not_manageable' => 'This role has permissions you do not have, so you cannot change or assign it.',
         'last_manager' => 'At least one role that manages roles must keep a member.',
+        'unknown_user' => 'No one has an account with this email.',
     ],
 
 ];

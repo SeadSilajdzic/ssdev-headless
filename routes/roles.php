@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Ssdev\Headless\Features\Roles\Http\Controllers\RoleController;
+use Ssdev\Headless\Features\Roles\Http\Controllers\RoleMemberController;
 use Ssdev\Headless\Features\Roles\RolePermission;
 use Ssdev\Headless\Http\Middleware\RequireVerifiedEmail;
 
@@ -15,6 +16,10 @@ Route::middleware(['auth', RequireVerifiedEmail::class])->prefix('roles')->group
         Route::post('/', [RoleController::class, 'store'])->name('headless.roles.store');
         Route::put('{role}', [RoleController::class, 'update'])->whereNumber('role')->name('headless.roles.update');
         Route::delete('{role}', [RoleController::class, 'destroy'])->whereNumber('role')->name('headless.roles.destroy');
+        Route::post('{role}/members', [RoleMemberController::class, 'store'])->whereNumber('role')->name('headless.roles.members.store');
+        Route::delete('{role}/members/{user}', [RoleMemberController::class, 'destroy'])
+            ->whereNumber(['role', 'user'])
+            ->name('headless.roles.members.destroy');
     });
 
     Route::get('{role}', [RoleController::class, 'edit'])
