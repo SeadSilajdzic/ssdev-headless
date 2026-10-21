@@ -86,6 +86,11 @@ watch(search, (value) => {
                 <template #cell-name="{ row }">
                     <Link :href="`${indexUrl}/${row.id}`" class="font-semibold text-ink-900 hover:text-mint-700" data-test="role-link">{{ row.name }}</Link>
                 </template>
+                <template #actions="{ row }">
+                    <BaseButton :href="`${indexUrl}/${row.id}`" variant="ghost" size="sm" data-test="open-role">
+                        {{ can.manage ? t('roles.actions.edit') : t('roles.actions.view') }}
+                    </BaseButton>
+                </template>
                 <template #empty>
                     <EmptyState :icon="ShieldCheck" :title="t('roles.empty.title')" :description="t('roles.empty.description')" />
                 </template>

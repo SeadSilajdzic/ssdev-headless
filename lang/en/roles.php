@@ -15,6 +15,11 @@ return [
     'updated' => 'Role saved.',
     'deleted' => 'Role deleted.',
 
+    'actions' => [
+        'edit' => 'Edit',
+        'view' => 'View',
+    ],
+
     'columns' => [
         'name' => 'Name',
         'permissions' => 'Permissions',
