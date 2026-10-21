@@ -15,7 +15,6 @@ const t = useTrans();
                 <Menu class="h-5 w-5" aria-hidden="true" />
             </BaseIconButton>
             <div class="flex-1" />
-            <slot name="actions" />
             <div class="border-l border-ink-200 pl-3">
                 <UserMenu />
             </div>

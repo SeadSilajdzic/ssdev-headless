@@ -15,6 +15,7 @@ All notable changes to this project are documented in this file. The format foll
 
 ### Changed
 
+- Page actions (the `actions` slot of `AppLayout`) sit next to the page title instead of in the top bar.
 - `headless:install` keeps installed features when it runs again and preselects them.
 - `ApiTokenAuthenticator::issue()` is split into `authenticate()` and `issueToken()`.
 

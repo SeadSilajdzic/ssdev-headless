@@ -38,13 +38,14 @@ watch(
         <MobileNav v-model:open="menuOpen" :title="page.props.headless.appName" :sections="sections" />
 
         <main class="flex min-w-0 flex-1 flex-col">
-            <AppTopbar @open-menu="menuOpen = true">
-                <template #actions><slot name="actions" /></template>
-            </AppTopbar>
+            <AppTopbar @open-menu="menuOpen = true" />
 
-            <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-6 sm:px-8">
+            <div class="flex flex-wrap items-center justify-between gap-3 px-4 pt-6 sm:px-8" data-test="page-header">
                 <h1 class="font-display text-3xl font-bold tracking-tight">{{ title }}</h1>
-                <BaseBreadcrumb v-if="breadcrumbs?.length" :items="breadcrumbs" />
+                <div v-if="breadcrumbs?.length || $slots.actions" class="flex flex-wrap items-center gap-3">
+                    <BaseBreadcrumb v-if="breadcrumbs?.length" :items="breadcrumbs" />
+                    <slot name="actions" />
+                </div>
             </div>
 
             <div class="p-4 sm:p-8">

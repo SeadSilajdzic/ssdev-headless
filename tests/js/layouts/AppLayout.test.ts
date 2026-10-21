@@ -59,3 +59,14 @@ it('hides the logout item when no logout url is shared', async () => {
     await openUserMenu();
     expect(document.body.textContent).not.toContain('Log out');
 });
+
+it('shows page actions next to the title, not in the top bar', () => {
+    const wrapper = mount(AppLayout, {
+        props: { title: 'Roles' },
+        slots: { actions: '<button data-test="page-action">New role</button>' },
+        global: { stubs: { Head: true } },
+    });
+
+    expect(wrapper.find('header [data-test="page-action"]').exists()).toBe(false);
+    expect(wrapper.get('[data-test="page-header"]').find('[data-test="page-action"]').exists()).toBe(true);
+});
