@@ -1,9 +1,11 @@
 <?php
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
+use Laravel\Sanctum\Sanctum;
 use Ssdev\Headless\Api\ApiRoutes;
 use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Features\FeatureRegistry;
@@ -91,4 +93,14 @@ function apiTestRoute(string $method, string $uri, Closure $action, array $middl
     Route::prefix((string) config('headless.api.prefix'))
         ->middleware([...ApiRoutes::MIDDLEWARE, ...$middleware])
         ->{$method}($uri, $action);
+}
+
+/**
+ * @param  list<string>  $abilities
+ */
+function apiAs(Authenticatable $user, array $abilities = ['*']): Authenticatable
+{
+    Sanctum::actingAs($user, $abilities);
+
+    return $user;
 }

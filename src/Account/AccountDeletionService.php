@@ -24,6 +24,11 @@ final class AccountDeletionService
 
         $this->database->transaction(function () use ($user) {
             $this->sessions->deleteForUser($user);
+
+            if (method_exists($user, 'tokens')) {
+                $user->tokens()->delete();
+            }
+
             $user->delete();
         });
 

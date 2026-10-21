@@ -17,9 +17,9 @@ final class PasswordService
     ) {}
 
     /**
-     * Every other session and "remember me" cookie stops working; the current session stays signed in.
+     * Every other session and "remember me" cookie stops working; the current session, if any, stays signed in.
      */
-    public function change(User $user, #[\SensitiveParameter] string $password, string $currentSessionId): void
+    public function change(User $user, #[\SensitiveParameter] string $password, ?string $currentSessionId): void
     {
         $user->forceFill([
             'password' => $this->hasher->make($password),
