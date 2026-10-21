@@ -3,10 +3,9 @@ import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import NavigationLinks from '@headless/components/layout/NavigationLinks.vue';
 import AppLayout from '@headless/layouts/AppLayout.vue';
+import { ACCOUNT_GROUP } from '@headless/support/navigation';
 
 defineProps<{ title: string; breadcrumbs?: { label: string; href?: string }[] }>();
-
-const ACCOUNT_GROUP = 'account';
 
 const page = usePage();
 const accountSections = computed(() =>

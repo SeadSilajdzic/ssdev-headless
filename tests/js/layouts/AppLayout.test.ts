@@ -7,11 +7,17 @@ const navigation = [
     { group: 'account', label: 'Account', items: [{ key: 'profile', label: 'Profile', url: '/user/profile', icon: 'user', active: false }] },
 ];
 
-it('renders navigation sections and marks the active item', () => {
+it('renders the app navigation and marks the active item', () => {
     setPageProps({ headless: { navigation } });
     const wrapper = mount(AppLayout, { props: { title: 'Dashboard' }, global: { stubs: { Head: true } } });
     expect(wrapper.get('a[aria-current="page"]').text()).toContain('Dashboard');
-    expect(wrapper.text()).toContain('Account');
+});
+
+it('leaves the account links to the user menu and the settings pages', () => {
+    setPageProps({ headless: { navigation } });
+    const wrapper = mount(AppLayout, { props: { title: 'Dashboard' }, global: { stubs: { Head: true } } });
+    expect(wrapper.find('a[href="/user/profile"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('Account');
 });
 
 it('opens the mobile navigation from the menu button', async () => {
@@ -19,7 +25,9 @@ it('opens the mobile navigation from the menu button', async () => {
     mount(AppLayout, { props: { title: 'Dashboard' }, attachTo: document.body });
     document.querySelector<HTMLElement>('[aria-label="Open menu"]')!.click();
     await flushPromises();
-    expect(document.querySelector('[role="dialog"]')?.textContent).toContain('Profile');
+    const drawer = document.querySelector('[role="dialog"]')?.textContent;
+    expect(drawer).toContain('Dashboard');
+    expect(drawer).not.toContain('Profile');
 });
 
 it('shows a toast for flash messages', async () => {
@@ -34,6 +42,12 @@ async function openUserMenu(): Promise<void> {
     document.querySelector<HTMLElement>('[aria-label="User menu"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     await flushPromises();
 }
+
+it('lists the account links in the user menu', async () => {
+    setPageProps({ headless: { navigation } });
+    await openUserMenu();
+    expect(document.querySelector('[role="menu"] a[href="/user/profile"]')).not.toBeNull();
+});
 
 it('shows the logout item when a logout url is shared', async () => {
     await openUserMenu();

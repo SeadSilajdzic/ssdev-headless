@@ -7,13 +7,12 @@ import BaseDropdown from '@headless/components/ui/BaseDropdown.vue';
 import BaseDropdownItem from '@headless/components/ui/BaseDropdownItem.vue';
 import { resolveNavigationIcon } from '@headless/icons';
 import { useTrans } from '@headless/i18n';
-
-const ACCOUNT_GROUP = 'account';
+import { accountLinks as findAccountLinks } from '@headless/support/navigation';
 
 const page = usePage();
 const t = useTrans();
 const user = computed(() => page.props.auth.user);
-const accountLinks = computed(() => page.props.headless.navigation.find((section) => section.group === ACCOUNT_GROUP)?.items ?? []);
+const accountLinks = computed(() => findAccountLinks(page.props.headless.navigation));
 </script>
 
 <template>

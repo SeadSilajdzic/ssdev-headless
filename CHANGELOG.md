@@ -18,6 +18,10 @@ All notable changes to this project are documented in this file. The format foll
 - Events `PasswordChanged`, `EmailChanged` and `AccountDeleted`.
 - `SECURITY.md` with the security matrix and `UPGRADE.md`.
 
+### Changed
+
+- Account links (profile, security) are no longer repeated in the app sidebar; they live in the user menu and the settings navigation.
+
 ### Fixed
 
 - Form fields now pass their `id` and ARIA attributes to the input element, so labels and error messages are linked for screen readers.

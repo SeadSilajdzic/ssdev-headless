@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { Head, usePage } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import AppSidebar from '@headless/components/layout/AppSidebar.vue';
 import AppTopbar from '@headless/components/layout/AppTopbar.vue';
 import MobileNav from '@headless/components/layout/MobileNav.vue';
 import BaseBreadcrumb from '@headless/components/ui/BaseBreadcrumb.vue';
 import ToastViewport from '@headless/components/ui/ToastViewport.vue';
 import { useToast } from '@headless/composables/useToast';
+import { appSections } from '@headless/support/navigation';
 
 defineProps<{ title: string; breadcrumbs?: { label: string; href?: string }[] }>();
 
 const page = usePage();
 const toast = useToast();
 const menuOpen = ref(false);
+const sections = computed(() => appSections(page.props.headless.navigation));
 
 watch(
     () => page.props.flash,
@@ -32,8 +34,8 @@ watch(
 <template>
     <Head :title="title" />
     <div class="flex min-h-screen bg-mint-50 text-ink-900">
-        <AppSidebar class="hidden lg:flex" :sections="page.props.headless.navigation" />
-        <MobileNav v-model:open="menuOpen" :title="page.props.headless.appName" :sections="page.props.headless.navigation" />
+        <AppSidebar class="hidden lg:flex" :sections="sections" />
+        <MobileNav v-model:open="menuOpen" :title="page.props.headless.appName" :sections="sections" />
 
         <main class="flex min-w-0 flex-1 flex-col">
             <AppTopbar @open-menu="menuOpen = true">
