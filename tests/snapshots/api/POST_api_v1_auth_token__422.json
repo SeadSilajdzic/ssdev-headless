@@ -1,0 +1,8 @@
+{
+    "message": "string",
+    "errors": {
+        "email": [
+            "string"
+        ]
+    }
+}

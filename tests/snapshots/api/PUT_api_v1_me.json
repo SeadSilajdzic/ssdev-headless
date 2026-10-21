@@ -1,0 +1,15 @@
+{
+    "data": {
+        "id": "integer",
+        "name": "string",
+        "email": "string",
+        "email_verified": "boolean",
+        "avatar_url": "null",
+        "permissions": [
+            "string"
+        ]
+    },
+    "meta": {
+        "email_confirmation_sent": "boolean"
+    }
+}

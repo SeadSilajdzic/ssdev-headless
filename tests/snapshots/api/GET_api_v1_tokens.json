@@ -1,0 +1,14 @@
+{
+    "data": [
+        {
+            "id": "integer",
+            "name": "string",
+            "abilities": [
+                "string"
+            ],
+            "last_used_at": "null",
+            "expires_at": "null",
+            "created_at": "string"
+        }
+    ]
+}
