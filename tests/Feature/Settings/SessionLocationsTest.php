@@ -77,3 +77,18 @@ it('rejects a locator that is not an IpLocator', function () {
 
     actingAs($user)->get(route('headless.security.edit'));
 })->throws(LogicException::class);
+
+it('remembers locations in a cache that refuses objects', function () {
+    // Laravel 12 applications set cache.serializable_classes to false.
+    config(['cache.default' => 'array', 'cache.stores.array.serialize' => true, 'cache.serializable_classes' => false]);
+    app('cache')->forgetDriver('array');
+    app()->forgetInstance('cache.store');
+    useFakeLocator();
+    $user = User::factory()->create();
+    insertSession('in-sarajevo', $user, '203.0.113.7');
+
+    actingAs($user)->get(route('headless.security.edit'))->assertOk();
+    get(route('headless.security.edit'))->assertInertia(fn (AssertableInertia $page) => $page->where('sessions.0.location.city', 'Sarajevo'));
+
+    expect(FakeIpLocator::$calls)->toBe(1);
+});

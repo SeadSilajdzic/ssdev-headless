@@ -33,11 +33,10 @@ final class SessionLocations
         }
 
         try {
-            // False marks an address the locator does not know, so it is not asked again until the entry expires.
-            $location = $this->cache->remember(
+            $cached = $this->cache->remember(
                 self::CACHE_PREFIX.hash('sha256', $ipAddress),
                 Carbon::now()->addMinutes((int) $this->config->get('headless.session_locations.cache_minutes')),
-                fn () => $locator->locate($ipAddress) ?? false,
+                fn () => $this->cacheValue($locator->locate($ipAddress)),
             );
         } catch (Throwable $exception) {
             report($exception);
@@ -45,7 +44,18 @@ final class SessionLocations
             return null;
         }
 
-        return $location instanceof IpLocation ? $location : null;
+        return is_array($cached) ? new IpLocation(...$cached) : null;
+    }
+
+    /**
+     * A plain list, because applications may forbid objects in the cache (cache.serializable_classes);
+     * false marks an address the locator does not know, so it is not asked again until the entry expires.
+     *
+     * @return array{?string, ?string, float, float}|false
+     */
+    private function cacheValue(?IpLocation $location): array|false
+    {
+        return $location === null ? false : [$location->city, $location->country, $location->latitude, $location->longitude];
     }
 
     private function locator(): ?IpLocator
