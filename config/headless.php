@@ -9,6 +9,13 @@ return [
         'middleware' => ['web'],
     ],
 
+    'api' => [
+        'enabled' => true,
+        'prefix' => 'api/v1',
+        // Minutes until a new token expires; null keeps tokens until they are revoked.
+        'token_expiration' => null,
+    ],
+
     'registration' => [
         'enabled' => true,
     ],
@@ -28,6 +35,7 @@ return [
         'verification' => 6,
         'reauthentication' => 5,
         'email_change' => 6,
+        'api' => 60,
     ],
 
     'avatars' => [

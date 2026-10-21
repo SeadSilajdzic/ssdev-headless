@@ -24,6 +24,8 @@ final class RateLimits
 
     public const EMAIL_CHANGE = 'headless.email-change';
 
+    public const API = 'headless.api';
+
     private const EMAIL_FIELD = 'email';
 
     public function __construct(private Repository $config) {}
@@ -40,6 +42,8 @@ final class RateLimits
         RateLimiter::for(self::VERIFICATION, fn (Request $request) => $this->limit('verification')->by($this->userKey($request)));
         RateLimiter::for(self::REAUTHENTICATION, fn (Request $request) => $this->limit('reauthentication')->by($this->userKey($request)));
         RateLimiter::for(self::EMAIL_CHANGE, fn (Request $request) => $this->limit('email_change')->by($this->userKey($request)));
+        // Runs before route authentication, so the token owner is looked up through the sanctum guard.
+        RateLimiter::for(self::API, fn (Request $request) => $this->limit('api')->by((string) ($request->user('sanctum')?->getAuthIdentifier() ?? $request->ip())));
     }
 
     private function limit(string $name): Limit

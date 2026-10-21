@@ -2,12 +2,14 @@
 
 namespace Ssdev\Headless\Tests;
 
+use Composer\InstalledVersions;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Inertia\ServiceProvider as InertiaServiceProvider;
 use Laravel\Fortify\FortifyServiceProvider;
+use Laravel\Sanctum\SanctumServiceProvider;
 use Orchestra\Testbench\Concerns\WithLaravelMigrations;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\Permission\PermissionServiceProvider;
@@ -33,13 +35,14 @@ abstract class TestCase extends Orchestra
 
     protected function getPackageProviders($app): array
     {
-        return [InertiaServiceProvider::class, FortifyServiceProvider::class, PermissionServiceProvider::class, HeadlessServiceProvider::class];
+        return [InertiaServiceProvider::class, FortifyServiceProvider::class, PermissionServiceProvider::class, SanctumServiceProvider::class, HeadlessServiceProvider::class];
     }
 
     protected function defineDatabaseMigrations(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../workbench/database/migrations');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadMigrationsFrom(InstalledVersions::getInstallPath('laravel/sanctum').'/database/migrations');
     }
 
     protected function defineEnvironment($app): void

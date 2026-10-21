@@ -8,27 +8,35 @@ use Ssdev\Headless\Installation\StepResult;
 
 final class ConfigureExceptionRendering implements InstallStep
 {
-    private const DESCRIPTION = 'Render error pages with Inertia';
+    private const DESCRIPTION = 'Configure error rendering';
 
     private const PATH = 'bootstrap/app.php';
 
     private const ANCHOR = '/->withExceptions\(function \(Exceptions \$exceptions\)(?:: void)? \{\R/';
 
-    private const REGISTRATION = "        \\Ssdev\\Headless\\Exceptions\\InertiaErrorRenderer::register(\$exceptions);\n";
+    /**
+     * Class name => line to register it, in the order they belong in withExceptions().
+     */
+    private const REGISTRATIONS = [
+        'InertiaErrorRenderer' => "        \\Ssdev\\Headless\\Exceptions\\InertiaErrorRenderer::register(\$exceptions);\n",
+        'ApiErrorRenderer' => "        \\Ssdev\\Headless\\Api\\ApiErrorRenderer::register(\$exceptions);\n",
+    ];
 
     public function handle(InstallContext $context): StepResult
     {
         $files = $context->files;
+        $missing = implode('', array_filter(
+            self::REGISTRATIONS,
+            fn (string $class) => ! $files->contains(self::PATH, $class.'::register'),
+            ARRAY_FILTER_USE_KEY,
+        ));
 
-        if ($files->contains(self::PATH, 'InertiaErrorRenderer')) {
+        if ($missing === '') {
             return StepResult::skipped(self::DESCRIPTION);
         }
 
-        if (! $files->insertAfterPattern(self::PATH, self::ANCHOR, self::REGISTRATION)) {
-            return StepResult::manual(
-                self::DESCRIPTION,
-                "Add to ->withExceptions() in bootstrap/app.php:\n".self::REGISTRATION,
-            );
+        if (! $files->insertAfterPattern(self::PATH, self::ANCHOR, $missing)) {
+            return StepResult::manual(self::DESCRIPTION, "Add to ->withExceptions() in bootstrap/app.php:\n".$missing);
         }
 
         return StepResult::changed(self::DESCRIPTION);

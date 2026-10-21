@@ -6,6 +6,7 @@ use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Ssdev\Headless\Api\ApiRoutes;
 use Ssdev\Headless\Auth\FortifyIntegration;
 use Ssdev\Headless\Auth\RateLimits;
 use Ssdev\Headless\Console\CreateAdminCommand;
@@ -112,5 +113,9 @@ class HeadlessServiceProvider extends ServiceProvider
                 $this->loadRoutesFrom(__DIR__.'/../routes/auth.php');
                 $this->loadRoutesFrom(__DIR__.'/../routes/settings.php');
             });
+
+        Route::middleware(ApiRoutes::MIDDLEWARE)
+            ->prefix(config('headless.api.prefix'))
+            ->group(fn () => $this->loadRoutesFrom(__DIR__.'/../routes/api.php'));
     }
 }

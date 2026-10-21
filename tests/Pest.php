@@ -2,7 +2,9 @@
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
+use Ssdev\Headless\Api\ApiRoutes;
 use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Installation\InstallContext;
@@ -77,4 +79,16 @@ function usePermissions(string ...$enums): void
     foreach ($enums as $enum) {
         app(PermissionRegistry::class)->register($enum);
     }
+}
+
+/**
+ * Registers a route inside the package API group, with the same middleware as the package routes.
+ *
+ * @param  list<string>  $middleware
+ */
+function apiTestRoute(string $method, string $uri, Closure $action, array $middleware = []): void
+{
+    Route::prefix((string) config('headless.api.prefix'))
+        ->middleware([...ApiRoutes::MIDDLEWARE, ...$middleware])
+        ->{$method}($uri, $action);
 }
