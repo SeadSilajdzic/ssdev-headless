@@ -4,6 +4,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
 use Laravel\Fortify\Fortify;
@@ -90,6 +91,13 @@ function packageSnapshotDirectory(): string
     $depth = substr_count(trim(substr($basePath, strlen($packageRoot)), '/'), '/') + 1;
 
     return str_repeat('../', $depth).'tests/snapshots/api';
+}
+
+const FIREFOX_ON_WINDOWS = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0';
+
+function insertSession(string $id, User $user, ?string $ip = '10.0.0.1', ?string $userAgent = FIREFOX_ON_WINDOWS): void
+{
+    DB::table('sessions')->insert(['id' => $id, 'user_id' => $user->id, 'ip_address' => $ip, 'user_agent' => $userAgent, 'payload' => '', 'last_activity' => time()]);
 }
 
 function useDatabaseSessions(): void

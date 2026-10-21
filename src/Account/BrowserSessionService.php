@@ -5,6 +5,7 @@ namespace Ssdev\Headless\Account;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Foundation\Auth\User;
+use Ssdev\Headless\Account\Location\SessionLocations;
 
 /**
  * Raw session ids never leave this class: the frontend only sees a keyed hash of them.
@@ -14,6 +15,7 @@ final class BrowserSessionService
     public function __construct(
         private SessionRepository $sessions,
         private Repository $config,
+        private SessionLocations $locations,
     ) {}
 
     /**
@@ -31,6 +33,7 @@ final class BrowserSessionService
                 $session->ip_address,
                 CarbonImmutable::createFromTimestamp($session->last_activity),
                 hash_equals($session->id, $currentSessionId),
+                $this->locations->locate($session->ip_address),
             );
         })->values()->all();
     }

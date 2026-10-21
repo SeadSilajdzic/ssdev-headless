@@ -7,13 +7,6 @@ use Workbench\App\Models\User;
 
 use function Pest\Laravel\actingAs;
 
-const FIREFOX_ON_WINDOWS = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0';
-
-function insertSession(string $id, User $user, ?string $ip = '10.0.0.1', ?string $userAgent = FIREFOX_ON_WINDOWS): void
-{
-    DB::table('sessions')->insert(['id' => $id, 'user_id' => $user->id, 'ip_address' => $ip, 'user_agent' => $userAgent, 'payload' => '', 'last_activity' => time()]);
-}
-
 function publicSessionId(string $id): string
 {
     return app(BrowserSessionService::class)->publicId($id);

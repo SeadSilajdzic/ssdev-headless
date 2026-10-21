@@ -47,6 +47,13 @@ return [
         'two_factor' => 5,
     ],
 
+    'session_locations' => [
+        // A class implementing Ssdev\Headless\Account\Location\IpLocator, e.g. MaxMindLocator::class; null keeps the session map off.
+        'locator' => null,
+        'maxmind_database' => storage_path('app/geoip/GeoLite2-City.mmdb'),
+        'cache_minutes' => 1440,
+    ],
+
     'avatars' => [
         'disk' => 'public',
         'directory' => 'avatars',

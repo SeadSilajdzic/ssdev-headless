@@ -3,6 +3,7 @@
 namespace Ssdev\Headless\Account;
 
 use Carbon\CarbonImmutable;
+use Ssdev\Headless\Account\Location\IpLocation;
 
 final readonly class BrowserSession
 {
@@ -13,5 +14,6 @@ final readonly class BrowserSession
         public ?string $ipAddress,
         public CarbonImmutable $lastActiveAt,
         public bool $isCurrent,
+        public ?IpLocation $location,
     ) {}
 }

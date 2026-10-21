@@ -16,6 +16,8 @@ final class BrowserSessionResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $location = $this->resource->location;
+
         return [
             'id' => $this->resource->publicId,
             'platform' => $this->resource->platform,
@@ -24,6 +26,12 @@ final class BrowserSessionResource extends JsonResource
             'last_active' => $this->resource->lastActiveAt->diffForHumans(),
             'is_current' => $this->resource->isCurrent,
             'logout_url' => route('headless.sessions.destroy', $this->resource->publicId),
+            'location' => $location === null ? null : [
+                'city' => $location->city,
+                'country' => $location->country,
+                'latitude' => $location->latitude,
+                'longitude' => $location->longitude,
+            ],
         ];
     }
 }
