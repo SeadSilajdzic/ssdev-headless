@@ -91,6 +91,17 @@ class HeadlessServiceProvider extends ServiceProvider
             order: 10,
         ));
 
+        if (config('headless.api.enabled')) {
+            $navigation->add(new NavigationItem(
+                'api-tokens',
+                'headless::navigation.api_tokens',
+                'headless.api-tokens.index',
+                'key',
+                NavigationGroup::Account,
+                order: 20,
+            ));
+        }
+
         $this->publishes([
             __DIR__.'/../config/headless.php' => config_path('headless.php'),
         ], 'headless-config');

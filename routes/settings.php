@@ -4,12 +4,14 @@ use Illuminate\Support\Facades\Route;
 use Ssdev\Headless\Account\EmailChangeService;
 use Ssdev\Headless\Auth\RateLimits;
 use Ssdev\Headless\Http\Controllers\Settings\AccountController;
+use Ssdev\Headless\Http\Controllers\Settings\ApiTokenController;
 use Ssdev\Headless\Http\Controllers\Settings\AvatarController;
 use Ssdev\Headless\Http\Controllers\Settings\BrowserSessionController;
 use Ssdev\Headless\Http\Controllers\Settings\EmailChangeController;
 use Ssdev\Headless\Http\Controllers\Settings\PasswordController;
 use Ssdev\Headless\Http\Controllers\Settings\ProfileController;
 use Ssdev\Headless\Http\Controllers\Settings\SecurityController;
+use Ssdev\Headless\Http\Middleware\EnsureApiIsEnabled;
 
 // Settings stay reachable without a verified email, so a mistyped address can still be fixed.
 Route::middleware('auth')->prefix('settings')->group(function () {
@@ -28,6 +30,14 @@ Route::middleware('auth')->prefix('settings')->group(function () {
     Route::put('password', [PasswordController::class, 'update'])
         ->middleware('throttle:'.RateLimits::REAUTHENTICATION)
         ->name('headless.password.update');
+
+    Route::middleware(['password.confirm', EnsureApiIsEnabled::class])->group(function () {
+        Route::get('api-tokens', [ApiTokenController::class, 'index'])->name('headless.api-tokens.index');
+        Route::post('api-tokens', [ApiTokenController::class, 'store'])
+            ->middleware('throttle:'.RateLimits::REAUTHENTICATION)
+            ->name('headless.api-tokens.store');
+        Route::delete('api-tokens/{token}', [ApiTokenController::class, 'destroy'])->name('headless.api-tokens.destroy');
+    });
 
     Route::get('security', [SecurityController::class, 'edit'])->name('headless.security.edit');
     Route::delete('security/sessions/{session}', [BrowserSessionController::class, 'destroy'])->name('headless.sessions.destroy');

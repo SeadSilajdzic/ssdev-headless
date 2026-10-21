@@ -13,6 +13,9 @@ final class Flash
     // Fortify flashes its own status messages under this key.
     public const STATUS = 'status';
 
+    // A new API token's plain text, shown on the next page load only.
+    public const TOKEN = 'headless.flash.token';
+
     public function __construct(private Session $session) {}
 
     public function success(string $message): void

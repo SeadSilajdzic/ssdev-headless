@@ -11,5 +11,6 @@ return [
     'dashboard' => 'Dashboard',
     'profile' => 'Profile',
     'security' => 'Security',
+    'api_tokens' => 'API tokens',
 
 ];
