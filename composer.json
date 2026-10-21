@@ -20,12 +20,16 @@
         "spatie/laravel-permission": "^8.3"
     },
     "require-dev": {
+        "geoip2/geoip2": "^3.0",
         "larastan/larastan": "^3.13",
         "laravel/pint": "^1.27",
         "orchestra/testbench": "^10.0|^11.0",
         "pestphp/pest": "^4.7",
         "pestphp/pest-plugin-laravel": "^4.1",
         "ssdev/laravel-api-contracts": "^1.3"
+    },
+    "suggest": {
+        "geoip2/geoip2": "Locate browser sessions on the security page map with MaxMindLocator (^3.0)."
     },
     "autoload": {
         "psr-4": {
