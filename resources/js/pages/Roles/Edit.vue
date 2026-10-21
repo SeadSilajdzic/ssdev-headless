@@ -25,6 +25,7 @@ const props = defineProps<{
     role: RoleDetail | null;
     permissions: PermissionGroup[];
     can: { manage: boolean };
+    readOnlyReason: string | null;
     indexUrl: string;
     saveUrl: string;
     deleteUrl: string | null;
@@ -74,6 +75,7 @@ function destroy(): void {
     <AppLayout :title="title" :breadcrumbs="[{ label: t('roles.title'), href: indexUrl }, { label: title }]">
         <div class="space-y-6">
             <BaseAlert v-if="roleError" variant="error" data-test="role-error">{{ roleError }}</BaseAlert>
+            <BaseAlert v-else-if="readOnlyReason" variant="info" data-test="role-read-only">{{ readOnlyReason }}</BaseAlert>
 
             <BaseCard :title="role ? t('roles.edit') : t('roles.new')">
                 <form v-if="can.manage" class="space-y-5" novalidate @submit.prevent="submit">

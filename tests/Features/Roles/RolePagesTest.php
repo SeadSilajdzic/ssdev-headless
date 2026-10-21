@@ -133,3 +133,21 @@ it('shows only grantable permissions in the picker', function () {
 it('answers not found for a missing role', function () {
     actingAs(roleManager())->get(route('headless.roles.edit', 999))->assertNotFound();
 });
+
+it('shows a role with permissions the manager lacks as read only', function () {
+    $actor = roleManager();
+    $role = makeRole('Exporters', ['reports.export']);
+
+    actingAs($actor)->get(route('headless.roles.edit', $role->getKey()))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('can.manage', false)
+        ->where('permissions', [])
+        ->where('readOnlyReason', __('headless::roles.errors.role_not_manageable')));
+});
+
+it('gives viewers no read-only reason', function () {
+    $role = makeRole('Editor', []);
+
+    actingAs(rolesViewer())->get(route('headless.roles.edit', $role->getKey()))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('can.manage', false)
+        ->where('readOnlyReason', null));
+});

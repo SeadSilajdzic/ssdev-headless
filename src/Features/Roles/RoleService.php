@@ -63,12 +63,15 @@ final class RoleService
     /**
      * A role can only be changed, deleted or handed out by someone who holds every permission in it.
      */
+    public function canManage(User $actor, Role $role): bool
+    {
+        return $role->permissions->every(fn ($permission): bool => $actor->can($permission->name));
+    }
+
     public function ensureManageable(User $actor, Role $role): void
     {
-        foreach ($role->permissions->pluck('name') as $permission) {
-            if (! $actor->can($permission)) {
-                throw ValidationException::withMessages(['role' => __('headless::roles.errors.role_not_manageable')]);
-            }
+        if (! $this->canManage($actor, $role)) {
+            throw ValidationException::withMessages(['role' => __('headless::roles.errors.role_not_manageable')]);
         }
     }
 

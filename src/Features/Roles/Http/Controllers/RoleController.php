@@ -71,13 +71,15 @@ final class RoleController
 
     private function editPage(Request $request, ?Role $role): Response
     {
-        $canManage = $request->user()->can(RolePermission::Manage->value);
+        $managesRoles = $request->user()->can(RolePermission::Manage->value);
+        $canManage = $managesRoles && ($role === null || $this->service->canManage($request->user(), $role));
 
         return HeadlessPage::render('Roles/Edit', [
             'role' => $role === null ? null : RoleResource::make($role)->resolve($request),
-            // Only what the actor holds can go into a role; viewers see the role's own list instead.
+            // Only what the actor holds can go into a role; everyone else sees the role's own list instead.
             'permissions' => $canManage ? $this->permissions->grantableGroups($request->user()) : [],
             'can' => ['manage' => $canManage],
+            'readOnlyReason' => $managesRoles && ! $canManage ? __('headless::roles.errors.role_not_manageable') : null,
             'indexUrl' => route('headless.roles.index'),
             'saveUrl' => $role === null ? route('headless.roles.store') : route('headless.roles.update', $role->getKey()),
             'deleteUrl' => $role === null ? null : route('headless.roles.destroy', $role->getKey()),
