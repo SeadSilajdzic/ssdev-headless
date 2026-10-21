@@ -4,9 +4,7 @@ namespace Ssdev\Headless;
 
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Ssdev\Headless\Api\ApiRoutes;
 use Ssdev\Headless\Api\TokenAbilityGate;
 use Ssdev\Headless\Auth\FortifyIntegration;
 use Ssdev\Headless\Auth\RateLimits;
@@ -24,6 +22,7 @@ use Ssdev\Headless\Navigation\NavigationGroup;
 use Ssdev\Headless\Navigation\NavigationItem;
 use Ssdev\Headless\Navigation\NavigationRegistry;
 use Ssdev\Headless\Permissions\PermissionRegistry;
+use Ssdev\Headless\Routing\PackageRoutes;
 use Ssdev\Headless\Support\PackageConfig;
 use Ssdev\Headless\Translations\HeadlessTranslations;
 
@@ -47,6 +46,9 @@ class HeadlessServiceProvider extends ServiceProvider
             $app['config']->get('headless.features', []),
         ));
 
+        // After the Fortify setup, so feature providers can extend it; registered here so they boot after this provider.
+        $this->app->make(FeatureBootstrapper::class)->registerProviders($this->app->make(FeatureRegistry::class));
+
         $this->app->singleton(HeadlessTranslations::class, fn ($app) => new HeadlessTranslations(
             $app['translator'],
             __DIR__.'/../lang',
@@ -59,12 +61,11 @@ class HeadlessServiceProvider extends ServiceProvider
         $this->app->bind(ProjectFiles::class, fn ($app) => new ProjectFiles($app->basePath(), $app->make(Filesystem::class)));
     }
 
-    public function boot(FeatureBootstrapper $bootstrapper, FeatureRegistry $registry, NavigationRegistry $navigation, FortifyIntegration $fortify, RateLimits $rateLimits): void
+    public function boot(NavigationRegistry $navigation, FortifyIntegration $fortify, RateLimits $rateLimits): void
     {
         $fortify->boot();
         $rateLimits->register();
         RedirectIfAuthenticated::redirectUsing(fn () => route('headless.dashboard'));
-        $bootstrapper->registerProviders($registry);
 
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'headless');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'headless');
@@ -125,16 +126,9 @@ class HeadlessServiceProvider extends ServiceProvider
 
     private function registerRoutes(): void
     {
-        Route::middleware(config('headless.routes.middleware'))
-            ->prefix(config('headless.routes.prefix'))
-            ->group(function () {
-                $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
-                $this->loadRoutesFrom(__DIR__.'/../routes/auth.php');
-                $this->loadRoutesFrom(__DIR__.'/../routes/settings.php');
-            });
-
-        Route::middleware(ApiRoutes::MIDDLEWARE)
-            ->prefix(config('headless.api.prefix'))
-            ->group(fn () => $this->loadRoutesFrom(__DIR__.'/../routes/api.php'));
+        PackageRoutes::web(__DIR__.'/../routes/web.php');
+        PackageRoutes::web(__DIR__.'/../routes/auth.php');
+        PackageRoutes::web(__DIR__.'/../routes/settings.php');
+        PackageRoutes::api(__DIR__.'/../routes/api.php');
     }
 }

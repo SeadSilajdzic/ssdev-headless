@@ -2,6 +2,8 @@
 
 namespace Ssdev\Headless\Features;
 
+use Ssdev\Headless\Features\TwoFactor\TwoFactorModule;
+
 final class FeatureCatalog
 {
     /**
@@ -9,6 +11,6 @@ final class FeatureCatalog
      */
     public function modules(): array
     {
-        return [];
+        return [new TwoFactorModule];
     }
 }

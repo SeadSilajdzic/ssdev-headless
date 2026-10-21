@@ -41,4 +41,19 @@ final class FakeModule implements FeatureModule
     {
         return $this->installSteps;
     }
+
+    public function migrations(): array
+    {
+        return [];
+    }
+
+    public function userTraits(): array
+    {
+        return [];
+    }
+
+    public function apiContractTest(): ?string
+    {
+        return null;
+    }
 }

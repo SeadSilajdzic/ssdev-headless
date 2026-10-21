@@ -56,21 +56,12 @@ it('asks which features to install and runs their steps', function () {
         ->and($files->exists('fake-step.txt'))->toBeTrue();
 });
 
-it('explains that no optional features are available yet', function () {
-    fixtureProject();
+it('offers two-factor authentication in the feature selection', function () {
+    $files = fixtureProject();
 
-    artisan('headless:install', ['--no-interaction' => true])
-        ->expectsOutputToContain('No optional features are available in this version yet.')
-        ->assertSuccessful();
-});
+    artisan('headless:install', ['--features' => 'two-factor', '--no-interaction' => true])->assertSuccessful();
 
-it('does not print the notice when features are available', function () {
-    fixtureProject();
-    useFeatures([new FakeModule]);
-
-    artisan('headless:install', ['--no-interaction' => true])
-        ->doesntExpectOutputToContain('No optional features are available')
-        ->assertSuccessful();
+    expect($files->get('config/headless.php'))->toContain("'two-factor',");
 });
 
 it('runs migrations and syncs permissions with --migrate', function () {
@@ -86,6 +77,7 @@ it('offers to create the first admin after migrating', function () {
     fixtureProject();
 
     artisan('headless:install')
+        ->expectsChoice('Which features would you like to install?', [], ['two-factor' => 'Two-factor authentication'])
         ->expectsConfirmation('Overwrite vite.config.js?', 'yes')
         ->expectsConfirmation('Run database migrations now?', 'yes')
         ->expectsConfirmation('Create the first admin account now?', 'yes')
@@ -103,6 +95,7 @@ it('skips the admin question when migrations were not run', function () {
     fixtureProject();
 
     artisan('headless:install')
+        ->expectsChoice('Which features would you like to install?', [], ['two-factor' => 'Two-factor authentication'])
         ->expectsConfirmation('Overwrite vite.config.js?', 'yes')
         ->expectsConfirmation('Run database migrations now?', 'no')
         ->doesntExpectOutputToContain('Create the first admin account now?')

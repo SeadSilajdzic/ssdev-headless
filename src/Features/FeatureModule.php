@@ -25,4 +25,19 @@ interface FeatureModule
      * @return list<class-string<InstallStep>>
      */
     public function installSteps(): array;
+
+    /**
+     * @return array<string, string> migration name without timestamp => source path
+     */
+    public function migrations(): array;
+
+    /**
+     * @return array<string, string> trait name => import statement the User model needs
+     */
+    public function userTraits(): array;
+
+    /**
+     * File name of the application's contract test, e.g. HeadlessTwoFactorApiContractTest.php; its stub lives in stubs/install.
+     */
+    public function apiContractTest(): ?string;
 }

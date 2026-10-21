@@ -43,6 +43,7 @@ abstract class TestCase extends Orchestra
         $this->loadMigrationsFrom(__DIR__.'/../workbench/database/migrations');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadMigrationsFrom(InstalledVersions::getInstallPath('laravel/sanctum').'/database/migrations');
+        $this->loadMigrationsFrom(InstalledVersions::getInstallPath('laravel/fortify').'/database/migrations');
     }
 
     protected function defineEnvironment($app): void

@@ -14,11 +14,14 @@ use Ssdev\Headless\Installation\ProjectFiles;
 use Ssdev\Headless\Permissions\HeadlessPermission;
 use Ssdev\Headless\Permissions\PermissionRegistry;
 use Ssdev\Headless\Tests\Support\FixtureProject;
+use Ssdev\Headless\Tests\Support\TwoFactorTestCase;
 use Ssdev\Headless\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class)
     ->afterEach(fn () => FixtureProject::cleanup())
     ->in('Feature', 'Unit');
+
+uses(TwoFactorTestCase::class, RefreshDatabase::class)->in('Features');
 
 function headlessPage(string $name): string
 {
