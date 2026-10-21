@@ -3,6 +3,7 @@
 use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Roles\Criteria\SearchRolesByName;
 use Ssdev\Headless\Features\Roles\Criteria\SortRoles;
+use Ssdev\Headless\Features\Roles\RoleGuard;
 use Ssdev\Headless\Features\Roles\RoleRepository;
 
 beforeEach(function () {
@@ -37,4 +38,10 @@ it('counts members and permissions', function () {
 
 it('caps the page size', function () {
     expect(app(RoleRepository::class)->paginate([], 500)->perPage())->toBe(RoleRepository::MAX_PER_PAGE);
+});
+
+it('explains a missing user model instead of guessing the role guard', function () {
+    config(['auth.providers.users.model' => null]);
+
+    expect(fn () => app(RoleGuard::class)->name())->toThrow(LogicException::class, 'auth.providers.users.model');
 });

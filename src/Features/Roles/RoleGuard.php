@@ -4,6 +4,7 @@ namespace Ssdev\Headless\Features\Roles;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
+use LogicException;
 use Spatie\Permission\Guard;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -20,7 +21,13 @@ final class RoleGuard
 
     public function name(): string
     {
-        return Guard::getDefaultName((string) $this->config->get('auth.providers.users.model'));
+        $model = $this->config->get('auth.providers.users.model');
+
+        if (! is_string($model) || $model === '') {
+            throw new LogicException('Set auth.providers.users.model, the user model whose guard roles belong to.');
+        }
+
+        return Guard::getDefaultName($model);
     }
 
     /**
