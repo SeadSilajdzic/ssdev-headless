@@ -12,5 +12,5 @@ const t = useTrans();
 </script>
 
 <template>
-    <BaseBadge :color="COLORS[status]" data-test="two-factor-status">{{ t(`two_factor.status.${status}`) }}</BaseBadge>
+    <BaseBadge :color="COLORS[status]" class="shrink-0 whitespace-nowrap" data-test="two-factor-status">{{ t(`two_factor.status.${status}`) }}</BaseBadge>
 </template>

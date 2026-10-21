@@ -53,7 +53,7 @@ function submit(): void {
                 />
             </FormField>
 
-            <FormField v-else v-slot="{ invalid }" :label="t('two_factor.challenge.code_title')" :error="form.errors.code" required>
+            <FormField v-else v-slot="{ invalid }" :label="t('two_factor.setup.code')" :error="form.errors.code" required>
                 <PinInput v-model="form.code" :invalid="invalid" @complete="submit" />
             </FormField>
 
