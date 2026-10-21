@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Process;
 use Spatie\Permission\Models\Permission;
 use Ssdev\Headless\Tests\Fixtures\Features\FakeInstallStep;
 use Ssdev\Headless\Tests\Fixtures\Features\FakeModule;
@@ -7,6 +8,9 @@ use Ssdev\Headless\Tests\Fixtures\Permissions\FakePermission;
 use Workbench\App\Models\User;
 
 use function Pest\Laravel\artisan;
+
+// The API contract step starts artisan processes in the project; the fixture has no artisan.
+beforeEach(fn () => Process::fake());
 
 it('installs the core without prompting when no features are available', function () {
     $files = fixtureProject();

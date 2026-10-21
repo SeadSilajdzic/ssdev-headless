@@ -11,6 +11,9 @@ final class MigrationPublisher
 
     private const PERMISSION_MIGRATION = 'create_permission_tables';
 
+    // Same name Laravel's install:api uses, so an app that already ran it is not given a second copy.
+    private const TOKEN_MIGRATION = 'create_personal_access_tokens_table';
+
     /**
      * Copies every migration the project does not have yet, matched by name regardless of its timestamp.
      *
@@ -42,6 +45,7 @@ final class MigrationPublisher
     {
         $sources = [
             self::PERMISSION_MIGRATION => InstalledVersions::getInstallPath('spatie/laravel-permission').'/database/migrations/create_permission_tables.php.stub',
+            self::TOKEN_MIGRATION => InstalledVersions::getInstallPath('laravel/sanctum').'/database/migrations/2019_12_14_000001_'.self::TOKEN_MIGRATION.'.php',
         ];
 
         $packageMigrations = glob(__DIR__.'/../../database/migrations/*.php') ?: [];

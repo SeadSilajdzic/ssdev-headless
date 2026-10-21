@@ -14,7 +14,9 @@ it('publishes the permission and package migrations with timestamps', function (
     expect($result->status)->toBe(StepStatus::Changed)
         ->and($files->get('database/migrations/2026_10_20_120000_create_permission_tables.php'))
         ->toBe(file_get_contents(InstalledVersions::getInstallPath('spatie/laravel-permission').'/database/migrations/create_permission_tables.php.stub'))
-        ->and($files->get('database/migrations/2026_10_20_120001_add_avatar_path_to_users_table.php'))
+        ->and($files->get('database/migrations/2026_10_20_120001_create_personal_access_tokens_table.php'))
+        ->toBe(file_get_contents(InstalledVersions::getInstallPath('laravel/sanctum').'/database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php'))
+        ->and($files->get('database/migrations/2026_10_20_120002_add_avatar_path_to_users_table.php'))
         ->toBe(file_get_contents(__DIR__.'/../../../database/migrations/add_avatar_path_to_users_table.php'));
 });
 

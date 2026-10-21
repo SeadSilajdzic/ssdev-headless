@@ -44,7 +44,7 @@ it('adds HasRoles and MustVerifyEmail to the Laravel 13 user model', function ()
 
     expect($result->status)->toBe(StepStatus::Changed)
         ->and($code)->toContain("\nuse Spatie\\Permission\\Traits\\HasRoles;\n")
-        ->toContain('    use HasFactory, HasRoles, Notifiable;')
+        ->toContain('    use HasApiTokens, HasFactory, HasRoles, Notifiable;')
         ->toContain("\nuse Illuminate\\Contracts\\Auth\\MustVerifyEmail;\n")
         ->toContain("class User extends Authenticatable implements MustVerifyEmail\n")
         ->toContain("#[Fillable(['name', 'email', 'password'])]")
@@ -59,7 +59,7 @@ it('handles the Laravel 12 user model', function () {
     expect(app(PrepareUserModel::class)->handle(installContext($files))->status)->toBe(StepStatus::Changed);
 
     $code = $files->get('app/Models/User.php');
-    expect($code)->toContain('    use HasFactory, HasRoles, Notifiable;')
+    expect($code)->toContain('    use HasApiTokens, HasFactory, HasRoles, Notifiable;')
         ->toContain('class User extends Authenticatable implements MustVerifyEmail')
         ->toContain("    protected \$fillable = [\n        'name',");
     expectValidPhp($code);
@@ -82,7 +82,7 @@ it('leaves out MustVerifyEmail when email verification is disabled', function ()
     app(PrepareUserModel::class)->handle(installContext($files));
     $code = $files->get('app/Models/User.php');
 
-    expect($code)->toContain('use HasFactory, HasRoles, Notifiable;')
+    expect($code)->toContain('use HasApiTokens, HasFactory, HasRoles, Notifiable;')
         ->not->toContain('implements MustVerifyEmail')
         ->toContain('// use Illuminate\Contracts\Auth\MustVerifyEmail;');
 });
@@ -112,4 +112,16 @@ it('asks for manual changes when the user model is missing', function () {
     $files->delete('app/Models/User.php');
 
     expect(app(PrepareUserModel::class)->handle(installContext($files))->status)->toBe(StepStatus::Manual);
+});
+
+it('adds HasApiTokens to the user model', function () {
+    $files = fixtureProject();
+
+    app(PrepareUserModel::class)->handle(installContext($files));
+    $code = $files->get('app/Models/User.php');
+
+    expect($code)->toContain("\nuse Laravel\Sanctum\HasApiTokens;\n")
+        ->toContain('    use HasApiTokens, HasFactory, HasRoles, Notifiable;');
+    expectValidPhp($code);
+    expect(app(PrepareUserModel::class)->handle(installContext($files))->status)->toBe(StepStatus::Skipped);
 });

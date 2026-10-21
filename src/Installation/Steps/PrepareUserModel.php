@@ -16,9 +16,13 @@ final class PrepareUserModel implements InstallStep
 
     private const PATH = 'app/Models/User.php';
 
-    private const HAS_ROLES = 'HasRoles';
-
-    private const HAS_ROLES_IMPORT = 'use Spatie\Permission\Traits\HasRoles;';
+    /**
+     * Trait => import the core needs on the User model.
+     */
+    private const TRAITS = [
+        'HasApiTokens' => 'use Laravel\Sanctum\HasApiTokens;',
+        'HasRoles' => 'use Spatie\Permission\Traits\HasRoles;',
+    ];
 
     private const MUST_VERIFY_EMAIL = 'MustVerifyEmail';
 
@@ -41,7 +45,7 @@ final class PrepareUserModel implements InstallStep
         }
 
         $original = $files->get(self::PATH);
-        $code = $this->addHasRoles($original);
+        $code = $this->addTraits($original);
 
         if ($code !== null && $this->config->get('headless.email_verification')) {
             $code = $this->addMustVerifyEmail($code);
@@ -60,7 +64,7 @@ final class PrepareUserModel implements InstallStep
         return StepResult::changed(self::DESCRIPTION);
     }
 
-    private function addHasRoles(string $code): ?string
+    private function addTraits(string $code): ?string
     {
         if (preg_match(self::CLASS_DECLARATION, $code, $class, PREG_OFFSET_CAPTURE) !== 1
             || preg_match(self::TRAIT_LIST, $code, $traits, PREG_OFFSET_CAPTURE, $class[0][1]) !== 1) {
@@ -68,15 +72,20 @@ final class PrepareUserModel implements InstallStep
         }
 
         $names = array_map('trim', explode(',', $traits[2][0]));
+        $missing = array_diff(array_keys(self::TRAITS), $names);
 
-        if (! in_array(self::HAS_ROLES, $names, true)) {
-            $names[] = self::HAS_ROLES;
+        if ($missing !== []) {
+            $names = [...$names, ...$missing];
             sort($names, SORT_STRING);
             $line = $traits[1][0].'use '.implode(', ', $names).';';
             $code = substr_replace($code, $line, $traits[0][1], strlen($traits[0][0]));
         }
 
-        return $this->addImport($code, self::HAS_ROLES_IMPORT);
+        foreach (self::TRAITS as $import) {
+            $code = $code === null ? null : $this->addImport($code, $import);
+        }
+
+        return $code;
     }
 
     private function addMustVerifyEmail(string $code): ?string
@@ -119,7 +128,7 @@ final class PrepareUserModel implements InstallStep
     {
         return StepResult::manual(
             self::DESCRIPTION,
-            'Add the Spatie\Permission\Traits\HasRoles trait to app/Models/User.php'
+            'Add the Laravel\Sanctum\HasApiTokens and Spatie\Permission\Traits\HasRoles traits to app/Models/User.php'
             .($this->config->get('headless.email_verification') ? ' and implement Illuminate\Contracts\Auth\MustVerifyEmail.' : '.'),
         );
     }

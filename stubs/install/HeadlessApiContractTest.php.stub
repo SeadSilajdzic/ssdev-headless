@@ -1,0 +1,77 @@
+<?php
+
+namespace Tests\Feature;
+
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+use Ssdev\ApiContracts\Testing\InteractsWithApiContract;
+use Tests\TestCase;
+
+/**
+ * Snapshots of the ssdev/laravel-headless API as this application serves it.
+ * After an intentional change: API_CONTRACT_UPDATE=1 php artisan test tests/Feature/HeadlessApiContractTest.php
+ */
+class HeadlessApiContractTest extends TestCase
+{
+    use InteractsWithApiContract;
+    use RefreshDatabase;
+
+    public function test_token_login_matches_contract(): void
+    {
+        $user = $this->createUser();
+
+        $response = $this->postJson($this->url('auth/token'), [
+            'email' => $user->getAttribute('email'),
+            'password' => 'password',
+            'device_name' => 'contract',
+        ]);
+
+        $response->assertCreated();
+        $this->assertMatchesApiContract('headless_POST_auth_token', $response->json());
+    }
+
+    public function test_current_user_matches_contract(): void
+    {
+        Sanctum::actingAs($this->createUser(), ['*']);
+
+        $response = $this->getJson($this->url('me'));
+
+        $response->assertOk();
+        $this->assertMatchesApiContract('headless_GET_me', $response->json());
+    }
+
+    public function test_token_list_matches_contract(): void
+    {
+        $user = $this->createUser();
+        $user->createToken('contract');
+        Sanctum::actingAs($user, ['*']);
+
+        $response = $this->getJson($this->url('tokens'));
+
+        $response->assertOk();
+        $this->assertMatchesApiContract('headless_GET_tokens', $response->json());
+    }
+
+    public function test_token_creation_matches_contract(): void
+    {
+        Sanctum::actingAs($this->createUser(), ['*']);
+
+        $response = $this->postJson($this->url('tokens'), ['name' => 'contract', 'abilities' => [], 'password' => 'password']);
+
+        $response->assertCreated();
+        $this->assertMatchesApiContract('headless_POST_tokens', $response->json());
+    }
+
+    private function createUser(): Authenticatable
+    {
+        $model = config('auth.providers.users.model');
+
+        return $model::factory()->create();
+    }
+
+    private function url(string $path): string
+    {
+        return '/'.trim(config('headless.api.prefix'), '/').'/'.$path;
+    }
+}

@@ -6,6 +6,7 @@ use Illuminate\Contracts\Container\Container;
 use Ssdev\Headless\Installation\Steps\AddNpmDependencies;
 use Ssdev\Headless\Installation\Steps\CheckSessionConfiguration;
 use Ssdev\Headless\Installation\Steps\ConfigureExceptionRendering;
+use Ssdev\Headless\Installation\Steps\InstallApiContracts;
 use Ssdev\Headless\Installation\Steps\InstallFrontendScaffolding;
 use Ssdev\Headless\Installation\Steps\InstallInertiaMiddleware;
 use Ssdev\Headless\Installation\Steps\PrepareUserModel;
@@ -24,6 +25,7 @@ final class Installer
         ConfigureExceptionRendering::class,
         InstallFrontendScaffolding::class,
         AddNpmDependencies::class,
+        InstallApiContracts::class,
     ];
 
     public function __construct(private Container $container) {}
