@@ -154,6 +154,19 @@ function roleManager(array $permissions = []): User
 }
 
 /**
+ * A user who holds the given permissions directly, after the registered permissions were synced.
+ */
+function permittedUser(string ...$permissions): User
+{
+    app(PermissionSynchronizer::class)->sync();
+
+    $user = User::factory()->create();
+    $user->givePermissionTo($permissions);
+
+    return $user;
+}
+
+/**
  * @param  list<string>  $permissions
  */
 function makeRole(string $name, array $permissions, ?User $member = null): Role

@@ -1,6 +1,7 @@
 <?php
 
 use Spatie\Permission\Models\Role;
+use Ssdev\Headless\Features\Roles\RoleAssignmentService;
 use Ssdev\Headless\Features\Roles\RoleData;
 use Ssdev\Headless\Features\Roles\RoleService;
 use Workbench\App\Models\User;
@@ -69,4 +70,15 @@ it('turns a name taken by a parallel request into a validation error', function 
 
     expect(fn () => app(RoleService::class)->create($actor, new RoleData('Editor', [])))->toThrow(failsOn('name'))
         ->and(fn () => app(RoleService::class)->update($actor, $other, new RoleData('Editor', [])))->toThrow(failsOn('name'));
+});
+
+it('does not count deleted members as role managers', function () {
+    $actor = roleManager();
+    $member = User::factory()->create();
+    $admin = makeRole('Administrator', ['roles.manage'], $member);
+    $gone = User::factory()->create();
+    $gone->assignRole($admin);
+    $gone->delete();
+
+    expect(fn () => app(RoleAssignmentService::class)->revoke($actor, $admin, $member))->toThrow(failsOn('role'));
 });

@@ -4,7 +4,6 @@ namespace Ssdev\Headless\Features\Roles;
 
 use Closure;
 use Illuminate\Database\ConnectionInterface;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Validation\ValidationException;
@@ -82,29 +81,49 @@ final class RoleService
      */
     public function ensureManagersRemain(Role $role, ?User $leaving = null, ?array $permissionsAfter = null): void
     {
-        $managing = $this->managingRoles();
+        $stillManaging = $permissionsAfter === null || in_array(RolePermission::Manage->value, $permissionsAfter, true);
 
-        if ($managing->where('users_count', '>', 0)->isEmpty()) {
+        $this->ensureSomeManagerRemains(function (int|string $roleKey, array $memberKeys) use ($role, $leaving, $stillManaging): array {
+            if ($roleKey !== $role->getKey()) {
+                return $memberKeys;
+            }
+
+            if (! $stillManaging) {
+                return [];
+            }
+
+            return $leaving === null ? $memberKeys : array_diff($memberKeys, [$leaving->getKey()]);
+        });
+    }
+
+    /**
+     * For a user who leaves every role at once, e.g. when the account is deleted. Call inside a transaction.
+     */
+    public function ensureManagersRemainWithout(User $leaving): void
+    {
+        $this->ensureSomeManagerRemains(fn (int|string $roleKey, array $memberKeys): array => array_diff($memberKeys, [$leaving->getKey()]));
+    }
+
+    /**
+     * Only the step from some managing role with a member to none is refused, so a fresh install can still be set up.
+     *
+     * @param  Closure(int|string, list<int|string>): array<int|string>  $membersAfter
+     */
+    private function ensureSomeManagerRemains(Closure $membersAfter): void
+    {
+        $members = $this->managingRoleMembers();
+
+        if (! collect($members)->contains(fn (array $memberKeys): bool => $memberKeys !== [])) {
             return;
         }
 
-        $remaining = $managing->filter(function (Role $managingRole) use ($role, $leaving, $permissionsAfter): bool {
-            if (! $managingRole->is($role)) {
-                return $managingRole->users_count > 0;
+        foreach ($members as $roleKey => $memberKeys) {
+            if ($membersAfter($roleKey, $memberKeys) !== []) {
+                return;
             }
-
-            if ($permissionsAfter !== null && ! in_array(RolePermission::Manage->value, $permissionsAfter, true)) {
-                return false;
-            }
-
-            $leaves = $leaving !== null && $role->users()->whereKey($leaving->getKey())->exists();
-
-            return $managingRole->users_count - ($leaves ? 1 : 0) > 0;
-        });
-
-        if ($remaining->isEmpty()) {
-            throw ValidationException::withMessages(['role' => __('headless::roles.errors.last_manager')]);
         }
+
+        throw ValidationException::withMessages(['role' => __('headless::roles.errors.last_manager')]);
     }
 
     /**
@@ -140,14 +159,22 @@ final class RoleService
     }
 
     /**
-     * @return Collection<int, Role>
+     * Member keys per managing role. Locked reads, so they see a parallel removal once it commits (MySQL would otherwise
+     * count from its snapshot); deleted users are left out by the user model's own scope.
+     *
+     * @return array<int|string, list<int|string>>
      */
-    private function managingRoles(): Collection
+    private function managingRoleMembers(): array
     {
-        return $this->guard->roles()
+        $roles = $this->guard->roles()
             ->whereHas('permissions', fn ($query) => $query->where('name', RolePermission::Manage->value))
-            ->withCount('users')
             ->lockForUpdate()
             ->get();
+
+        return $roles->mapWithKeys(function (Role $role): array {
+            $members = $role->users();
+
+            return [$role->getKey() => $members->lockForUpdate()->pluck($members->getRelated()->getQualifiedKeyName())->all()];
+        })->all();
     }
 }
