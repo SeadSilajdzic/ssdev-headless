@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/vue3';
 import { mount } from '@vue/test-utils';
 import RolesIndex from '@headless/pages/Roles/Index.vue';
 
@@ -26,4 +27,18 @@ it('offers managers an edit link in every row', () => {
 
 it('offers viewers a view link instead', () => {
     expect(mountIndex(false).get('[data-test="open-role"]').text().toLowerCase()).toContain('view');
+});
+
+it('drops a pending search when the page is left', async () => {
+    vi.useFakeTimers();
+    const visit = vi.spyOn(router, 'get').mockImplementation(() => {});
+    const wrapper = mountIndex(true);
+
+    await wrapper.get('input[type="search"]').setValue('edi');
+    wrapper.unmount();
+    vi.advanceTimersByTime(1000);
+
+    expect(visit).not.toHaveBeenCalled();
+    vi.useRealTimers();
+    visit.mockRestore();
 });

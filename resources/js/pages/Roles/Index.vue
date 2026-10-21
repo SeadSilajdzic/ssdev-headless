@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
 import { Plus, ShieldCheck } from '@lucide/vue';
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import BaseButton from '@headless/components/ui/BaseButton.vue';
 import BaseCard from '@headless/components/ui/BaseCard.vue';
 import BaseInput from '@headless/components/ui/BaseInput.vue';
@@ -66,6 +66,8 @@ watch(search, (value) => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => visit({ search: value, page: null }), SEARCH_DELAY_MS);
 });
+
+onBeforeUnmount(() => clearTimeout(searchTimer));
 </script>
 
 <template>
