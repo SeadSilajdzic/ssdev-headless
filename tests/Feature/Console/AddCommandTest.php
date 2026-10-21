@@ -24,7 +24,7 @@ it('rejects an unknown feature', function () {
     fixtureProject();
 
     artisan('headless:add', ['feature' => 'nope', '--no-interaction' => true])
-        ->expectsOutputToContain('Unknown feature [nope]. Available features: two-factor.')
+        ->expectsOutputToContain('Unknown feature [nope]. Available features: two-factor, roles.')
         ->assertFailed();
 });
 
@@ -46,4 +46,12 @@ it('runs the migrations and syncs permissions when asked', function () {
     artisan('headless:add', ['feature' => 'two-factor', '--migrate' => true, '--no-interaction' => true])->assertSuccessful();
 
     expect(Permission::count())->toBe(2);
+});
+
+it('syncs the permissions of the added feature', function () {
+    fixtureProject();
+
+    artisan('headless:add', ['feature' => 'roles', '--migrate' => true, '--no-interaction' => true])->assertSuccessful();
+
+    expect(Permission::where('name', 'roles.manage')->exists())->toBeTrue();
 });

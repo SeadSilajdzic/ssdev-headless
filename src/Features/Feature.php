@@ -5,4 +5,5 @@ namespace Ssdev\Headless\Features;
 enum Feature: string
 {
     case TwoFactor = 'two-factor';
+    case Roles = 'roles';
 }

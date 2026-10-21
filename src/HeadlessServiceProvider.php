@@ -19,6 +19,7 @@ use Ssdev\Headless\Console\SyncPermissionsCommand;
 use Ssdev\Headless\Console\UpgradeCommand;
 use Ssdev\Headless\Features\FeatureBootstrapper;
 use Ssdev\Headless\Features\FeatureCatalog;
+use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Installation\ProjectFiles;
 use Ssdev\Headless\Navigation\NavigationGroup;
@@ -61,7 +62,10 @@ class HeadlessServiceProvider extends ServiceProvider
 
         $this->app->singleton(NavigationRegistry::class);
 
-        $this->app->singleton(PermissionRegistry::class, fn ($app) => new PermissionRegistry($app['config']->get('headless.permissions', [])));
+        $this->app->singleton(PermissionRegistry::class, fn ($app) => new PermissionRegistry([
+            ...$app['config']->get('headless.permissions', []),
+            ...array_merge(...array_map(fn (FeatureModule $module) => $module->permissions(), $app->make(FeatureRegistry::class)->enabled())),
+        ]));
 
         $this->app->bind(ProjectFiles::class, fn ($app) => new ProjectFiles($app->basePath(), $app->make(Filesystem::class)));
     }

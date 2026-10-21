@@ -19,6 +19,7 @@ use Ssdev\Headless\Installation\ProjectFiles;
 use Ssdev\Headless\Permissions\HeadlessPermission;
 use Ssdev\Headless\Permissions\PermissionRegistry;
 use Ssdev\Headless\Tests\Support\FixtureProject;
+use Ssdev\Headless\Tests\Support\RolesTestCase;
 use Ssdev\Headless\Tests\Support\TwoFactorTestCase;
 use Ssdev\Headless\Tests\TestCase;
 use Workbench\App\Models\User;
@@ -27,7 +28,9 @@ uses(TestCase::class, RefreshDatabase::class)
     ->afterEach(fn () => FixtureProject::cleanup())
     ->in('Feature', 'Unit');
 
-uses(TwoFactorTestCase::class, RefreshDatabase::class)->in('Features');
+uses(TwoFactorTestCase::class, RefreshDatabase::class)->in('Features/TwoFactor');
+
+uses(RolesTestCase::class, RefreshDatabase::class)->in('Features/Roles');
 
 function headlessPage(string $name): string
 {

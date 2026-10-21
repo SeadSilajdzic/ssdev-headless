@@ -10,6 +10,7 @@ use Ssdev\Headless\Features\UnknownFeatureException;
 use Ssdev\Headless\Installation\InstallContext;
 use Ssdev\Headless\Installation\Installer;
 use Ssdev\Headless\Installation\ProjectFiles;
+use Ssdev\Headless\Permissions\PermissionRegistry;
 
 final class AddCommand extends Command
 {
@@ -23,7 +24,7 @@ final class AddCommand extends Command
 
     protected $description = 'Add a feature to a project that already has the headless core';
 
-    public function handle(FeatureRegistry $registry, Installer $installer, ProjectFiles $files): int
+    public function handle(FeatureRegistry $registry, Installer $installer, ProjectFiles $files, PermissionRegistry $permissions): int
     {
         $key = (string) $this->argument('feature');
         $feature = $registry->find($key);
@@ -39,6 +40,7 @@ final class AddCommand extends Command
         $features = collect([...$registry->enabled(), $feature])->unique(fn (FeatureModule $module) => $module->key())->values()->all();
 
         $this->report($installer->run(new InstallContext($files, $features, $this->overwriteConfirmation(...))));
+        $this->registerPermissions($permissions, $features);
         $this->runMigrations();
 
         return $this->runNpm() ? self::SUCCESS : self::FAILURE;

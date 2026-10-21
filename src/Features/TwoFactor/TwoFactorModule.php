@@ -48,6 +48,11 @@ final class TwoFactorModule implements FeatureModule
         return ['TwoFactorAuthenticatable' => 'use Laravel\Fortify\TwoFactorAuthenticatable;'];
     }
 
+    public function permissions(): array
+    {
+        return [];
+    }
+
     public function apiContractTest(): string
     {
         return 'HeadlessTwoFactorApiContractTest.php';

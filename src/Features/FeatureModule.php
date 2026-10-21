@@ -4,6 +4,7 @@ namespace Ssdev\Headless\Features;
 
 use Illuminate\Support\ServiceProvider;
 use Ssdev\Headless\Installation\InstallStep;
+use Ssdev\Headless\Permissions\HeadlessPermission;
 
 interface FeatureModule
 {
@@ -35,6 +36,11 @@ interface FeatureModule
      * @return array<string, string> trait name => import statement the User model needs
      */
     public function userTraits(): array;
+
+    /**
+     * @return list<class-string<HeadlessPermission>>
+     */
+    public function permissions(): array;
 
     /**
      * File name of the application's contract test, e.g. HeadlessTwoFactorApiContractTest.php; its stub lives in stubs/install.

@@ -3,8 +3,10 @@
 namespace Ssdev\Headless\Console\Concerns;
 
 use Illuminate\Support\Facades\Process;
+use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Installation\StepResult;
 use Ssdev\Headless\Installation\StepStatus;
+use Ssdev\Headless\Permissions\PermissionRegistry;
 
 use function Laravel\Prompts\confirm;
 
@@ -35,6 +37,20 @@ trait RunsInstaller
         foreach ($results as $result) {
             if ($result->status === StepStatus::Manual) {
                 $this->components->warn("{$result->description}: {$result->instructions}");
+            }
+        }
+    }
+
+    /**
+     * Features this run adds are not loaded in this process yet, so their permissions are registered for the sync.
+     *
+     * @param  list<FeatureModule>  $features
+     */
+    private function registerPermissions(PermissionRegistry $registry, array $features): void
+    {
+        foreach ($features as $feature) {
+            foreach ($feature->permissions() as $enum) {
+                $registry->register($enum);
             }
         }
     }

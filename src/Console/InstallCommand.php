@@ -10,6 +10,7 @@ use Ssdev\Headless\Features\UnknownFeatureException;
 use Ssdev\Headless\Installation\InstallContext;
 use Ssdev\Headless\Installation\Installer;
 use Ssdev\Headless\Installation\ProjectFiles;
+use Ssdev\Headless\Permissions\PermissionRegistry;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
@@ -26,7 +27,7 @@ final class InstallCommand extends Command
 
     protected $description = 'Install the headless core and the selected features';
 
-    public function handle(FeatureRegistry $registry, Installer $installer, ProjectFiles $files): int
+    public function handle(FeatureRegistry $registry, Installer $installer, ProjectFiles $files, PermissionRegistry $permissions): int
     {
         try {
             $features = $this->selectedFeatures($registry);
@@ -39,6 +40,7 @@ final class InstallCommand extends Command
         $results = $installer->run(new InstallContext($files, $features, $this->overwriteConfirmation(...)));
 
         $this->report($results);
+        $this->registerPermissions($permissions, $features);
 
         if ($this->runMigrations()) {
             $this->offerFirstAdmin();

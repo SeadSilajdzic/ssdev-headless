@@ -52,6 +52,11 @@ final class FakeModule implements FeatureModule
         return [];
     }
 
+    public function permissions(): array
+    {
+        return [];
+    }
+
     public function apiContractTest(): ?string
     {
         return null;
