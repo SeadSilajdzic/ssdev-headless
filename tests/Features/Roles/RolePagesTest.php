@@ -101,6 +101,16 @@ it('updates and deletes a role', function () {
     expect(Role::whereKey($role->getKey())->exists())->toBeFalse();
 });
 
+it('forbids the role editor with roles.manage only', function () {
+    $manager = roleManager();
+    $manager->revokePermissionTo('roles.view');
+
+    actingAs($manager)->get(route('headless.roles.create'))->assertForbidden();
+    actingAs($manager)->post(route('headless.roles.store'), ['name' => 'X', 'permissions' => []])->assertForbidden();
+
+    expect(Role::where('name', 'X')->exists())->toBeFalse();
+});
+
 it('forbids changes with roles.view only', function () {
     $viewer = rolesViewer();
     $role = makeRole('Editor', []);

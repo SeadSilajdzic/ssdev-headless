@@ -11,7 +11,8 @@ Route::middleware(['auth', RequireVerifiedEmail::class])->prefix('roles')->group
         ->middleware('can:'.RolePermission::View->value)
         ->name('headless.roles.index');
 
-    Route::middleware('can:'.RolePermission::Manage->value)->group(function () {
+    // Every change lands back on the roles pages, which need roles.view.
+    Route::middleware(['can:'.RolePermission::View->value, 'can:'.RolePermission::Manage->value])->group(function () {
         Route::get('create', [RoleController::class, 'create'])->name('headless.roles.create');
         Route::post('/', [RoleController::class, 'store'])->name('headless.roles.store');
         Route::put('{role}', [RoleController::class, 'update'])->whereNumber('role')->name('headless.roles.update');
