@@ -2,10 +2,15 @@
 
 namespace Ssdev\Headless\Features\Users;
 
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
+use Ssdev\Headless\Features\Users\Http\Middleware\LogOutBlockedUsers;
 use Ssdev\Headless\Features\Users\Listeners\CompletePendingInvitation;
+use Ssdev\Headless\Features\Users\Listeners\RejectBlockedSignIn;
 use Ssdev\Headless\Routing\PackageRoutes;
 
 final class UsersServiceProvider extends ServiceProvider
@@ -25,9 +30,16 @@ final class UsersServiceProvider extends ServiceProvider
         ]);
     }
 
-    public function boot(Dispatcher $events): void
+    public function boot(Dispatcher $events, HttpKernel $kernel): void
     {
         $events->listen(PasswordReset::class, CompletePendingInvitation::class);
+        $events->listen(Login::class, RejectBlockedSignIn::class);
+
+        // Added to the kernel rather than the router, which the kernel overwrites whenever its own groups change.
+        if ($kernel instanceof Kernel) {
+            $kernel->appendMiddlewareToGroup('web', LogOutBlockedUsers::class);
+            $kernel->appendMiddlewareToGroup('api', LogOutBlockedUsers::class.':sanctum');
+        }
 
         PackageRoutes::web(__DIR__.'/../../../routes/users.php');
     }
