@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added
+
+- Two-factor authentication, the first selectable feature (`two-factor`): setup with a QR code and a confirmation code, recovery codes shown once, a sign-in challenge on the web and over the API (`auth/two-factor-challenge`), management through `me/two-factor`, and an optional requirement for everyone or for users with given permissions.
+- `headless:add` command that adds a feature to an installed project.
+- Features declare their migrations, `User` model traits and API contract tests; `headless:install`, `headless:add` and `headless:upgrade` publish them.
+
+### Changed
+
+- `headless:install` keeps installed features when it runs again and preselects them.
+- `ApiTokenAuthenticator::issue()` is split into `authenticate()` and `issueToken()`.
+
 ## [0.3.1] - 2026-10-21
 
 ### Fixed

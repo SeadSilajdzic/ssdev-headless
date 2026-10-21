@@ -18,7 +18,7 @@ Every item of the project's security checklist, with how the package handles it.
 |---|---|
 | Covered | Implemented by the package and, where possible, proven by a test |
 | Partial | The package handles its part; the rest depends on the application or a later release |
-| Planned (Plan N) | Arrives with a feature that is not released yet: 3 JSON API and tokens, 4 two-factor authentication, 5 roles, 6 user management, 7 teams, 8 multi-tenancy |
+| Planned (Plan N) | Arrives with a feature that is not released yet: 5 roles, 6 user management, 7 teams, 8 multi-tenancy |
 | Application responsibility | Belongs to the application, server or infrastructure, not to the package |
 | Not applicable | The package has no such functionality in v1 |
 
@@ -135,7 +135,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Do not expose private keys | Covered | None are shared |
 | Do not expose internal credentials | Covered | None are shared |
 | Do not expose internal notes unless required | Not applicable | The core has no notes |
-| Do not expose unnecessary database fields | Covered | Explicit resources |
+| Do not expose unnecessary database fields | Covered | Explicit resources; the two-factor secret only while the setup is pending and recovery codes only once (`Features/TwoFactor/SettingsTest › never shares the secret or recovery codes once set up`, `ApiManagementTest › never returns the secret once enabled`) |
 | Do not expose data belonging to other users/tenants | Covered | Sessions of other users are never listed; tenants arrive in Plan 8 |
 | Do not rely on frontend hiding sensitive data | Covered | Every check also runs on the server |
 
@@ -146,7 +146,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Login rate limiting | Covered | `Feature/Auth/LoginTest › throttles login attempts per email and ip` |
 | Registration rate limiting | Covered | `Feature/Auth/RegistrationTest › throttles registration per ip` |
 | Password reset rate limiting | Covered | `Feature/Auth/PasswordResetTest › throttles reset link requests` |
-| OTP/verification rate limiting | Partial | Email verification is throttled; two-factor codes arrive in Plan 4 |
+| OTP/verification rate limiting | Covered | Email verification is throttled; two-factor codes: `Features/TwoFactor/ChallengeTest › throttles code attempts`, `ApiChallengeTest › throttles challenge attempts`, `SettingsTest › throttles code confirmation` |
 | Brute-force protection | Covered | See Brute Force Protection |
 | Credential stuffing protection | Covered | See Credential Stuffing Protection |
 | Account enumeration protection | Covered | `Feature/Auth/RegistrationTest › responds identically when the email is already registered`, `Feature/Auth/PasswordResetTest › responds identically for unknown and throttled emails`; reset mails go out after the response, so timing does not reveal accounts (`Feature/Auth/PasswordResetTest › sends the reset link only after the response is ready`) |
@@ -158,7 +158,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Re-authentication for sensitive actions | Covered | Password required to change the email or password, delete the account and log out other sessions |
 | Secure password change flow | Covered | `Feature/Settings/PasswordUpdateTest` |
 | Secure email change flow | Covered | `Feature/Settings/EmailChangeTest` |
-| Secure MFA enable/disable flow | Planned (Plan 4) | |
+| Secure MFA enable/disable flow | Covered | Feature `two-factor`: setup needs a confirmed password and a code from the app before it is active, recovery codes are shown once, regenerating and turning off need the password (`Features/TwoFactor/SettingsTest`, `ApiManagementTest`); a code works once and a used recovery code is replaced (`TwoFactorServiceTest › accepts a code only once`, `ChallengeTest › rejects a code that was already used`, `› signs in with a recovery code once`) |
 | Secure account recovery flow | Covered | `Feature/Auth/PasswordResetTest` |
 | Session/token revocation | Covered | Sessions: `Feature/Settings/BrowserSessionsTest`; tokens: `Feature/Api/AuthTokenTest › revokes only the current token on logout`, `Feature/Settings/ApiTokensTest › revokes a token of the current user`; a password change revokes the other tokens, a reset or account deletion revokes all of them |
 | Protection against account takeover | Covered | See Account Takeover Protection |
@@ -271,7 +271,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Never log passwords | Covered | The package logs nothing; password arguments are `#[\SensitiveParameter]` |
 | Never log API tokens | Covered | The package logs nothing |
 | Never log session IDs | Covered | Session ids never leave `BrowserSessionService` |
-| Never log OTPs | Planned (Plan 4) | |
+| Never log OTPs | Covered | The package logs nothing; code and recovery code arguments are `#[\SensitiveParameter]` |
 | Never log private keys | Covered | |
 | Never log Authorization headers | Covered | |
 | Never blindly log `$request->all()` | Covered | Not used |

@@ -10,6 +10,19 @@ php artisan migrate
 
 `headless:upgrade` publishes the migrations a new version added and leaves the ones you already have alone. Anything else that needs your attention is listed below, per version.
 
+## Upgrading to 0.4 from 0.3
+
+```bash
+composer require ssdev/laravel-headless:^0.4
+php artisan headless:install
+npm run build
+```
+
+Two-factor authentication is optional. Add it with `php artisan headless:add two-factor --migrate`, then run `npm run build`.
+
+- If your code calls `Ssdev\Headless\Account\ApiTokenAuthenticator::issue()`, call `authenticate()` and then `issueToken()` instead.
+- New config keys: `two_factor` and `rate_limits.two_factor`. A published `config/headless.php` picks up their defaults; add them only to change them.
+
 ## Upgrading to 0.3 from 0.2
 
 ```bash

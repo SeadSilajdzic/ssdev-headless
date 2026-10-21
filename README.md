@@ -34,6 +34,15 @@ php artisan headless:create-admin
 
 `headless:create-admin` always asks for the password in a hidden prompt, so it never ends up in your shell history.
 
+Add a feature to a project that already has the core:
+
+```bash
+php artisan headless:add two-factor --migrate
+npm run build
+```
+
+`headless:add` runs the same steps as the installer for that feature: config, migrations, `User` model traits and its API contract test. Features installed before stay installed; running it twice changes nothing.
+
 ## What the core gives you
 
 - Sign in, registration, forgot and reset password, email verification and password confirmation, with Laravel Fortify doing the work behind package routes.
@@ -48,11 +57,13 @@ Registration and password reset never reveal whether an email has an account. Pa
 
 `config/headless.php` covers:
 
+- `features` — the features installed in this project, e.g. `two-factor`.
 - `api.enabled`, `api.prefix`, `api.token_expiration` — turn the JSON API off, move it, or make new tokens expire after a number of minutes.
+- `two_factor.required`, `two_factor.required_for_permissions`, `two_factor.challenge_expiration` — make two-factor authentication mandatory for everyone or for users with one of the listed permissions, and set how many minutes an API sign-in challenge stays valid.
 - `registration.enabled` — turn public sign-up off.
 - `email_verification` — require a verified email for the dashboard.
 - `honeypot.field` — name of the hidden field that traps bots.
-- `rate_limits` — attempts per minute for login (per email and IP, and per IP), registration, password reset, verification, password checks, email changes and the API in general.
+- `rate_limits` — attempts per minute for login (per email and IP, and per IP), registration, password reset, verification, password checks, email changes, two-factor codes and the API in general.
 - `avatars` — disk, directory, maximum size and dimensions, allowed formats.
 - `permissions` — your own permission enums (see below).
 
@@ -127,6 +138,39 @@ Every error has one shape: `{"message": "..."}`, plus `"errors"` for 422 validat
 A single-page app on the same domain can use Sanctum's cookie mode instead of tokens; enable it with `$middleware->statefulApi()` in `bootstrap/app.php`.
 
 The installer adds `ssdev/laravel-api-contracts` to your project with `tests/Feature/HeadlessApiContractTest.php` and its snapshots, so a customisation that changes an API response shows up as a failing contract.
+
+## Two-factor authentication
+
+Select it in `headless:install` or add it later with `php artisan headless:add two-factor --migrate`. It adds `Laravel\Fortify\TwoFactorAuthenticatable` to `app/Models/User.php` and publishes Fortify's `add_two_factor_columns_to_users_table` migration.
+
+Users turn it on under **Settings → Two-factor authentication**, after confirming their password: they scan the QR code (or type the setup key), confirm with a code from their app, and see their recovery codes once. Regenerating the recovery codes and turning it off sit behind the same password confirmation. Every code works once, a used recovery code is replaced, and code entry is rate limited.
+
+To make it mandatory, set `two_factor.required` to `true`, or list permissions in `two_factor.required_for_permissions`. Until those users turn it on, every page sends them to the setup and every API request answers 403, except signing out, password confirmation and the two-factor endpoints. This covers your own routes too.
+
+Over the API, a user with two-factor authentication gets a challenge instead of a token:
+
+```bash
+curl -X POST https://app.test/api/v1/auth/token -H "Accept: application/json" \
+  -d email=ada@example.com -d password=secret -d device_name=cli
+# 202 {"data":{"two_factor":true,"challenge_token":"…","expires_at":"…"}}
+
+curl -X POST https://app.test/api/v1/auth/two-factor-challenge -H "Accept: application/json" \
+  -d challenge_token=… -d code=123456
+# 201 {"data":{"token":"2|…","token_type":"Bearer","expires_at":null}}
+```
+
+Send `recovery_code` instead of `code` to use a recovery code. A challenge stays valid for `two_factor.challenge_expiration` minutes and lives in the cache, so several servers need a shared cache store.
+
+| Method | Path | |
+|---|---|---|
+| POST | `auth/two-factor-challenge` | answer a sign-in challenge with `code` or `recovery_code` |
+| GET | `me/two-factor` | status: `disabled`, `pending` or `enabled` |
+| POST | `me/two-factor` | start the setup (`password`); returns the secret, `otpauth_url` and a QR code |
+| POST | `me/two-factor/confirm` | finish the setup with a `code`; returns the recovery codes |
+| POST | `me/two-factor/recovery-codes` | create new recovery codes (`password`) |
+| DELETE | `me/two-factor` | turn it off (`password`) |
+
+Fortify's events fire for the web and the API alike, so you can log them: `TwoFactorAuthenticationEnabled`, `TwoFactorAuthenticationConfirmed`, `TwoFactorAuthenticationDisabled`, `RecoveryCodesGenerated`, `RecoveryCodeReplaced`, `TwoFactorAuthenticationChallenged`, `TwoFactorAuthenticationFailed` and `ValidTwoFactorAuthenticationCodeProvided`.
 
 ## Customization
 
