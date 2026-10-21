@@ -3,7 +3,14 @@
 namespace Ssdev\Headless\Features\TwoFactor;
 
 use Illuminate\Support\ServiceProvider;
+use Inertia\Response;
+use Laravel\Fortify\Contracts\FailedTwoFactorLoginResponse as FailedTwoFactorLoginResponseContract;
+use Laravel\Fortify\Contracts\TwoFactorLoginResponse;
 use Laravel\Fortify\Features;
+use Laravel\Fortify\Fortify;
+use Ssdev\Headless\Auth\Responses\LoginResponse;
+use Ssdev\Headless\Features\TwoFactor\Http\Responses\FailedTwoFactorLoginResponse;
+use Ssdev\Headless\Http\Inertia\HeadlessPage;
 use Ssdev\Headless\Navigation\NavigationGroup;
 use Ssdev\Headless\Navigation\NavigationItem;
 use Ssdev\Headless\Navigation\NavigationRegistry;
@@ -14,6 +21,9 @@ final class TwoFactorServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app['config']->push('fortify.features', Features::twoFactorAuthentication(['confirm' => true]));
+
+        $this->app->singleton(TwoFactorLoginResponse::class, LoginResponse::class);
+        $this->app->singleton(FailedTwoFactorLoginResponseContract::class, FailedTwoFactorLoginResponse::class);
     }
 
     public function boot(TwoFactorRateLimit $rateLimit, NavigationRegistry $navigation): void
@@ -21,6 +31,11 @@ final class TwoFactorServiceProvider extends ServiceProvider
         $rateLimit->register();
 
         PackageRoutes::web(__DIR__.'/../../../routes/two-factor.php');
+
+        Fortify::twoFactorChallengeView(fn (): Response => HeadlessPage::render('TwoFactor/Challenge', [
+            'submitUrl' => route('two-factor.login.store'),
+            'loginUrl' => route('login'),
+        ]));
 
         $navigation->add(new NavigationItem(
             'two-factor',

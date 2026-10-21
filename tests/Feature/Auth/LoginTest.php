@@ -2,6 +2,7 @@
 
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 use Workbench\App\Models\User;
 
@@ -18,6 +19,19 @@ it('renders the login page', function () {
         ->where('loginUrl', route('login.store'))
         ->where('status', null)
         ->where('headless.honeypot', 'my_name'));
+});
+
+it('signs users in without a challenge once the feature is off', function () {
+    $user = User::factory()->create([
+        'two_factor_secret' => encrypt('SECRET'),
+        'two_factor_recovery_codes' => encrypt('[]'),
+        'two_factor_confirmed_at' => now(),
+    ]);
+
+    post(route('login.store'), ['email' => $user->email, 'password' => 'password'])->assertRedirect(route('headless.dashboard'));
+
+    assertAuthenticatedAs($user);
+    expect(Route::has('headless.two-factor.edit'))->toBeFalse();
 });
 
 it('logs in and regenerates the session', function () {

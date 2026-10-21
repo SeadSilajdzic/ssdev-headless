@@ -37,6 +37,18 @@ return [
         'regenerated' => 'New recovery codes are ready. The old ones no longer work.',
     ],
 
+    'challenge' => [
+        'code_title' => 'Two-factor code',
+        'code_description' => 'Enter the 6-digit code from your authenticator app.',
+        'recovery_title' => 'Recovery code',
+        'recovery_description' => 'Lost access to your authenticator? Use one of the recovery codes you saved when you set up two-factor authentication.',
+        'recovery_code' => 'Recovery code',
+        'submit' => 'Verify code',
+        'use_recovery_code' => 'Use a recovery code instead',
+        'use_code' => 'Use authenticator code instead',
+        'back_to_login' => 'Back to sign in',
+    ],
+
     'disable' => [
         'button' => 'Turn off',
         'confirm_title' => 'Turn off two-factor authentication?',
