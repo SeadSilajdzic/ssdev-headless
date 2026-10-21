@@ -2,8 +2,10 @@
 
 namespace Ssdev\Headless\Features\Roles;
 
+use Closure;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
@@ -24,12 +26,12 @@ final class RoleService
     {
         $this->ensureGrantable($actor, $data->permissions);
 
-        return $this->database->transaction(function () use ($data): Role {
+        return $this->rejectingTakenName(fn (): Role => $this->database->transaction(function () use ($data): Role {
             $role = $this->guard->roles()->create(['name' => $data->name, 'guard_name' => $this->guard->name()]);
             $role->syncPermissions($data->permissions);
 
             return $role;
-        });
+        }));
     }
 
     public function update(User $actor, Role $role, RoleData $data): Role
@@ -37,14 +39,14 @@ final class RoleService
         $this->ensureManageable($actor, $role);
         $this->ensureGrantable($actor, $data->permissions);
 
-        return $this->database->transaction(function () use ($role, $data): Role {
+        return $this->rejectingTakenName(fn (): Role => $this->database->transaction(function () use ($role, $data): Role {
             $this->ensureManagersRemain($role, permissionsAfter: $data->permissions);
 
             $role->update(['name' => $data->name]);
             $role->syncPermissions($data->permissions);
 
             return $role->refresh();
-        });
+        }));
     }
 
     public function delete(User $actor, Role $role): void
@@ -99,6 +101,20 @@ final class RoleService
 
         if ($remaining->isEmpty()) {
             throw ValidationException::withMessages(['role' => __('headless::roles.errors.last_manager')]);
+        }
+    }
+
+    /**
+     * The request checks the name first; this covers a parallel request that took it in between.
+     *
+     * @param  Closure(): Role  $save
+     */
+    private function rejectingTakenName(Closure $save): Role
+    {
+        try {
+            return $save();
+        } catch (UniqueConstraintViolationException) {
+            throw ValidationException::withMessages(['name' => __('validation.unique', ['attribute' => 'name'])]);
         }
     }
 

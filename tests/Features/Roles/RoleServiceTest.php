@@ -61,3 +61,12 @@ it('updates the name and permissions of a role', function () {
     expect($role->fresh()->name)->toBe('Reporter')
         ->and($role->fresh()->permissions->pluck('name')->sort()->values()->all())->toBe(['reports.export', 'reports.view']);
 });
+
+it('turns a name taken by a parallel request into a validation error', function () {
+    $actor = roleManager(['reports.view']);
+    makeRole('Editor', []);
+    $other = makeRole('Viewer', []);
+
+    expect(fn () => app(RoleService::class)->create($actor, new RoleData('Editor', [])))->toThrow(failsOn('name'))
+        ->and(fn () => app(RoleService::class)->update($actor, $other, new RoleData('Editor', [])))->toThrow(failsOn('name'));
+});

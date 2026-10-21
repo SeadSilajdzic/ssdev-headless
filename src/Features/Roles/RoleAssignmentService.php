@@ -4,6 +4,7 @@ namespace Ssdev\Headless\Features\Roles;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Auth\User;
 use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Roles\Events\RoleAssigned;
@@ -58,7 +59,12 @@ final class RoleAssignmentService
             return;
         }
 
-        $role->users()->attach($user->getKey());
+        try {
+            // The savepoint keeps an outer PostgreSQL transaction usable when a parallel request added the member first.
+            $this->database->transaction(fn () => $role->users()->attach($user->getKey()));
+        } catch (UniqueConstraintViolationException) {
+            return;
+        }
 
         $this->events->dispatch(new RoleAssigned($role, $user, $actor));
     }

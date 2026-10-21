@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Ssdev\Headless\Features\Roles\Events\RoleAssigned;
@@ -55,4 +56,28 @@ it('assigns the same role twice without duplicates', function () {
     app(RoleAssignmentService::class)->assign($actor, $role, $user);
 
     expect(DB::table('model_has_roles')->where('role_id', $role->getKey())->count())->toBe(1);
+});
+
+it('treats a member added by a parallel request as already assigned', function () {
+    Event::fake([RoleAssigned::class]);
+    $actor = roleManager(['reports.view']);
+    $role = makeRole('Viewer', ['reports.view']);
+    $user = User::factory()->create();
+    $raced = false;
+
+    // Adds the member right after the membership check, as a parallel request would.
+    DB::listen(function (QueryExecuted $query) use (&$raced, $role, $user) {
+        if ($raced || ! str_contains($query->sql, 'exists') || ! str_contains($query->sql, 'model_has_roles')) {
+            return;
+        }
+
+        $raced = true;
+        $user->assignRole($role);
+    });
+
+    app(RoleAssignmentService::class)->assign($actor, $role, $user);
+
+    expect($raced)->toBeTrue()
+        ->and($role->users()->count())->toBe(1);
+    Event::assertNotDispatched(RoleAssigned::class);
 });
