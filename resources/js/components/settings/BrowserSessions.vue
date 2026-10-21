@@ -63,7 +63,7 @@ function logoutOthers(): void {
     <BaseAlert v-if="!supported" variant="warning" data-test="sessions-unsupported">{{ t('settings.sessions.unsupported') }}</BaseAlert>
 
     <div v-else class="space-y-6">
-        <SessionMap v-if="showsLocations" v-model:selected="selected" :sessions="sessions" @logout="logout" />
+        <SessionMap v-if="showsLocations" v-model:selected="selected" :sessions="sessions" :logging-out="loggingOut" @logout="logout" />
 
         <ul class="divide-y divide-ink-100">
             <li
@@ -93,7 +93,7 @@ function logoutOthers(): void {
                     size="sm"
                     data-test="logout-session"
                     :loading="loggingOut === session.id"
-                    @click="logout(session)"
+                    @click.stop="logout(session)"
                 >
                     {{ t('settings.sessions.log_out') }}
                 </BaseButton>

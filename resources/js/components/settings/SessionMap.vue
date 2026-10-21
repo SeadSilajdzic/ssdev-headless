@@ -8,7 +8,7 @@ import BaseButton from '@headless/components/ui/BaseButton.vue';
 import { useTrans } from '@headless/i18n';
 import { deviceLabel, groupByPlace, MAP_HEIGHT, MAP_WIDTH, type MapPlace } from '@headless/support/sessionMap';
 
-const props = defineProps<{ sessions: BrowserSessionItem[] }>();
+const props = withDefaults(defineProps<{ sessions: BrowserSessionItem[]; loggingOut?: string | null }>(), { loggingOut: null });
 
 const emit = defineEmits<{ logout: [session: BrowserSessionItem] }>();
 
@@ -74,7 +74,14 @@ function position(place: MapPlace): Record<string, string> {
                             <p class="text-xs text-ink-500">{{ session.last_active }}</p>
                         </div>
                         <BaseBadge v-if="session.is_current">{{ t('settings.sessions.this_device') }}</BaseBadge>
-                        <BaseButton v-else variant="destructive" size="sm" data-test="map-logout" @click="emit('logout', session)">
+                        <BaseButton
+                            v-else
+                            variant="destructive"
+                            size="sm"
+                            data-test="map-logout"
+                            :loading="loggingOut === session.id"
+                            @click="emit('logout', session)"
+                        >
                             {{ t('settings.sessions.log_out') }}
                         </BaseButton>
                     </li>

@@ -63,3 +63,12 @@ it('describes a place with one session in the singular', () => {
 
     expect(labels).toEqual(['Sarajevo, Bosnia and Herzegovina: 1 session', 'Berlin, Germany: 2 sessions']);
 });
+
+it('disables log out while that session is being logged out', async () => {
+    mount(SessionMap, { props: { sessions, selected: 'phone', loggingOut: 'phone' }, attachTo: document.body });
+    await nextTick();
+
+    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-test="map-logout"]');
+    expect(buttons[0].disabled).toBe(true);
+    expect(buttons[1].disabled).toBe(false);
+});

@@ -54,3 +54,12 @@ it('highlights the row of the selected point', async () => {
 
     expect(wrapper.findAll('[data-test="session-row"]')[0].attributes('data-selected')).toBe('true');
 });
+
+it('keeps the map closed when a row is logged out', async () => {
+    const berlin = { ...sessions[1], id: 'c', ip_address: '198.51.100.4', location: { city: 'Berlin', country: 'Germany', latitude: 52.52, longitude: 13.4 } };
+    const wrapper = mountSessions([located[0], berlin]);
+
+    await wrapper.find('[data-test="logout-session"]').trigger('click');
+
+    expect(wrapper.findAll('[data-test="session-row"][data-selected="true"]')).toHaveLength(0);
+});
