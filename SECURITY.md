@@ -130,7 +130,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Review all serialized model attributes | Covered | `Feature/Http/DashboardTest › renders the dashboard with shared props` checks that password fields are missing |
 | Do not expose passwords | Covered | `expectNoSensitiveProps()` in `Feature/Settings/ProfileTest` |
 | Do not expose password hashes | Covered | Same test checks the hash value |
-| Do not expose API tokens | Covered | No tokens in props; API tokens arrive in Plan 3 and are shown only once |
+| Do not expose API tokens | Covered | Plain text only in the creation response or a one-time flash (`Feature/Settings/ApiTokensTest › shows the new token only once`); lists never contain it or its hash (`Feature/Api/ApiTokensApiTest › lists tokens without plain text or hashes`) |
 | Do not expose session identifiers | Covered | `Feature/Settings/BrowserSessionsTest › lists only the current user sessions without raw ids` |
 | Do not expose private keys | Covered | None are shared |
 | Do not expose internal credentials | Covered | None are shared |
@@ -160,7 +160,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Secure email change flow | Covered | `Feature/Settings/EmailChangeTest` |
 | Secure MFA enable/disable flow | Planned (Plan 4) | |
 | Secure account recovery flow | Covered | `Feature/Auth/PasswordResetTest` |
-| Session/token revocation | Partial | Sessions: `Feature/Settings/BrowserSessionsTest`; API tokens arrive in Plan 3 |
+| Session/token revocation | Covered | Sessions: `Feature/Settings/BrowserSessionsTest`; tokens: `Feature/Api/AuthTokenTest › revokes only the current token on logout`, `Feature/Settings/ApiTokensTest › revokes a token of the current user`; deleting an account deletes its tokens |
 | Protection against account takeover | Covered | See Account Takeover Protection |
 
 ### Business logic & state
@@ -187,7 +187,22 @@ Tests are named `file › test`, relative to `tests/`.
 
 ### API security
 
-The JSON API arrives in Plan 3; every item below is **Planned (Plan 3)**: strict request validation, explicit input types, explicit array/object validation, maximum payload sizes, rate limiting, authorization on every protected endpoint, resource ownership validation, preventing arbitrary field updates, preventing arbitrary IDs from bypassing authorization, preventing duplicate requests, idempotency where required, secure error responses, no sensitive data in API responses.
+| Item | Status | Evidence |
+|---|---|---|
+| Strict request validation | Covered | The API reuses the web FormRequests; `Feature/Api/PublicAuthApiTest › validates api registration` |
+| Explicit input types | Covered | `string`, `email`, `array`, `image` rules |
+| Explicit array/object validation | Covered | Token abilities: `present`, `array`, each a granted permission (`Feature/Api/ApiTokensApiTest › refuses abilities the owner does not have`) |
+| Maximum payload sizes | Partial | Field lengths and avatar size are limited; body size limits belong to PHP and the web server |
+| Rate limiting | Covered | `Feature/Api/ApiErrorsTest › throttles the api per client`, `Feature/Api/AuthTokenTest › throttles token requests with the login limiter` |
+| Authorization on every protected endpoint | Covered | `auth:sanctum` on every account route; `Feature/Api/ProfileApiTest › requires a token for the account endpoints`; token abilities limited by `TokenAbilityGate` (`Feature/Api/TokenAbilitiesTest`) |
+| Resource ownership validation | Covered | `Feature/Api/ApiTokensApiTest › cannot revoke another user token` |
+| Prevent arbitrary field updates | Covered | Only validated fields are saved |
+| Prevent arbitrary IDs from bypassing authorization | Covered | Tokens are looked up through their owner; other ids answer 404 |
+| Prevent duplicate requests | Covered | Registration and token login are safe to repeat |
+| Idempotency where required | Partial | Account operations are idempotent; invitations arrive with Plans 6–7 |
+| Secure error responses | Covered | `ApiErrorRenderer`; `Feature/Api/ApiErrorsTest › hides the model class of a missing record`, `› hides server errors`, `› answers unknown api routes with json even without an accept header` |
+| No sensitive data in API responses | Covered | `Feature/Api/ProfileApiTest › returns the current user without sensitive fields`; strict response contracts (`Feature/Api/ContractTest`) |
+| API login does not reveal accounts | Covered | `Feature/Api/AuthTokenTest › answers wrong passwords and unknown emails the same way`, `› answers unknown emails no faster than wrong passwords` |
 
 ### Webhooks
 

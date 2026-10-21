@@ -40,6 +40,7 @@ php artisan headless:create-admin
 - Profile settings: name, email (confirmed through a link sent to the new address), photo, password and account deletion.
 - Security settings: browser sessions, with log out per device or for every other device. Sessions are listed when `SESSION_DRIVER=database`.
 - Permissions with `spatie/laravel-permission`, always available, so `can('...')` works with or without the roles feature.
+- A JSON API (`/api/v1`) for everything above, with personal API tokens managed from the settings page.
 
 Registration and password reset never reveal whether an email has an account. Passwords follow `Password::defaults()`, which you configure in your `AppServiceProvider`.
 
@@ -47,10 +48,11 @@ Registration and password reset never reveal whether an email has an account. Pa
 
 `config/headless.php` covers:
 
+- `api.enabled`, `api.prefix`, `api.token_expiration` — turn the JSON API off, move it, or make new tokens expire after a number of minutes.
 - `registration.enabled` — turn public sign-up off.
 - `email_verification` — require a verified email for the dashboard.
 - `honeypot.field` — name of the hidden field that traps bots.
-- `rate_limits` — attempts per minute for login (per email and IP, and per IP), registration, password reset, verification, password checks and email changes.
+- `rate_limits` — attempts per minute for login (per email and IP, and per IP), registration, password reset, verification, password checks, email changes and the API in general.
 - `avatars` — disk, directory, maximum size and dimensions, allowed formats.
 - `permissions` — your own permission enums (see below).
 
@@ -89,6 +91,40 @@ import { useCan } from '@headless/composables/useCan';
 const can = useCan();
 // v-if="can('reports.view')"
 ```
+
+## JSON API
+
+Everything lives under `/api/v1` and authenticates with Sanctum bearer tokens.
+
+```bash
+curl -X POST https://app.test/api/v1/auth/token \
+  -H "Accept: application/json" \
+  -d email=ada@example.com -d password=secret -d device_name=cli
+# {"data":{"token":"1|…","token_type":"Bearer","expires_at":null}}
+
+curl https://app.test/api/v1/me -H "Authorization: Bearer 1|…"
+```
+
+| Method | Path | |
+|---|---|---|
+| POST | `auth/token` | sign in, returns a token |
+| DELETE | `auth/token` | revoke the current token |
+| POST | `auth/register` | sign up (answers the same for new and existing emails) |
+| POST | `auth/forgot-password` | send a reset link (answers the same for every email) |
+| GET, PUT, DELETE | `me` | read, update or delete your account (`current_password` / `password` where needed) |
+| PUT | `me/password` | change your password |
+| POST, DELETE | `me/avatar` | upload or remove your photo |
+| POST | `me/email/verification-notification` | resend the verification email |
+| GET, POST | `tokens` | list tokens, create one (`password` required) |
+| DELETE | `tokens/{id}` | revoke one of your tokens |
+
+Token abilities are permission names. A token never has more rights than its owner: it can use a permission only when it was given that permission and its owner still has it. Tokens created at sign-in get `*`, which means "whatever the owner may do".
+
+Every error has one shape: `{"message": "..."}`, plus `"errors"` for 422 validation errors. Errors never include class names, SQL or stack traces outside debug mode, and the API answers in JSON even without an `Accept` header.
+
+A single-page app on the same domain can use Sanctum's cookie mode instead of tokens; enable it with `$middleware->statefulApi()` in `bootstrap/app.php`.
+
+The installer adds `ssdev/laravel-api-contracts` to your project with `tests/Feature/HeadlessApiContractTest.php` and its snapshots, so a customisation that changes an API response shows up as a failing contract.
 
 ## Customization
 

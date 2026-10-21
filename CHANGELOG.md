@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added
+
+- JSON API under `/api/v1` with Laravel Sanctum: token sign-in and sign-out, account (`me`), password, photo, account deletion, verification email, registration, forgot password and personal API tokens.
+- API tokens settings page: create tokens with chosen permissions, see the new token once, revoke tokens.
+- Token abilities are permission names; a token never has more rights than its owner.
+- One JSON error format for the API (`{message}`, plus `errors` for 422) without class names, SQL or stack traces.
+- API contracts: every API response is snapshotted in strict mode with `ssdev/laravel-api-contracts`; the installer sets up contract tests in the application.
+- Installer publishes the Sanctum token table, adds `HasApiTokens` to the `User` model and registers the API error renderer.
+- `api` options and an `api` rate limit in `config/headless.php`.
+
 ## [0.2.0] - 2026-10-21
 
 ### Added
