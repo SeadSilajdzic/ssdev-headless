@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Ssdev\Headless\Api\ApiErrorRenderer;
 use Workbench\App\Models\User;
 
+use function Pest\Laravel\call;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 
@@ -62,6 +63,14 @@ it('leaves errors untouched in debug mode', function () {
     apiTestRoute('get', 'boom', fn () => throw new RuntimeException('visible while debugging'));
 
     expect(get('/api/v1/boom')->assertStatus(500)->json('message'))->toBe('visible while debugging');
+});
+
+it('answers oversized requests with json even without an accept header', function () {
+    apiTestRoute('post', 'upload', fn () => 'ok');
+
+    call('POST', '/api/v1/upload', server: ['CONTENT_LENGTH' => PHP_INT_MAX])
+        ->assertStatus(413)
+        ->assertExactJson(['message' => __('headless::api.errors.413')]);
 });
 
 it('answers unknown api routes with 404 for every method', function () {

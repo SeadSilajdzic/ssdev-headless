@@ -7,6 +7,7 @@ return [
         '403' => 'This action is unauthorized.',
         '404' => 'Not found.',
         '405' => 'Method not allowed.',
+        '413' => 'The request is too large.',
         '429' => 'Too many requests.',
         '500' => 'Server error.',
         '503' => 'Service unavailable.',

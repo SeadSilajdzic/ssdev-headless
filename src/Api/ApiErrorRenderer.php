@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class ApiErrorRenderer
 {
-    public const STATUSES = [401, 403, 404, 405, 429, 500, 503];
+    public const STATUSES = [401, 403, 404, 405, 413, 429, 500, 503];
 
     public function __construct(private Repository $config) {}
 
