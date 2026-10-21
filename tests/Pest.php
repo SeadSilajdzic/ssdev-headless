@@ -18,6 +18,8 @@ use Ssdev\Headless\Installation\InstallContext;
 use Ssdev\Headless\Installation\ProjectFiles;
 use Ssdev\Headless\Permissions\HeadlessPermission;
 use Ssdev\Headless\Permissions\PermissionRegistry;
+use Ssdev\Headless\Permissions\PermissionSynchronizer;
+use Ssdev\Headless\Tests\Fixtures\Permissions\FakePermission;
 use Ssdev\Headless\Tests\Support\FixtureProject;
 use Ssdev\Headless\Tests\Support\RolesTestCase;
 use Ssdev\Headless\Tests\Support\TwoFactorTestCase;
@@ -127,6 +129,22 @@ function expectNoSensitiveProps(TestResponse $response, Model $user): void
 /**
  * @param  class-string<HeadlessPermission>  ...$enums
  */
+/**
+ * A user who manages roles directly (not through a role), plus the given report permissions.
+ *
+ * @param  list<string>  $permissions
+ */
+function roleManager(array $permissions = []): User
+{
+    usePermissions(FakePermission::class);
+    app(PermissionSynchronizer::class)->sync();
+
+    $user = User::factory()->create();
+    $user->givePermissionTo(['roles.view', 'roles.manage', ...$permissions]);
+
+    return $user;
+}
+
 function usePermissions(string ...$enums): void
 {
     foreach ($enums as $enum) {
