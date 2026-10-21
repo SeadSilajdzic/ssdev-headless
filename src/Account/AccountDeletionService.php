@@ -27,7 +27,8 @@ final class AccountDeletionService
             $this->sessions->deleteForUser($user);
             $this->tokens->revokeAll($user);
 
-            $user->delete();
+            // Someone deleting their own account means it; user management only soft deletes on an admin's call.
+            $user->forceDelete();
         });
 
         // Removed only after the commit, so a failed deletion never leaves an account without its photo.

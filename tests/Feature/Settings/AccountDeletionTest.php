@@ -35,3 +35,11 @@ it('keeps the account when the password is wrong', function () {
     expect(User::find($user->id))->not->toBeNull();
     assertAuthenticatedAs($user);
 });
+
+it('deletes the account for good even when users can be soft deleted', function () {
+    $user = User::factory()->create();
+
+    actingAs($user)->delete(route('headless.account.destroy'), ['password' => 'password'])->assertRedirect('/');
+
+    expect(User::withTrashed()->find($user->id))->toBeNull();
+});

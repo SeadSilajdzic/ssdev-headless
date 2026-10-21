@@ -42,6 +42,8 @@ abstract class TestCase extends Orchestra
     {
         $this->loadMigrationsFrom(__DIR__.'/../workbench/database/migrations');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        // The workbench user is always soft deletable, so the user management columns exist in every test.
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations/users');
         $this->loadMigrationsFrom(InstalledVersions::getInstallPath('laravel/sanctum').'/database/migrations');
         $this->loadMigrationsFrom(InstalledVersions::getInstallPath('laravel/fortify').'/database/migrations');
     }

@@ -90,7 +90,7 @@ it('offers to create the first admin after migrating', function () {
     fixtureProject();
 
     artisan('headless:install')
-        ->expectsChoice('Which features would you like to install?', [], ['two-factor' => 'Two-factor authentication', 'roles' => 'Roles & permissions'])
+        ->expectsChoice('Which features would you like to install?', [], ['two-factor' => 'Two-factor authentication', 'roles' => 'Roles & permissions', 'users' => 'User management'])
         ->expectsConfirmation('Overwrite vite.config.js?', 'yes')
         ->expectsConfirmation('Run database migrations now?', 'yes')
         ->expectsConfirmation('Create the first admin account now?', 'yes')
@@ -108,7 +108,7 @@ it('skips the admin question when migrations were not run', function () {
     fixtureProject();
 
     artisan('headless:install')
-        ->expectsChoice('Which features would you like to install?', [], ['two-factor' => 'Two-factor authentication', 'roles' => 'Roles & permissions'])
+        ->expectsChoice('Which features would you like to install?', [], ['two-factor' => 'Two-factor authentication', 'roles' => 'Roles & permissions', 'users' => 'User management'])
         ->expectsConfirmation('Overwrite vite.config.js?', 'yes')
         ->expectsConfirmation('Run database migrations now?', 'no')
         ->doesntExpectOutputToContain('Create the first admin account now?')
