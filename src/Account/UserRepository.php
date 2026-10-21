@@ -4,6 +4,7 @@ namespace Ssdev\Headless\Account;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Foundation\Auth\User;
 
 final class UserRepository
@@ -27,7 +28,9 @@ final class UserRepository
 
     public function emailTaken(string $email, int|string|null $exceptKey = null): bool
     {
+        // A soft deleted account keeps its email, so it still counts.
         return $this->query()
+            ->withoutGlobalScope(SoftDeletingScope::class)
             ->where('email', $email)
             ->when($exceptKey !== null, fn (Builder $query) => $query->whereKeyNot($exceptKey))
             ->exists();

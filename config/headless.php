@@ -24,6 +24,11 @@ return [
         'challenge_expiration' => 5,
     ],
 
+    'users' => [
+        // Minutes an invitation link stays valid.
+        'invitation_expire_minutes' => 10080,
+    ],
+
     'registration' => [
         'enabled' => true,
     ],

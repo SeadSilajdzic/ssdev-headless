@@ -28,4 +28,11 @@ return [
         'action' => 'Sign in',
     ],
 
+    'user_invitation' => [
+        'subject' => 'You are invited to :app',
+        'intro' => 'An account was created for you on :app. Choose a password to start using it.',
+        'action' => 'Set your password',
+        'outro' => 'This invitation expires in :time. If you did not expect it, you can ignore this email.',
+    ],
+
 ];
