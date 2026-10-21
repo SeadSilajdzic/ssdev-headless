@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { router, useForm } from '@inertiajs/vue3';
 import { Monitor, Smartphone } from '@lucide/vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import SessionMap from '@headless/components/settings/SessionMap.vue';
 import BaseAlert from '@headless/components/ui/BaseAlert.vue';
 import BaseBadge from '@headless/components/ui/BaseBadge.vue';
 import BaseButton from '@headless/components/ui/BaseButton.vue';
@@ -9,7 +10,7 @@ import BaseModal from '@headless/components/ui/BaseModal.vue';
 import FormField from '@headless/components/ui/FormField.vue';
 import PasswordInput from '@headless/components/ui/PasswordInput.vue';
 import { useTrans } from '@headless/i18n';
-import type { SessionLocation } from '@headless/support/sessionMap';
+import { deviceLabel, placeLabel, type SessionLocation } from '@headless/support/sessionMap';
 
 export interface BrowserSessionItem {
     id: string;
@@ -29,12 +30,16 @@ const MOBILE_PLATFORMS = ['iOS', 'Android'];
 const t = useTrans();
 const confirming = ref(false);
 const loggingOut = ref<string | null>(null);
+const selected = ref<string | null>(null);
 const form = useForm({ password: '' });
 
-function describe(session: BrowserSessionItem): string {
-    const parts = [session.platform, session.browser].filter(Boolean);
+// Locations are on only when the application configured a locator, which shows as at least one located session.
+const showsLocations = computed(() => props.sessions.some((session) => session.location !== null));
 
-    return parts.length ? parts.join(' · ') : t('settings.sessions.unknown');
+function details(session: BrowserSessionItem): string {
+    const location = session.location ? placeLabel(session.location) : t('settings.sessions.unknown_location');
+
+    return [showsLocations.value ? location : null, session.ip_address, session.last_active].filter(Boolean).join(' · ');
 }
 
 function logout(session: BrowserSessionItem): void {
@@ -58,8 +63,18 @@ function logoutOthers(): void {
     <BaseAlert v-if="!supported" variant="warning" data-test="sessions-unsupported">{{ t('settings.sessions.unsupported') }}</BaseAlert>
 
     <div v-else class="space-y-6">
+        <SessionMap v-if="showsLocations" v-model:selected="selected" :sessions="sessions" @logout="logout" />
+
         <ul class="divide-y divide-ink-100">
-            <li v-for="session in sessions" :key="session.id" class="flex items-center gap-4 py-3">
+            <li
+                v-for="session in sessions"
+                :key="session.id"
+                data-test="session-row"
+                :data-selected="selected === session.id ? 'true' : undefined"
+                class="-mx-2 flex items-center gap-4 rounded-xl px-2 py-3 transition-colors"
+                :class="selected === session.id ? 'bg-mint-50 ring-1 ring-mint-300' : ''"
+                @click="selected = session.location ? session.id : null"
+            >
                 <component
                     :is="MOBILE_PLATFORMS.includes(session.platform ?? '') ? Smartphone : Monitor"
                     class="h-8 w-8 shrink-0 text-ink-400"
@@ -67,10 +82,10 @@ function logoutOthers(): void {
                 />
                 <div class="min-w-0 flex-1">
                     <p class="text-sm font-semibold text-ink-900">
-                        {{ describe(session) }}
+                        {{ deviceLabel(session) || t('settings.sessions.unknown') }}
                         <BaseBadge v-if="session.is_current" class="ml-2">{{ t('settings.sessions.this_device') }}</BaseBadge>
                     </p>
-                    <p class="text-xs text-ink-500">{{ [session.ip_address, session.last_active].filter(Boolean).join(' · ') }}</p>
+                    <p class="text-xs text-ink-500">{{ details(session) }}</p>
                 </div>
                 <BaseButton
                     v-if="!session.is_current"
