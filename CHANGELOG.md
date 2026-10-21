@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-21
+
 ### Added
 
 - JSON API under `/api/v1` with Laravel Sanctum: token sign-in and sign-out, account (`me`), password, photo, account deletion, verification email, registration, forgot password and personal API tokens.
@@ -59,7 +61,8 @@ All notable changes to this project are documented in this file. The format foll
 - App, auth and settings layouts, dashboard page and error pages for 403, 404, 419, 429, 500 and 503.
 - Shared Inertia props: authenticated user, navigation, enabled features, translations and flash messages.
 
-[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/SeadSilajdzic/ssdev-headless/releases/tag/v0.1.0
