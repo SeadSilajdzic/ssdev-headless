@@ -173,6 +173,38 @@ Send `recovery_code` instead of `code` to use a recovery code. A challenge stays
 
 Fortify's events fire for the web and the API alike, so you can log them: `TwoFactorAuthenticationEnabled`, `TwoFactorAuthenticationConfirmed`, `TwoFactorAuthenticationDisabled`, `RecoveryCodesGenerated`, `RecoveryCodeReplaced`, `TwoFactorAuthenticationChallenged`, `TwoFactorAuthenticationFailed` and `ValidTwoFactorAuthenticationCodeProvided`.
 
+## Roles
+
+Select it in `headless:install` or add it later with `php artisan headless:add roles --migrate`. A role groups permissions, so many people can get the same access at once. People with `roles.view` see **Administration → Roles**; people with `roles.manage` also create, change and delete roles and add or remove their members by email.
+
+Three rules keep roles from becoming a way around permissions:
+
+- Nobody can give a role a permission they do not hold themselves, and only someone who holds every permission of a role can change it, delete it or hand it out.
+- Some role that manages roles always keeps a member, so the last person who can manage roles cannot be removed or demoted.
+- Access is still checked with permissions, never with role names: `$user->can('reports.view')` and `useCan()` work the same whether a permission comes from a role or was granted directly.
+
+With roles on, `headless:create-admin` puts the new admin into an `Administrator` role that holds every registered permission. Give someone an existing role from the console with:
+
+```bash
+php artisan headless:roles:assign ada@example.com Editor
+```
+
+Over the API (`auth:sanctum`; token abilities limit what a token may do):
+
+| Method | Path | |
+|---|---|---|
+| GET | `permissions` | the permissions you can give a role, grouped (`roles.view` or `roles.manage`) |
+| GET | `roles` | roles with member and permission counts; `search`, `sort` (`name`, `users_count`, `created_at`), `direction`, `per_page` (`roles.view`) |
+| POST | `roles` | create a role from `name` and `permissions` (`roles.manage`) |
+| GET | `roles/{role}` | one role with its permissions (`roles.view`) |
+| PUT | `roles/{role}` | change the `name` and `permissions` (`roles.manage`) |
+| DELETE | `roles/{role}` | delete the role (`roles.manage`) |
+| GET | `roles/{role}/members` | the members, 20 per page (`roles.view`) |
+| POST | `roles/{role}/members` | add a member by `email` (`roles.manage`) |
+| DELETE | `roles/{role}/members/{user}` | remove a member (`roles.manage`) |
+
+`Ssdev\Headless\Features\Roles\Events\RoleAssigned` and `RoleRevoked` fire whenever someone gets or loses a role, with the role, the user and the actor (`null` when it came from the console).
+
 ## Session map
 
 The security page can show where a user is signed in: a world map with a point for every browser session, a popup to log a device out, and the city next to each session in the list. It stays off until you choose where locations come from, so no IP address leaves your server unless you decide it should.

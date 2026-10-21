@@ -20,6 +20,8 @@ npm run build
 
 Two-factor authentication is optional. Add it with `php artisan headless:add two-factor --migrate`, then run `npm run build`.
 
+Roles are optional too. Add them with `php artisan headless:add roles --migrate` and run `npm run build`. Admins created before have their permissions directly, but not the new `roles.view` and `roles.manage`; give them every permission with `php artisan headless:permissions:grant admin@example.com --all`, or create a new admin with `php artisan headless:create-admin`, who gets the `Administrator` role.
+
 - If your code calls `Ssdev\Headless\Account\ApiTokenAuthenticator::issue()`, call `authenticate()` and then `issueToken()` instead.
 - New config keys: `two_factor` and `rate_limits.two_factor`. A published `config/headless.php` picks up their defaults; add them only to change them.
 

@@ -18,7 +18,7 @@ Every item of the project's security checklist, with how the package handles it.
 |---|---|
 | Covered | Implemented by the package and, where possible, proven by a test |
 | Partial | The package handles its part; the rest depends on the application or a later release |
-| Planned (Plan N) | Arrives with a feature that is not released yet: 5 roles, 6 user management, 7 teams, 8 multi-tenancy |
+| Planned (Plan N) | Arrives with a feature that is not released yet: 6 user management, 7 teams, 8 multi-tenancy |
 | Application responsibility | Belongs to the application, server or infrastructure, not to the package |
 | Not applicable | The package has no such functionality in v1 |
 
@@ -52,11 +52,11 @@ Tests are named `file › test`, relative to `tests/`.
 | Item | Status | Evidence |
 |---|---|---|
 | Authentication | Covered | Laravel Fortify behind package routes; `Feature/Auth/LoginTest` |
-| Authorization | Partial | Code-defined permissions checked with `can()` (`Feature/Permissions`); feature policies arrive with Plans 5–8 |
+| Authorization | Partial | Code-defined permissions checked with `can()` (`Feature/Permissions`), roles that hand them out (`Features/Roles`); checks for later features arrive with Plans 6–8 |
 | BOLA / IDOR | Covered | Account endpoints act on the signed-in user only; sessions are addressed by keyed hashes (`Feature/Settings/BrowserSessionsTest › returns not found for another user session`) |
-| Broken Function Level Authorization | Planned (Plan 5) | Admin endpoints arrive with roles and user management |
+| Broken Function Level Authorization | Covered | Role endpoints require `roles.view` or `roles.manage` on the web and the API; `Features/Roles/RolePagesTest › forbids changes with roles.view only`, `Features/Roles/RolesApiTest › forbids roles without roles.view` |
 | Horizontal Privilege Escalation | Covered | Same as BOLA/IDOR for every account endpoint |
-| Vertical Privilege Escalation | Partial | Permissions are granted only from the console (`headless:permissions:grant`, `headless:create-admin`); the roles UI follows in Plan 5 |
+| Vertical Privilege Escalation | Covered | Nobody can give a role a permission they lack or change a role holding one; the last role that manages roles keeps a member; tokens stay within their abilities. `Features/Roles/RoleServiceTest › refuses permissions the actor does not have`, `› refuses to change a role with permissions the actor lacks`, `› keeps the last role that manages roles`, `Features/Roles/RoleAssignmentTest › refuses to assign a role with permissions the actor lacks`, `Features/Roles/RolesApiTest › respects token abilities` |
 | Mass Assignment | Covered | Models are filled with `forceFill()` from validated fields; the application's `$fillable` is never changed |
 | Strict Request Validation | Covered | A FormRequest for every write route |
 | SQL Injection | Covered | Query builder bindings only |
@@ -334,7 +334,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Test changing resource IDs manually | Covered | `Feature/Settings/BrowserSessionsTest › returns not found for another user session` |
 | Test accessing another user's resources | Covered | Same test |
 | Test accessing another tenant's resources | Planned (Plan 8) | |
-| Test normal user access to admin endpoints | Planned (Plan 5) | |
+| Test normal user access to admin endpoints | Covered | `Features/Roles/RolePagesTest › forbids the roles pages without roles.view`, `Features/Roles/RolesApiTest › forbids roles without roles.view` |
 | Test manipulating hidden/disabled fields | Covered | `Feature/Settings/ProfileTest › requires the current password to change the email` |
 | Test modifying privileged fields | Partial | Only validated fields are saved; dedicated tests arrive with user management |
 | Test duplicate requests | Covered | `Feature/Auth/RegistrationTest › responds identically when the email is already registered` |
