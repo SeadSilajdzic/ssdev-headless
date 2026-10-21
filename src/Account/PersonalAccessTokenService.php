@@ -4,6 +4,7 @@ namespace Ssdev\Headless\Account;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User;
 use Laravel\Sanctum\NewAccessToken;
@@ -50,6 +51,22 @@ final class PersonalAccessTokenService
             ->whereMorphedTo('tokenable', $user)
             ->whereKey($tokenId)
             ->delete() > 0;
+    }
+
+    public function currentToken(User $user): ?PersonalAccessToken
+    {
+        $token = method_exists($user, 'currentAccessToken') ? $user->currentAccessToken() : null;
+
+        // Cookie-authenticated SPA requests carry a transient token, which is not stored.
+        return $token instanceof PersonalAccessToken ? $token : null;
+    }
+
+    public function revokeAll(User $user, int|string|null $exceptTokenId = null): void
+    {
+        PersonalAccessToken::query()
+            ->whereMorphedTo('tokenable', $user)
+            ->when($exceptTokenId !== null, fn (Builder $query) => $query->whereKeyNot($exceptTokenId))
+            ->delete();
     }
 
     /**

@@ -91,6 +91,16 @@ it('resets the password, rotates the remember token and ends every session', fun
     Event::assertDispatched(PasswordReset::class);
 });
 
+it('revokes every api token on reset', function () {
+    $user = User::factory()->create();
+    $user->createToken('stolen');
+
+    post(route('password.update'), ['token' => Password::createToken($user), 'email' => $user->email, 'password' => 'N3w-password!', 'password_confirmation' => 'N3w-password!'])
+        ->assertRedirect(route('login'));
+
+    expect($user->tokens()->count())->toBe(0);
+});
+
 it('rejects an invalid reset token', function () {
     $user = User::factory()->create();
 

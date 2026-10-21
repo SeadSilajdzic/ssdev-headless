@@ -120,6 +120,8 @@ curl https://app.test/api/v1/me -H "Authorization: Bearer 1|…"
 
 Token abilities are permission names. A token never has more rights than its owner: it can use a permission only when it was given that permission and its owner still has it. Tokens created at sign-in get `*`, which means "whatever the owner may do".
 
+Abilities limit permission checks only: every token can read and update its owner's account and list or revoke the owner's tokens, while changing the email or password, deleting the account and creating a token still need the password. A password change revokes every other token, and a password reset revokes all of them.
+
 Every error has one shape: `{"message": "..."}`, plus `"errors"` for 422 validation errors. Errors never include class names, SQL or stack traces outside debug mode, and the API answers in JSON even without an `Accept` header.
 
 A single-page app on the same domain can use Sanctum's cookie mode instead of tokens; enable it with `$middleware->statefulApi()` in `bootstrap/app.php`.

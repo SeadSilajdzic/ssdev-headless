@@ -61,6 +61,17 @@ it('changes the password and ends web sessions', function () {
         ->and(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0);
 });
 
+it('keeps only the current token on a password change', function () {
+    $user = User::factory()->create();
+    $current = $user->createToken('cli');
+    $user->createToken('stolen');
+
+    putJson('/api/v1/me/password', ['current_password' => 'password', 'password' => 'N3w-password!', 'password_confirmation' => 'N3w-password!'], ['Authorization' => 'Bearer '.$current->plainTextToken])
+        ->assertNoContent();
+
+    expect($user->tokens()->pluck('id')->all())->toBe([$current->accessToken->getKey()]);
+});
+
 it('uploads and removes the avatar', function () {
     Storage::fake('public');
     apiAs(User::factory()->create());

@@ -30,6 +30,17 @@ it('changes the password and ends the other sessions', function () {
     Event::assertDispatched(PasswordChanged::class);
 });
 
+it('revokes every api token on a password change', function () {
+    $user = User::factory()->create();
+    $user->createToken('stolen');
+
+    actingAs($user)->put(route('headless.password.update'), [
+        'current_password' => 'password', 'password' => 'N3w-password!', 'password_confirmation' => 'N3w-password!',
+    ])->assertSessionHasNoErrors();
+
+    expect($user->tokens()->count())->toBe(0);
+});
+
 it('rejects a wrong current password', function () {
     $user = User::factory()->create();
 

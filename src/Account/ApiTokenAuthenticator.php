@@ -12,7 +12,6 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Timebox;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\NewAccessToken;
-use Laravel\Sanctum\PersonalAccessToken;
 use LogicException;
 
 final class ApiTokenAuthenticator
@@ -28,6 +27,7 @@ final class ApiTokenAuthenticator
         private Dispatcher $events,
         private Repository $config,
         private Timebox $timebox,
+        private PersonalAccessTokenService $tokens,
     ) {}
 
     /**
@@ -66,12 +66,7 @@ final class ApiTokenAuthenticator
 
     public function revokeCurrentToken(User $user): void
     {
-        $token = method_exists($user, 'currentAccessToken') ? $user->currentAccessToken() : null;
-
-        // Cookie-authenticated SPA requests carry a transient token that has nothing to delete.
-        if ($token instanceof PersonalAccessToken) {
-            $token->delete();
-        }
+        $this->tokens->currentToken($user)?->delete();
     }
 
     private function expiresAt(): ?CarbonImmutable

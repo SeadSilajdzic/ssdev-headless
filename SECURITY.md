@@ -68,7 +68,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Session Security | Covered | Session settings checked by the installer (`Feature/Installation/CheckSessionConfigurationTest`) |
 | Session Fixation Protection | Covered | `Feature/Auth/LoginTest › logs in and regenerates the session` |
 | Session Hijacking Protection | Partial | HttpOnly, SameSite and Secure are checked by the installer; HTTPS is the application's job |
-| Account Takeover Protection | Covered | Email changes need the password and a confirmation from the new address, the old address is notified (`Feature/Settings/EmailChangeTest`); password changes end other sessions (`Feature/Settings/PasswordUpdateTest`); resets end every session (`Feature/Auth/PasswordResetTest`) |
+| Account Takeover Protection | Covered | Email changes need the password and a confirmation from the new address, the old address is notified (`Feature/Settings/EmailChangeTest`); password changes end other sessions and API tokens (`Feature/Settings/PasswordUpdateTest`, `Feature/Api/ProfileApiTest › keeps only the current token on a password change`); resets end every session and API token (`Feature/Auth/PasswordResetTest`) |
 | Race Conditions | Covered | `Feature/Auth/RegistrationTest › treats a duplicate insert race as an existing account`; email confirmation locks the user row |
 | Database Transactions | Covered | Email change, account deletion and admin creation |
 | Database Row Locking | Covered | `EmailChangeService::confirm()` uses `lockForUpdate()` |
@@ -160,7 +160,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Secure email change flow | Covered | `Feature/Settings/EmailChangeTest` |
 | Secure MFA enable/disable flow | Planned (Plan 4) | |
 | Secure account recovery flow | Covered | `Feature/Auth/PasswordResetTest` |
-| Session/token revocation | Covered | Sessions: `Feature/Settings/BrowserSessionsTest`; tokens: `Feature/Api/AuthTokenTest › revokes only the current token on logout`, `Feature/Settings/ApiTokensTest › revokes a token of the current user`; deleting an account deletes its tokens |
+| Session/token revocation | Covered | Sessions: `Feature/Settings/BrowserSessionsTest`; tokens: `Feature/Api/AuthTokenTest › revokes only the current token on logout`, `Feature/Settings/ApiTokensTest › revokes a token of the current user`; a password change revokes the other tokens, a reset or account deletion revokes all of them |
 | Protection against account takeover | Covered | See Account Takeover Protection |
 
 ### Business logic & state
@@ -194,7 +194,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Explicit array/object validation | Covered | Token abilities: `present`, `array`, each a granted permission (`Feature/Api/ApiTokensApiTest › refuses abilities the owner does not have`) |
 | Maximum payload sizes | Partial | Field lengths and avatar size are limited; body size limits belong to PHP and the web server |
 | Rate limiting | Covered | `Feature/Api/ApiErrorsTest › throttles the api per client`, `Feature/Api/AuthTokenTest › throttles token requests with the login limiter` |
-| Authorization on every protected endpoint | Covered | `auth:sanctum` on every account route; `Feature/Api/ProfileApiTest › requires a token for the account endpoints`; token abilities limited by `TokenAbilityGate` (`Feature/Api/TokenAbilitiesTest`) |
+| Authorization on every protected endpoint | Covered | `auth:sanctum` on every account route; `Feature/Api/ProfileApiTest › requires a token for the account endpoints`; token abilities limited by `TokenAbilityGate` (`Feature/Api/TokenAbilitiesTest`); abilities limit permission checks, so every token can manage its owner's own account, and changing the email or password, deleting the account or creating a token still needs the password |
 | Resource ownership validation | Covered | `Feature/Api/ApiTokensApiTest › cannot revoke another user token` |
 | Prevent arbitrary field updates | Covered | Only validated fields are saved |
 | Prevent arbitrary IDs from bypassing authorization | Covered | Tokens are looked up through their owner; other ids answer 404 |

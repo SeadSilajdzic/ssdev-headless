@@ -13,13 +13,14 @@ final class PasswordService
     public function __construct(
         private Hasher $hasher,
         private SessionRepository $sessions,
+        private PersonalAccessTokenService $tokens,
         private Dispatcher $events,
     ) {}
 
     /**
-     * Every other session and "remember me" cookie stops working; the current session, if any, stays signed in.
+     * Every other session, "remember me" cookie and API token stops working; the current session or token, if any, stays signed in.
      */
-    public function change(User $user, #[\SensitiveParameter] string $password, ?string $currentSessionId): void
+    public function change(User $user, #[\SensitiveParameter] string $password, ?string $currentSessionId, int|string|null $currentTokenId = null): void
     {
         $user->forceFill([
             'password' => $this->hasher->make($password),
@@ -27,6 +28,7 @@ final class PasswordService
         ])->save();
 
         $this->sessions->deleteForUser($user, $currentSessionId);
+        $this->tokens->revokeAll($user, $currentTokenId);
 
         $this->events->dispatch(new PasswordChanged($user));
     }

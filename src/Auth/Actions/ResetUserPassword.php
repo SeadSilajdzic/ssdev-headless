@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
+use Ssdev\Headless\Account\PersonalAccessTokenService;
 use Ssdev\Headless\Account\SessionRepository;
 
 final class ResetUserPassword implements ResetsUserPasswords
@@ -14,6 +15,7 @@ final class ResetUserPassword implements ResetsUserPasswords
     public function __construct(
         private Hasher $hasher,
         private SessionRepository $sessions,
+        private PersonalAccessTokenService $tokens,
     ) {}
 
     /**
@@ -29,7 +31,8 @@ final class ResetUserPassword implements ResetsUserPasswords
 
         $user->forceFill(['password' => $this->hasher->make($validated['password'])])->save();
 
-        // Whoever held the account before the reset loses every session.
+        // Whoever held the account before the reset loses every session and API token.
         $this->sessions->deleteForUser($user);
+        $this->tokens->revokeAll($user);
     }
 }

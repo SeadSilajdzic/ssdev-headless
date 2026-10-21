@@ -11,6 +11,7 @@ final class AccountDeletionService
 {
     public function __construct(
         private SessionRepository $sessions,
+        private PersonalAccessTokenService $tokens,
         private AvatarService $avatars,
         private ConnectionInterface $database,
         private Dispatcher $events,
@@ -24,10 +25,7 @@ final class AccountDeletionService
 
         $this->database->transaction(function () use ($user) {
             $this->sessions->deleteForUser($user);
-
-            if (method_exists($user, 'tokens')) {
-                $user->tokens()->delete();
-            }
+            $this->tokens->revokeAll($user);
 
             $user->delete();
         });
