@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/vue3';
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import BrowserSessions, { type BrowserSessionItem } from '@headless/components/settings/BrowserSessions.vue';
@@ -57,9 +58,11 @@ it('highlights the row of the selected point', async () => {
 
 it('keeps the map closed when a row is logged out', async () => {
     const berlin = { ...sessions[1], id: 'c', ip_address: '198.51.100.4', location: { city: 'Berlin', country: 'Germany', latitude: 52.52, longitude: 13.4 } };
+    const logout = vi.spyOn(router, 'delete').mockImplementation(() => {});
     const wrapper = mountSessions([located[0], berlin]);
 
     await wrapper.find('[data-test="logout-session"]').trigger('click');
 
+    expect(logout).toHaveBeenCalledWith(berlin.logout_url, expect.anything());
     expect(wrapper.findAll('[data-test="session-row"][data-selected="true"]')).toHaveLength(0);
 });
