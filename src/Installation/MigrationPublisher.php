@@ -4,6 +4,7 @@ namespace Ssdev\Headless\Installation;
 
 use Composer\InstalledVersions;
 use Illuminate\Support\Carbon;
+use Ssdev\Headless\Features\FeatureModule;
 
 final class MigrationPublisher
 {
@@ -17,14 +18,15 @@ final class MigrationPublisher
     /**
      * Copies every migration the project does not have yet, matched by name regardless of its timestamp.
      *
+     * @param  list<FeatureModule>  $features
      * @return list<string> published file names
      */
-    public function publish(ProjectFiles $files): array
+    public function publish(ProjectFiles $files, array $features = []): array
     {
         $now = Carbon::now();
         $published = [];
 
-        foreach ($this->sources() as $name => $source) {
+        foreach ($this->sources($features) as $name => $source) {
             if ($files->glob(self::DIRECTORY."/*_{$name}.php") !== []) {
                 continue;
             }
@@ -39,9 +41,10 @@ final class MigrationPublisher
     }
 
     /**
+     * @param  list<FeatureModule>  $features
      * @return array<string, string> migration name => source path
      */
-    private function sources(): array
+    private function sources(array $features): array
     {
         $sources = [
             self::PERMISSION_MIGRATION => InstalledVersions::getInstallPath('spatie/laravel-permission').'/database/migrations/create_permission_tables.php.stub',
@@ -53,6 +56,10 @@ final class MigrationPublisher
 
         foreach ($packageMigrations as $path) {
             $sources[basename($path, '.php')] = $path;
+        }
+
+        foreach ($features as $feature) {
+            $sources = [...$sources, ...$feature->migrations()];
         }
 
         return $sources;

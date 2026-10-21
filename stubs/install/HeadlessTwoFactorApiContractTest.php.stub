@@ -1,0 +1,60 @@
+<?php
+
+namespace Tests\Feature;
+
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+use PragmaRX\Google2FA\Google2FA;
+use Ssdev\ApiContracts\Testing\InteractsWithApiContract;
+use Ssdev\Headless\Features\TwoFactor\TwoFactorService;
+use Tests\TestCase;
+
+/**
+ * Snapshots of the ssdev/laravel-headless two-factor API as this application serves it.
+ * After an intentional change: API_CONTRACT_UPDATE=1 php artisan test tests/Feature/HeadlessTwoFactorApiContractTest.php
+ */
+class HeadlessTwoFactorApiContractTest extends TestCase
+{
+    use InteractsWithApiContract;
+    use RefreshDatabase;
+
+    public function test_two_factor_status_matches_contract(): void
+    {
+        Sanctum::actingAs($this->createUser(), ['*']);
+
+        $response = $this->getJson($this->url('me/two-factor'));
+
+        $response->assertOk();
+        $this->assertMatchesApiContract('headless_two_factor_GET_me_two-factor', $response->json());
+    }
+
+    public function test_token_login_challenge_matches_contract(): void
+    {
+        $user = $this->createUser();
+        $twoFactor = app(TwoFactorService::class);
+        $setup = $twoFactor->enable($user);
+        $twoFactor->confirm($user, app(Google2FA::class)->getCurrentOtp($setup->secret));
+
+        $response = $this->postJson($this->url('auth/token'), [
+            'email' => $user->getAttribute('email'),
+            'password' => 'password',
+            'device_name' => 'contract',
+        ]);
+
+        $response->assertStatus(202);
+        $this->assertMatchesApiContract('headless_two_factor_POST_auth_token_challenge', $response->json());
+    }
+
+    private function createUser(): Authenticatable
+    {
+        $model = config('auth.providers.users.model');
+
+        return $model::factory()->create();
+    }
+
+    private function url(string $path): string
+    {
+        return '/'.trim(config('headless.api.prefix'), '/').'/'.$path;
+    }
+}

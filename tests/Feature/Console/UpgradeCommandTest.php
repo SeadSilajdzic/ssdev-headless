@@ -1,6 +1,17 @@
 <?php
 
+use Ssdev\Headless\Features\TwoFactor\TwoFactorModule;
+
 use function Pest\Laravel\artisan;
+
+it('publishes migrations of enabled features', function () {
+    $files = fixtureProject();
+    useFeatures([new TwoFactorModule], ['two-factor']);
+
+    artisan('headless:upgrade')->expectsOutputToContain('add_two_factor_columns_to_users_table')->assertSuccessful();
+
+    expect($files->glob('database/migrations/*_add_two_factor_columns_to_users_table.php'))->toHaveCount(1);
+});
 
 it('publishes only new migrations', function () {
     $files = fixtureProject();

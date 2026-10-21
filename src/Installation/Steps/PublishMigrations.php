@@ -15,7 +15,7 @@ final class PublishMigrations implements InstallStep
 
     public function handle(InstallContext $context): StepResult
     {
-        if ($this->publisher->publish($context->files) === []) {
+        if ($this->publisher->publish($context->files, $context->features) === []) {
             return StepResult::skipped(self::DESCRIPTION);
         }
 

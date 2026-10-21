@@ -1,5 +1,6 @@
 <?php
 
+use Ssdev\Headless\Features\TwoFactor\TwoFactorModule;
 use Ssdev\Headless\Installation\Steps\PrepareUserModel;
 use Ssdev\Headless\Installation\StepStatus;
 
@@ -112,6 +113,17 @@ it('asks for manual changes when the user model is missing', function () {
     $files->delete('app/Models/User.php');
 
     expect(app(PrepareUserModel::class)->handle(installContext($files))->status)->toBe(StepStatus::Manual);
+});
+
+it('adds the traits of the selected features to the user model', function () {
+    $files = fixtureProject();
+
+    app(PrepareUserModel::class)->handle(installContext($files, [new TwoFactorModule]));
+    $code = $files->get('app/Models/User.php');
+
+    expect($code)->toContain("\nuse Laravel\Fortify\TwoFactorAuthenticatable;\n")
+        ->toContain('    use HasApiTokens, HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;');
+    expectValidPhp($code);
 });
 
 it('adds HasApiTokens to the user model', function () {

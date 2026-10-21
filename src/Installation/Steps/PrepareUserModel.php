@@ -39,20 +39,21 @@ final class PrepareUserModel implements InstallStep
     public function handle(InstallContext $context): StepResult
     {
         $files = $context->files;
+        $traits = $this->traits($context);
 
         if (! $files->exists(self::PATH)) {
-            return $this->manual();
+            return $this->manual($traits);
         }
 
         $original = $files->get(self::PATH);
-        $code = $this->addTraits($original);
+        $code = $this->addTraits($original, $traits);
 
         if ($code !== null && $this->config->get('headless.email_verification')) {
             $code = $this->addMustVerifyEmail($code);
         }
 
         if ($code === null) {
-            return $this->manual();
+            return $this->manual($traits);
         }
 
         if ($code === $original) {
@@ -64,24 +65,41 @@ final class PrepareUserModel implements InstallStep
         return StepResult::changed(self::DESCRIPTION);
     }
 
-    private function addTraits(string $code): ?string
+    /**
+     * @return array<string, string> trait name => import statement
+     */
+    private function traits(InstallContext $context): array
+    {
+        $traits = self::TRAITS;
+
+        foreach ($context->features as $feature) {
+            $traits = [...$traits, ...$feature->userTraits()];
+        }
+
+        return $traits;
+    }
+
+    /**
+     * @param  array<string, string>  $traits
+     */
+    private function addTraits(string $code, array $traits): ?string
     {
         if (preg_match(self::CLASS_DECLARATION, $code, $class, PREG_OFFSET_CAPTURE) !== 1
-            || preg_match(self::TRAIT_LIST, $code, $traits, PREG_OFFSET_CAPTURE, $class[0][1]) !== 1) {
+            || preg_match(self::TRAIT_LIST, $code, $used, PREG_OFFSET_CAPTURE, $class[0][1]) !== 1) {
             return null;
         }
 
-        $names = array_map('trim', explode(',', $traits[2][0]));
-        $missing = array_diff(array_keys(self::TRAITS), $names);
+        $names = array_map('trim', explode(',', $used[2][0]));
+        $missing = array_diff(array_keys($traits), $names);
 
         if ($missing !== []) {
             $names = [...$names, ...$missing];
             sort($names, SORT_STRING);
-            $line = $traits[1][0].'use '.implode(', ', $names).';';
-            $code = substr_replace($code, $line, $traits[0][1], strlen($traits[0][0]));
+            $line = $used[1][0].'use '.implode(', ', $names).';';
+            $code = substr_replace($code, $line, $used[0][1], strlen($used[0][0]));
         }
 
-        foreach (self::TRAITS as $import) {
+        foreach ($traits as $import) {
             $code = $code === null ? null : $this->addImport($code, $import);
         }
 
@@ -124,11 +142,16 @@ final class PrepareUserModel implements InstallStep
         return substr_replace($code, $last[0]."\n".$import, $last[1], strlen($last[0]));
     }
 
-    private function manual(): StepResult
+    /**
+     * @param  array<string, string>  $traits
+     */
+    private function manual(array $traits): StepResult
     {
+        $classes = array_map(fn (string $import) => substr($import, strlen('use '), -1), array_values($traits));
+
         return StepResult::manual(
             self::DESCRIPTION,
-            'Add the Laravel\Sanctum\HasApiTokens and Spatie\Permission\Traits\HasRoles traits to app/Models/User.php'
+            'Add the '.implode(', ', $classes).' traits to app/Models/User.php'
             .($this->config->get('headless.email_verification') ? ' and implement Illuminate\Contracts\Auth\MustVerifyEmail.' : '.'),
         );
     }

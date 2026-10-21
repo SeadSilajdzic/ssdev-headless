@@ -11,7 +11,7 @@ use Ssdev\Headless\Installation\StepResult;
 use Ssdev\Headless\Installation\Stub;
 
 /**
- * Runs once per project: rerunning would regenerate the snapshots and erase the contract they guard.
+ * Writes each contract test once: rerunning would regenerate its snapshots and erase the contract they guard.
  */
 final class InstallApiContracts implements InstallStep
 {
@@ -21,7 +21,9 @@ final class InstallApiContracts implements InstallStep
 
     private const PACKAGE_NAME = 'ssdev/laravel-api-contracts';
 
-    private const TEST_PATH = 'tests/Feature/HeadlessApiContractTest.php';
+    private const TEST_DIRECTORY = 'tests/Feature';
+
+    private const CORE_TEST = 'HeadlessApiContractTest.php';
 
     private const UPDATE_ENV = 'API_CONTRACT_UPDATE';
 
@@ -30,29 +32,60 @@ final class InstallApiContracts implements InstallStep
     public function handle(InstallContext $context): StepResult
     {
         $files = $context->files;
+        $pending = $this->pendingTests($context);
 
-        if ($files->exists(self::TEST_PATH)) {
+        if ($pending === []) {
             return StepResult::skipped(self::DESCRIPTION);
         }
 
-        if (! InstalledVersions::isInstalled(self::PACKAGE_NAME) && ! $this->composer->requirePackages([self::PACKAGE], true)) {
-            return StepResult::manual(self::DESCRIPTION, 'Run: composer require --dev '.self::PACKAGE);
+        // The core test exists once the contracts package is set up, so only a first install sets it up.
+        if (isset($pending[self::TEST_DIRECTORY.'/'.self::CORE_TEST])) {
+            if (! InstalledVersions::isInstalled(self::PACKAGE_NAME) && ! $this->composer->requirePackages([self::PACKAGE], true)) {
+                return StepResult::manual(self::DESCRIPTION, 'Run: composer require --dev '.self::PACKAGE);
+            }
+
+            // New processes, because the package was not loaded when this command started.
+            if (Process::path($files->path(''))->run($this->artisan('api:contract:install'))->failed()) {
+                return StepResult::manual(self::DESCRIPTION, 'Run: php artisan api:contract:install');
+            }
         }
 
-        // New processes, because the package was not loaded when this command started.
-        if (Process::path($files->path(''))->run($this->artisan('api:contract:install'))->failed()) {
-            return StepResult::manual(self::DESCRIPTION, 'Run: php artisan api:contract:install');
+        foreach ($pending as $path => $stub) {
+            $files->put($path, Stub::get($stub));
         }
 
-        $files->put(self::TEST_PATH, Stub::get('HeadlessApiContractTest.php'));
-
-        $snapshots = Process::path($files->path(''))->env([self::UPDATE_ENV => '1'])->run($this->artisan('test '.self::TEST_PATH));
+        $tests = implode(' ', array_keys($pending));
+        $snapshots = Process::path($files->path(''))->env([self::UPDATE_ENV => '1'])->run($this->artisan('test '.$tests));
 
         if ($snapshots->failed()) {
-            return StepResult::manual(self::DESCRIPTION, 'Run: '.self::UPDATE_ENV.'=1 php artisan test '.self::TEST_PATH);
+            return StepResult::manual(self::DESCRIPTION, 'Run: '.self::UPDATE_ENV.'=1 php artisan test '.$tests);
         }
 
         return StepResult::changed(self::DESCRIPTION);
+    }
+
+    /**
+     * @return array<string, string> test path => stub name, for the tests the project does not have yet
+     */
+    private function pendingTests(InstallContext $context): array
+    {
+        $tests = [self::CORE_TEST];
+
+        foreach ($context->features as $feature) {
+            $tests[] = $feature->apiContractTest();
+        }
+
+        $pending = [];
+
+        foreach (array_filter($tests) as $test) {
+            $path = self::TEST_DIRECTORY.'/'.$test;
+
+            if (! $context->files->exists($path)) {
+                $pending[$path] = $test;
+            }
+        }
+
+        return $pending;
     }
 
     private function artisan(string $command): string

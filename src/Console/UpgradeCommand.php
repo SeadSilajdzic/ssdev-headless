@@ -3,6 +3,7 @@
 namespace Ssdev\Headless\Console;
 
 use Illuminate\Console\Command;
+use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Installation\MigrationPublisher;
 use Ssdev\Headless\Installation\ProjectFiles;
 
@@ -12,9 +13,9 @@ final class UpgradeCommand extends Command
 
     protected $description = 'Publish migrations added by a newer version of the package';
 
-    public function handle(MigrationPublisher $publisher, ProjectFiles $files): int
+    public function handle(MigrationPublisher $publisher, ProjectFiles $files, FeatureRegistry $features): int
     {
-        $published = $publisher->publish($files);
+        $published = $publisher->publish($files, $features->enabled());
 
         if ($published === []) {
             $this->components->info('Migrations are up to date.');

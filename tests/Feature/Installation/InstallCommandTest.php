@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Process;
 use Spatie\Permission\Models\Permission;
+use Ssdev\Headless\Features\TwoFactor\TwoFactorModule;
 use Ssdev\Headless\Tests\Fixtures\Features\FakeInstallStep;
 use Ssdev\Headless\Tests\Fixtures\Features\FakeModule;
 use Ssdev\Headless\Tests\Fixtures\Permissions\FakePermission;
@@ -54,6 +55,18 @@ it('asks which features to install and runs their steps', function () {
 
     expect($files->get('config/headless.php'))->toContain("'fake',")
         ->and($files->exists('fake-step.txt'))->toBeTrue();
+});
+
+it('keeps installed features when another run selects none', function () {
+    $files = fixtureProject();
+    config(['headless.features' => ['two-factor']]);
+    useFeatures([new TwoFactorModule], ['two-factor']);
+
+    artisan('headless:install', ['--no-interaction' => true])->assertSuccessful();
+
+    expect($files->get('config/headless.php'))->toContain("'two-factor',")
+        ->and($files->glob('database/migrations/*_add_two_factor_columns_to_users_table.php'))->toHaveCount(1)
+        ->and($files->get('app/Models/User.php'))->toContain('TwoFactorAuthenticatable');
 });
 
 it('offers two-factor authentication in the feature selection', function () {

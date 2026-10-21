@@ -70,11 +70,14 @@ final class InstallCommand extends Command
     }
 
     /**
+     * Features that are already installed stay in the run, so their steps can fill in anything missing.
+     *
      * @return list<FeatureModule>
      */
     private function selectedFeatures(FeatureRegistry $registry): array
     {
         $option = $this->option('features');
+        $installed = array_map(fn (FeatureModule $module) => $module->key(), $registry->enabled());
 
         if (is_string($option) && $option !== '') {
             $keys = array_values(array_filter(array_map('trim', explode(',', $option))));
@@ -84,7 +87,8 @@ final class InstallCommand extends Command
                 options: collect($registry->available())
                     ->mapWithKeys(fn (FeatureModule $module) => [$module->key() => $module->label()])
                     ->all(),
-                hint: 'The core (authentication, profile, security, API tokens) is always installed.',
+                default: $installed,
+                hint: 'The core (authentication, profile, security, API tokens) is always installed, and so are features installed before.',
             );
         } else {
             $keys = [];
@@ -92,7 +96,7 @@ final class InstallCommand extends Command
 
         return array_map(
             fn (string $key) => $registry->find($key) ?? throw UnknownFeatureException::forKey($key),
-            array_values($keys),
+            array_values(array_unique([...$installed, ...$keys])),
         );
     }
 
