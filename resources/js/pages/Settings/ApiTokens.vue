@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ApiTokenList, { type ApiTokenItem } from '@headless/components/settings/ApiTokenList.vue';
-import CreateApiTokenForm, { type PermissionGroup } from '@headless/components/settings/CreateApiTokenForm.vue';
+import type { PermissionGroup } from '@headless/components/permissions/PermissionPicker.vue';
+import CreateApiTokenForm from '@headless/components/settings/CreateApiTokenForm.vue';
 import BaseCard from '@headless/components/ui/BaseCard.vue';
 import { useTrans } from '@headless/i18n';
 import SettingsLayout from '@headless/layouts/SettingsLayout.vue';

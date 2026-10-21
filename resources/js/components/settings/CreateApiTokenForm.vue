@@ -1,28 +1,18 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import PermissionPicker, { type PermissionGroup } from '@headless/components/permissions/PermissionPicker.vue';
 import BaseAlert from '@headless/components/ui/BaseAlert.vue';
 import BaseButton from '@headless/components/ui/BaseButton.vue';
-import BaseCheckbox from '@headless/components/ui/BaseCheckbox.vue';
 import BaseInput from '@headless/components/ui/BaseInput.vue';
 import FormField from '@headless/components/ui/FormField.vue';
 import { useTrans } from '@headless/i18n';
-
-export interface PermissionGroup {
-    group: string;
-    label: string;
-    abilities: { name: string }[];
-}
 
 const props = defineProps<{ permissions: PermissionGroup[]; storeUrl: string; createdToken: string | null }>();
 
 const t = useTrans();
 const form = useForm<{ name: string; abilities: string[] }>({ name: '', abilities: [] });
 const copied = ref(false);
-
-function toggle(ability: string, checked: boolean): void {
-    form.abilities = checked ? [...form.abilities, ability] : form.abilities.filter((name) => name !== ability);
-}
 
 function submit(): void {
     form.post(props.storeUrl, { preserveScroll: true, onSuccess: () => form.reset() });
@@ -52,19 +42,7 @@ async function copy(): Promise<void> {
 
             <fieldset>
                 <legend class="mb-2 text-sm font-medium text-ink-700">{{ t('settings.api_tokens.permissions') }}</legend>
-                <p v-if="!permissions.length" class="text-sm text-ink-500">{{ t('settings.api_tokens.no_permissions') }}</p>
-                <div v-for="group in permissions" :key="group.group" class="mb-3">
-                    <p class="mb-1 text-xs font-semibold tracking-wider text-ink-400 uppercase">{{ group.label }}</p>
-                    <div class="grid gap-2 sm:grid-cols-2">
-                        <BaseCheckbox
-                            v-for="ability in group.abilities"
-                            :key="ability.name"
-                            :label="ability.name"
-                            :model-value="form.abilities.includes(ability.name)"
-                            @update:model-value="(checked: boolean) => toggle(ability.name, checked)"
-                        />
-                    </div>
-                </div>
+                <PermissionPicker v-model="form.abilities" :groups="permissions" :empty-label="t('settings.api_tokens.no_permissions')" />
                 <p v-if="form.errors.abilities" role="alert" class="mt-1.5 text-xs text-rose-600">{{ form.errors.abilities }}</p>
             </fieldset>
 

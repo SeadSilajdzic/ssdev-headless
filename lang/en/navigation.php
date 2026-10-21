@@ -13,5 +13,6 @@ return [
     'security' => 'Security',
     'two_factor' => 'Two-factor authentication',
     'api_tokens' => 'API tokens',
+    'roles' => 'Roles',
 
 ];
