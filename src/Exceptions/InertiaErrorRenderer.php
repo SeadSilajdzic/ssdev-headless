@@ -21,9 +21,7 @@ final class InertiaErrorRenderer
 
     public static function register(Exceptions $exceptions): void
     {
-        $exceptions->respond(
-            fn (Response $response, Throwable $exception, Request $request) => app(self::class)($response, $exception, $request),
-        );
+        ErrorResponseRenderer::register($exceptions);
     }
 
     public function __invoke(Response $response, Throwable $exception, Request $request): Response

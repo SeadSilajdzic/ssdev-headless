@@ -7,8 +7,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Ssdev\Headless\Exceptions\ErrorResponseRenderer;
 use Symfony\Component\HttpFoundation\Response;
-use Throwable;
 
 /**
  * Gives every API error one shape, {"message"} or {"message", "errors"}, without class names, SQL or traces.
@@ -21,9 +21,7 @@ final class ApiErrorRenderer
 
     public static function register(Exceptions $exceptions): void
     {
-        $exceptions->respond(
-            fn (Response $response, Throwable $exception, Request $request) => app(self::class)($response, $request),
-        );
+        ErrorResponseRenderer::register($exceptions);
     }
 
     public function __invoke(Response $response, Request $request): Response
