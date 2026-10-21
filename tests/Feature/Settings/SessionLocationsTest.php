@@ -92,3 +92,15 @@ it('remembers locations in a cache that refuses objects', function () {
 
     expect(FakeIpLocator::$calls)->toBe(1);
 });
+
+it('asks a failing locator once per page', function () {
+    useFakeLocator();
+    FakeIpLocator::$throws = true;
+    $user = User::factory()->create();
+    insertSession('in-sarajevo', $user, '203.0.113.7');
+    insertSession('in-berlin', $user, '198.51.100.4');
+
+    actingAs($user)->get(route('headless.security.edit'))->assertOk();
+
+    expect(FakeIpLocator::$calls)->toBe(1);
+});

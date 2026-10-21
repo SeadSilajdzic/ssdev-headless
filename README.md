@@ -194,7 +194,7 @@ Create a free MaxMind account, download GeoLite2 City with MaxMind's [`geoipupda
 ],
 ```
 
-Any class that implements `Ssdev\Headless\Account\Location\IpLocator` works as a locator too, for example one that asks a service you already use. Local and private addresses are never looked up, every address is looked up once per `cache_minutes`, and a locator that fails shows the session as "Unknown location" instead of breaking the page. Locations are as precise as a city; a VPN shows up where its server is.
+Any class that implements `Ssdev\Headless\Account\Location\IpLocator` works as a locator too, for example one that asks a service you already use. Local and private addresses are never looked up, and every address the locator answers for is looked up once per `cache_minutes`. A locator that fails (for example because the database file is missing) is reported once per page load and shows the sessions as "Unknown location" instead of breaking the page. Locations are as precise as a city; a VPN shows up where its server is.
 
 ## Customization
 

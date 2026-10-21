@@ -15,6 +15,9 @@ final class SessionLocations
 
     private ?IpLocator $locator = null;
 
+    // A broken locator (e.g. a missing database) is asked once per request, not once per session.
+    private bool $locatorFailed = false;
+
     public function __construct(
         private Config $config,
         private Cache $cache,
@@ -28,7 +31,7 @@ final class SessionLocations
     {
         $locator = $this->locator();
 
-        if ($locator === null || $ipAddress === null || ! $this->isPublic($ipAddress)) {
+        if ($locator === null || $this->locatorFailed || $ipAddress === null || ! $this->isPublic($ipAddress)) {
             return null;
         }
 
@@ -40,6 +43,7 @@ final class SessionLocations
             );
         } catch (Throwable $exception) {
             report($exception);
+            $this->locatorFailed = true;
 
             return null;
         }
