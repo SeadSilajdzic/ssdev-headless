@@ -24,13 +24,17 @@ use Ssdev\Headless\Navigation\NavigationGroup;
 use Ssdev\Headless\Navigation\NavigationItem;
 use Ssdev\Headless\Navigation\NavigationRegistry;
 use Ssdev\Headless\Permissions\PermissionRegistry;
+use Ssdev\Headless\Support\PackageConfig;
 use Ssdev\Headless\Translations\HeadlessTranslations;
 
 class HeadlessServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/headless.php', 'headless');
+        if (! $this->app->configurationIsCached()) {
+            $config = $this->app['config'];
+            $config->set('headless', PackageConfig::merge(require __DIR__.'/../config/headless.php', $config->get('headless', [])));
+        }
 
         $this->app->singleton(FortifyIntegration::class);
         $this->app->make(FortifyIntegration::class)->register();
