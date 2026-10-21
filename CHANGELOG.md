@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-21
+
+### Fixed
+
+- Settings that a release adds to a config group (for example `rate_limits.api`) now apply to applications that published `config/headless.php` earlier, instead of a limit of zero.
+
 ## [0.3.0] - 2026-10-21
 
 ### Added
@@ -61,7 +67,8 @@ All notable changes to this project are documented in this file. The format foll
 - App, auth and settings layouts, dashboard page and error pages for 403, 404, 419, 429, 500 and 503.
 - Shared Inertia props: authenticated user, navigation, enabled features, translations and flash messages.
 
-[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.0...v0.1.1
