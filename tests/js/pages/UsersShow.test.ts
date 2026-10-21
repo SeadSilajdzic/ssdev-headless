@@ -14,7 +14,9 @@ function mountShow(status: UserStatus, canBlock: boolean, isSelf = false) {
         props: {
             user: { id: 3, name: 'Ada Lovelace', email: 'ada@example.com', avatar_url: null, status, email_verified: true, created_at: null, blocked_at: null },
             isSelf,
-            can: { update: true, block: canBlock, delete: true, invite: true },
+            can: { update: true, block: canBlock, delete: true, invite: true, manageRoles: false },
+            roles: null,
+            rolesUrl: null,
             indexUrl: '/users',
             updateUrl: '/users/3',
             blockUrl: '/users/3/block',

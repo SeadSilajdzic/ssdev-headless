@@ -59,6 +59,7 @@ return [
         'role_not_manageable' => 'This role has permissions you do not have, so you cannot change or assign it.',
         'last_manager' => 'At least one role that manages roles must keep a member.',
         'unknown_user' => 'No one has an account with this email.',
+        'unknown_role' => 'One of the roles does not exist.',
     ],
 
 ];

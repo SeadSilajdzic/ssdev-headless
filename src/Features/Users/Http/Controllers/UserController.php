@@ -11,6 +11,7 @@ use Ssdev\Headless\Features\Feature;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Features\Roles\RolePermission;
 use Ssdev\Headless\Features\Roles\RoleRepository;
+use Ssdev\Headless\Features\Roles\RoleService;
 use Ssdev\Headless\Features\Users\Http\Requests\ListUsersRequest;
 use Ssdev\Headless\Features\Users\Http\Requests\SaveUserRequest;
 use Ssdev\Headless\Features\Users\Http\Resources\ManagedUserResource;
@@ -30,6 +31,7 @@ final class UserController
         private UserInvitationService $invitations,
         private FeatureRegistry $features,
         private RoleRepository $roles,
+        private RoleService $roleService,
     ) {}
 
     public function index(ListUsersRequest $request): Response
@@ -69,6 +71,7 @@ final class UserController
     {
         $managed = $this->users->findOrFail($user);
         $actor = $request->user();
+        $rolesEnabled = $this->features->isEnabled(Feature::Roles->value);
 
         return HeadlessPage::render('Users/Show', [
             'user' => ManagedUserResource::make($managed)->resolve($request),
@@ -78,7 +81,10 @@ final class UserController
                 'block' => $actor->can(UserPermission::Block->value),
                 'delete' => $actor->can(UserPermission::Delete->value),
                 'invite' => $actor->can(UserPermission::Create->value),
+                'manageRoles' => $rolesEnabled && $actor->can(RolePermission::Manage->value),
             ],
+            'roles' => $rolesEnabled && $actor->can(RolePermission::View->value) ? $this->roleChoices($actor, $managed) : null,
+            'rolesUrl' => $rolesEnabled ? route('headless.users.roles.update', $managed->getKey()) : null,
             'indexUrl' => route('headless.users.index'),
             'updateUrl' => route('headless.users.update', $managed->getKey()),
             'blockUrl' => route('headless.users.block.store', $managed->getKey()),
@@ -101,6 +107,24 @@ final class UserController
         $this->service->delete($request->user(), $this->users->findOrFail($user));
 
         return redirect()->route('headless.users.index')->with(Flash::SUCCESS, __('headless::users.deleted'));
+    }
+
+    /**
+     * A role is manageable only for someone who may manage roles and holds every permission in it.
+     *
+     * @return list<array{id: int|string, name: string, assigned: bool, manageable: bool}>
+     */
+    private function roleChoices(User $actor, User $user): array
+    {
+        $assigned = $this->roles->assignedTo($user)->map(fn (Role $role) => $role->getKey())->all();
+        $managesRoles = $actor->can(RolePermission::Manage->value);
+
+        return $this->roles->all()->load('permissions')->map(fn (Role $role): array => [
+            'id' => $role->getKey(),
+            'name' => $role->name,
+            'assigned' => in_array($role->getKey(), $assigned, true),
+            'manageable' => $managesRoles && $this->roleService->canManage($actor, $role),
+        ])->values()->all();
     }
 
     /**

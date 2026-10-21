@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Foundation\Auth\User;
 use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Roles\Criteria\RoleCriteria;
 use Ssdev\Headless\Features\Roles\Criteria\SortRoles;
@@ -59,6 +60,14 @@ final class RoleRepository
     public function all(): Collection
     {
         return $this->query()->orderBy('name')->get();
+    }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    public function assignedTo(User $user): Collection
+    {
+        return $this->query()->whereHas('users', fn (Builder $members) => $members->whereKey($user->getKey()))->orderBy('name')->get();
     }
 
     public function findByName(string $name): ?Role

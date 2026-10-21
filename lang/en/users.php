@@ -81,6 +81,15 @@ return [
         'block_confirm_description' => 'They are signed out everywhere, lose their API tokens and cannot sign in until someone unblocks them.',
     ],
 
+    'roles' => [
+        'title' => 'Roles',
+        'description' => 'Roles give this user their permissions.',
+        'none' => 'This user has no roles.',
+        'locked' => 'Roles with permissions you do not have stay as they are.',
+        'save' => 'Save roles',
+        'saved' => 'Roles saved.',
+    ],
+
     'delete' => [
         'button' => 'Delete user',
         'confirm_title' => 'Delete this user?',

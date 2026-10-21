@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import UserRoles, { type UserRoleChoice } from '@headless/components/users/UserRoles.vue';
 import UserStatusBadge from '@headless/components/users/UserStatusBadge.vue';
 import BaseAlert from '@headless/components/ui/BaseAlert.vue';
 import BaseAvatar from '@headless/components/ui/BaseAvatar.vue';
@@ -16,7 +17,9 @@ import type { ManagedUser } from '@headless/pages/Users/Index.vue';
 const props = defineProps<{
     user: ManagedUser;
     isSelf: boolean;
-    can: { update: boolean; block: boolean; delete: boolean; invite: boolean };
+    can: { update: boolean; block: boolean; delete: boolean; invite: boolean; manageRoles: boolean };
+    roles: UserRoleChoice[] | null;
+    rolesUrl: string | null;
     indexUrl: string;
     updateUrl: string;
     blockUrl: string;
@@ -81,6 +84,10 @@ function act(method: 'post' | 'delete', url: string, onDone?: () => void): void 
                     <dt class="font-medium text-ink-700">{{ t('users.fields.email') }}</dt>
                     <dd class="text-ink-900">{{ user.email }}</dd>
                 </dl>
+            </BaseCard>
+
+            <BaseCard v-if="roles && rolesUrl" :title="t('users.roles.title')" :description="t('users.roles.description')">
+                <UserRoles :roles="roles" :roles-url="rolesUrl" :can-manage="can.manageRoles" />
             </BaseCard>
 
             <BaseCard :title="t('users.access.title')" :description="t('users.access.description')">

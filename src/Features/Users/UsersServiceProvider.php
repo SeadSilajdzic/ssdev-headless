@@ -8,6 +8,8 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
+use Ssdev\Headless\Features\Feature;
+use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Features\Users\Http\Middleware\LogOutBlockedUsers;
 use Ssdev\Headless\Features\Users\Listeners\CompletePendingInvitation;
 use Ssdev\Headless\Features\Users\Listeners\RejectBlockedSignIn;
@@ -33,7 +35,7 @@ final class UsersServiceProvider extends ServiceProvider
         ]);
     }
 
-    public function boot(Dispatcher $events, HttpKernel $kernel, InvitationRateLimit $rateLimit, NavigationRegistry $navigation): void
+    public function boot(Dispatcher $events, HttpKernel $kernel, InvitationRateLimit $rateLimit, NavigationRegistry $navigation, FeatureRegistry $features): void
     {
         $rateLimit->register();
 
@@ -47,6 +49,10 @@ final class UsersServiceProvider extends ServiceProvider
         }
 
         PackageRoutes::web(__DIR__.'/../../../routes/users.php');
+
+        if ($features->isEnabled(Feature::Roles->value)) {
+            PackageRoutes::web(__DIR__.'/../../../routes/user-roles.php');
+        }
 
         $navigation->add(new NavigationItem(
             'users',

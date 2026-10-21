@@ -3,6 +3,7 @@
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 use Ssdev\Headless\Features\Users\Notifications\UserInvitationNotification;
 use Ssdev\Headless\Features\Users\UserInvitationService;
@@ -169,4 +170,14 @@ it('answers not found for a deleted user', function () {
     $user->delete();
 
     actingAs(usersAdmin())->get(route('headless.users.show', $user->id))->assertNotFound();
+});
+
+it('offers no roles without the roles feature', function () {
+    $user = User::factory()->create();
+
+    actingAs(usersAdmin())->get(route('headless.users.show', $user->id))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('roles', null)
+        ->where('rolesUrl', null));
+
+    expect(Route::has('headless.users.roles.update'))->toBeFalse();
 });
