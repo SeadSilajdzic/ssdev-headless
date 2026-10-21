@@ -3,6 +3,7 @@
 namespace Ssdev\Headless\Features\Roles\Criteria;
 
 use Illuminate\Database\Eloquent\Builder;
+use Ssdev\Headless\Support\TextSearch;
 
 final class SearchRolesByName implements RoleCriteria
 {
@@ -10,7 +11,6 @@ final class SearchRolesByName implements RoleCriteria
 
     public function apply(Builder $query): Builder
     {
-        // Escaped, so % and _ in a search are matched as text.
-        return $query->where('name', 'like', '%'.addcslashes($this->search, '\\%_').'%');
+        return TextSearch::apply($query, ['name'], $this->search);
     }
 }

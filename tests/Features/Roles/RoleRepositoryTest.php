@@ -22,6 +22,13 @@ it('treats wildcards in a search as text', function () {
     expect(app(RoleRepository::class)->paginate([new SearchRolesByName('%')])->total())->toBe(0);
 });
 
+it('finds a role whose name contains a wildcard, in any case', function () {
+    Role::create(['name' => 'Full 100% Access', 'guard_name' => 'web']);
+
+    expect(app(RoleRepository::class)->paginate([new SearchRolesByName('100%')])->pluck('name')->all())->toBe(['Full 100% Access'])
+        ->and(app(RoleRepository::class)->paginate([new SearchRolesByName('full 100')])->total())->toBe(1);
+});
+
 it('sorts by name by default and by whitelisted columns only', function () {
     $repository = app(RoleRepository::class);
 
