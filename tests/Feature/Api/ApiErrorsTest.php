@@ -63,3 +63,7 @@ it('leaves errors untouched in debug mode', function () {
 
     expect(get('/api/v1/boom')->assertStatus(500)->json('message'))->toBe('visible while debugging');
 });
+
+it('answers unknown api routes with 404 for every method', function () {
+    post('/api/v1/nope')->assertNotFound()->assertExactJson(['message' => __('headless::api.errors.404')]);
+});

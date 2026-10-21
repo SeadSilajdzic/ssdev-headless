@@ -8,11 +8,20 @@ use Ssdev\Headless\Http\Controllers\Api\AuthTokenController;
 use Ssdev\Headless\Http\Controllers\Api\AvatarController;
 use Ssdev\Headless\Http\Controllers\Api\EmailVerificationController;
 use Ssdev\Headless\Http\Controllers\Api\PasswordController;
+use Ssdev\Headless\Http\Controllers\Api\PasswordResetLinkController;
 use Ssdev\Headless\Http\Controllers\Api\ProfileController;
+use Ssdev\Headless\Http\Controllers\Api\RegistrationController;
+use Ssdev\Headless\Http\Middleware\EnsureRegistrationIsEnabled;
 
 Route::post('auth/token', [AuthTokenController::class, 'store'])
     ->middleware('throttle:'.RateLimits::LOGIN)
     ->name('headless.api.auth.token');
+Route::post('auth/register', [RegistrationController::class, 'store'])
+    ->middleware([EnsureRegistrationIsEnabled::class, 'throttle:'.RateLimits::REGISTRATION])
+    ->name('headless.api.auth.register');
+Route::post('auth/forgot-password', [PasswordResetLinkController::class, 'store'])
+    ->middleware('throttle:'.RateLimits::PASSWORD_RESET)
+    ->name('headless.api.auth.forgot-password');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::delete('auth/token', [AuthTokenController::class, 'destroy'])->name('headless.api.auth.logout');
@@ -40,4 +49,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('tokens/{token}', [ApiTokenController::class, 'destroy'])->name('headless.api.tokens.destroy');
 });
 
-Route::fallback(fn () => abort(404))->name('headless.api.fallback');
+// Route::fallback() only answers GET, so unknown POST/PUT/DELETE URLs would report 405 instead of 404.
+Route::any('{path}', fn () => abort(404))->where('path', '.*')->fallback()->name('headless.api.fallback');
