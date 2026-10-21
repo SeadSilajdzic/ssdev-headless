@@ -2,13 +2,11 @@
 
 namespace Ssdev\Headless\Features\Roles;
 
-use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 use Ssdev\Headless\Permissions\PermissionRegistry;
 
 /**
@@ -17,10 +15,9 @@ use Ssdev\Headless\Permissions\PermissionRegistry;
 final class RoleService
 {
     public function __construct(
-        private PermissionRegistrar $registrar,
+        private RoleGuard $guard,
         private PermissionRegistry $permissions,
         private ConnectionInterface $database,
-        private Repository $config,
     ) {}
 
     public function create(User $actor, RoleData $data): Role
@@ -28,7 +25,7 @@ final class RoleService
         $this->ensureGrantable($actor, $data->permissions);
 
         return $this->database->transaction(function () use ($data): Role {
-            $role = $this->roleClass()::query()->create(['name' => $data->name, 'guard_name' => $this->config->get('auth.defaults.guard')]);
+            $role = $this->guard->roles()->create(['name' => $data->name, 'guard_name' => $this->guard->name()]);
             $role->syncPermissions($data->permissions);
 
             return $role;
@@ -128,18 +125,10 @@ final class RoleService
      */
     private function managingRoles(): Collection
     {
-        return $this->roleClass()::query()
+        return $this->guard->roles()
             ->whereHas('permissions', fn ($query) => $query->where('name', RolePermission::Manage->value))
             ->withCount('users')
             ->lockForUpdate()
             ->get();
-    }
-
-    /**
-     * @return class-string<Role>
-     */
-    private function roleClass(): string
-    {
-        return $this->registrar->getRoleClass();
     }
 }

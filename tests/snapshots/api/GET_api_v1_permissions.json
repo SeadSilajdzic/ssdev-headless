@@ -1,0 +1,13 @@
+{
+    "data": [
+        {
+            "group": "string",
+            "label": "string",
+            "abilities": [
+                {
+                    "name": "string"
+                }
+            ]
+        }
+    ]
+}

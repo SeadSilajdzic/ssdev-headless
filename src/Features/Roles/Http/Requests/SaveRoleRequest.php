@@ -5,6 +5,7 @@ namespace Ssdev\Headless\Features\Roles\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Ssdev\Headless\Features\Roles\RoleData;
+use Ssdev\Headless\Features\Roles\RoleGuard;
 
 /**
  * Which permissions the actor may give is checked by RoleService, which also guards the API.
@@ -27,7 +28,7 @@ final class SaveRoleRequest extends FormRequest
                 'string',
                 'max:100',
                 Rule::unique((string) config('permission.table_names.roles'), 'name')
-                    ->where('guard_name', config('auth.defaults.guard'))
+                    ->where('guard_name', app(RoleGuard::class)->name())
                     ->ignore($this->route('role')),
             ],
             'permissions' => ['present', 'array'],

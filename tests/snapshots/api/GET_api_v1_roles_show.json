@@ -1,0 +1,12 @@
+{
+    "data": {
+        "id": "integer",
+        "name": "string",
+        "permissions": [
+            "string"
+        ],
+        "users_count": "integer",
+        "permissions_count": "integer",
+        "created_at": "string"
+    }
+}

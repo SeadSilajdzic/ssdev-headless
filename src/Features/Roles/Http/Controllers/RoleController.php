@@ -81,7 +81,7 @@ final class RoleController
             'indexUrl' => route('headless.roles.index'),
             'saveUrl' => $role === null ? route('headless.roles.store') : route('headless.roles.update', $role->getKey()),
             'deleteUrl' => $role === null ? null : route('headless.roles.destroy', $role->getKey()),
-            'members' => $role === null ? null : RoleMemberResource::collection($this->roles->members($role))->response()->getData(true),
+            'members' => $role === null ? null : RoleMemberResource::collection($this->roles->members($role, RoleRepository::MEMBERS_PAGE))->response()->getData(true),
             'membersUrl' => $role === null ? null : route('headless.roles.members.store', $role->getKey()),
         ]);
     }

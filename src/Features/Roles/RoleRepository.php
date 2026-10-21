@@ -2,13 +2,11 @@
 
 namespace Ssdev\Headless\Features\Roles;
 
-use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 use Ssdev\Headless\Features\Roles\Criteria\RoleCriteria;
 use Ssdev\Headless\Features\Roles\Criteria\SortRoles;
 
@@ -22,10 +20,7 @@ final class RoleRepository
 
     public const MEMBERS_PAGE = 'members_page';
 
-    public function __construct(
-        private PermissionRegistrar $registrar,
-        private Repository $config,
-    ) {}
+    public function __construct(private RoleGuard $guard) {}
 
     /**
      * @param  list<RoleCriteria>  $criteria
@@ -52,9 +47,9 @@ final class RoleRepository
     /**
      * @return LengthAwarePaginator<int, Model&object{pivot: Pivot}>
      */
-    public function members(Role $role, int $perPage = self::MEMBERS_PER_PAGE): LengthAwarePaginator
+    public function members(Role $role, string $pageName = 'page', int $perPage = self::MEMBERS_PER_PAGE): LengthAwarePaginator
     {
-        return $role->users()->orderBy('name')->orderBy('id')->paginate(min(max($perPage, 1), self::MAX_PER_PAGE), pageName: self::MEMBERS_PAGE);
+        return $role->users()->orderBy('name')->orderBy('id')->paginate(min(max($perPage, 1), self::MAX_PER_PAGE), pageName: $pageName);
     }
 
     public function findOrFail(int|string $id): Role
@@ -67,9 +62,6 @@ final class RoleRepository
      */
     private function query(): Builder
     {
-        /** @var class-string<Role> $roleClass */
-        $roleClass = $this->registrar->getRoleClass();
-
-        return $roleClass::query()->where('guard_name', $this->config->get('auth.defaults.guard'));
+        return $this->guard->roles();
     }
 }

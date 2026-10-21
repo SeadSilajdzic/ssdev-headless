@@ -1,0 +1,34 @@
+{
+    "data": [
+        {
+            "id": "integer",
+            "name": "string",
+            "users_count": "integer",
+            "permissions_count": "integer",
+            "created_at": "string"
+        }
+    ],
+    "links": {
+        "first": "string",
+        "last": "string",
+        "prev": "null",
+        "next": "null"
+    },
+    "meta": {
+        "current_page": "integer",
+        "from": "integer",
+        "last_page": "integer",
+        "links": [
+            {
+                "url": "null",
+                "label": "string",
+                "page": "null",
+                "active": "boolean"
+            }
+        ],
+        "path": "string",
+        "per_page": "integer",
+        "to": "integer",
+        "total": "integer"
+    }
+}

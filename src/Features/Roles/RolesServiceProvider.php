@@ -13,6 +13,7 @@ final class RolesServiceProvider extends ServiceProvider
     public function boot(NavigationRegistry $navigation): void
     {
         PackageRoutes::web(__DIR__.'/../../../routes/roles.php');
+        PackageRoutes::api(__DIR__.'/../../../routes/roles-api.php');
 
         $navigation->add(new NavigationItem(
             'roles',
