@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Fortify;
 use Laravel\Sanctum\Sanctum;
 use PragmaRX\Google2FA\Google2FA;
+use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Api\ApiRoutes;
 use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Features\FeatureRegistry;
@@ -143,6 +145,23 @@ function roleManager(array $permissions = []): User
     $user->givePermissionTo(['roles.view', 'roles.manage', ...$permissions]);
 
     return $user;
+}
+
+/**
+ * @param  list<string>  $permissions
+ */
+function makeRole(string $name, array $permissions, ?User $member = null): Role
+{
+    $role = Role::create(['name' => $name, 'guard_name' => 'web']);
+    $role->givePermissionTo($permissions);
+    $member?->assignRole($role);
+
+    return $role;
+}
+
+function failsOn(string $field): Closure
+{
+    return fn (ValidationException $exception) => expect($exception->errors())->toHaveKey($field);
 }
 
 function usePermissions(string ...$enums): void

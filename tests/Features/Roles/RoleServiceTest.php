@@ -1,27 +1,9 @@
 <?php
 
-use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Roles\RoleData;
 use Ssdev\Headless\Features\Roles\RoleService;
 use Workbench\App\Models\User;
-
-/**
- * @param  list<string>  $permissions
- */
-function makeRole(string $name, array $permissions, ?User $member = null): Role
-{
-    $role = Role::create(['name' => $name, 'guard_name' => 'web']);
-    $role->givePermissionTo($permissions);
-    $member?->assignRole($role);
-
-    return $role;
-}
-
-function failsOn(string $field): Closure
-{
-    return fn (ValidationException $exception) => expect($exception->errors())->toHaveKey($field);
-}
 
 it('creates a role from permissions the actor holds', function () {
     $actor = roleManager(['reports.view']);
