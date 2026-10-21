@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-Upgrading `ssdev/laravel-headless` is always the same three commands:
+Within a minor version, upgrading is always the same three commands:
 
 ```bash
 composer update ssdev/laravel-headless
@@ -10,7 +10,21 @@ php artisan migrate
 
 `headless:upgrade` publishes the migrations a new version added and leaves the ones you already have alone. Anything else that needs your attention is listed below, per version.
 
-## Unreleased
+## Upgrading to 0.2 from 0.1
 
-- New migrations: `create_permission_tables` (spatie/laravel-permission) and `add_avatar_path_to_users_table`.
-- Run `php artisan headless:install` again (it skips everything already in place) so it can add `HasRoles` and `MustVerifyEmail` to `app/Models/User.php` and check your session settings.
+Require the new minor version explicitly, because `^0.1` never installs 0.2:
+
+```bash
+composer require ssdev/laravel-headless:^0.2
+php artisan headless:install
+npm run build
+```
+
+`headless:install` skips everything already in place. For 0.2 it also:
+
+- publishes the new migrations `create_permission_tables` (spatie/laravel-permission) and `add_avatar_path_to_users_table`, and offers to run them;
+- adds `HasRoles` and `MustVerifyEmail` to `app/Models/User.php`;
+- checks your session settings (browser sessions need `SESSION_DRIVER=database`);
+- offers to create the first admin account.
+
+Remove any temporary `login` route from your own `routes/web.php`: the package now registers `login`, `register`, `logout` and the password routes itself.

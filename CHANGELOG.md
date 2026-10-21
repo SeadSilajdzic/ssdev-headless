@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-21
+
 ### Added
 
 - Sign in, registration, forgot and reset password, email verification and password confirmation through Laravel Fortify, served by package routes.
@@ -46,6 +48,7 @@ All notable changes to this project are documented in this file. The format foll
 - App, auth and settings layouts, dashboard page and error pages for 403, 404, 419, 429, 500 and 503.
 - Shared Inertia props: authenticated user, navigation, enabled features, translations and flash messages.
 
-[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/SeadSilajdzic/ssdev-headless/releases/tag/v0.1.0
