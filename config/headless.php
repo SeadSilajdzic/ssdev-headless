@@ -16,6 +16,11 @@ return [
         'token_expiration' => null,
     ],
 
+    'two_factor' => [
+        // Minutes an API sign-in challenge stays valid.
+        'challenge_expiration' => 5,
+    ],
+
     'registration' => [
         'enabled' => true,
     ],

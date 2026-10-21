@@ -80,6 +80,18 @@ function enabledTwoFactorUser(bool $confirmed = true): User
     return $user->fresh();
 }
 
+/**
+ * The contracts package resolves its folder with base_path(), which points into Testbench's skeleton under vendor/.
+ */
+function packageSnapshotDirectory(): string
+{
+    $packageRoot = str_replace('\\', '/', dirname(__DIR__));
+    $basePath = str_replace('\\', '/', (string) realpath(base_path()));
+    $depth = substr_count(trim(substr($basePath, strlen($packageRoot)), '/'), '/') + 1;
+
+    return str_repeat('../', $depth).'tests/snapshots/api';
+}
+
 function useDatabaseSessions(): void
 {
     config(['session.driver' => 'database']);

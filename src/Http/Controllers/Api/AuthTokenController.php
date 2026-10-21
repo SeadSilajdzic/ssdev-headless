@@ -2,24 +2,24 @@
 
 namespace Ssdev\Headless\Http\Controllers\Api;
 
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Ssdev\Headless\Account\ApiTokenAuthenticator;
+use Ssdev\Headless\Auth\ApiSignInChallenge;
 use Ssdev\Headless\Http\Requests\Api\IssueTokenRequest;
 use Ssdev\Headless\Http\Resources\NewAccessTokenResource;
 
 final class AuthTokenController
 {
-    public function store(IssueTokenRequest $request, ApiTokenAuthenticator $authenticator): JsonResponse
+    public function store(IssueTokenRequest $request, ApiTokenAuthenticator $authenticator, ApiSignInChallenge $challenge): JsonResponse|Responsable
     {
-        $token = $authenticator->issue(
-            $request->validated('email'),
-            $request->validated('password'),
-            $request->validated('device_name'),
-        );
+        $user = $authenticator->authenticate($request->validated('email'), $request->validated('password'));
+        $deviceName = $request->validated('device_name');
 
-        return NewAccessTokenResource::make($token)->response()->setStatusCode(Response::HTTP_CREATED);
+        return $challenge->challenge($user, $deviceName)
+            ?? NewAccessTokenResource::make($authenticator->issueToken($user, $deviceName))->response()->setStatusCode(Response::HTTP_CREATED);
     }
 
     public function destroy(Request $request, ApiTokenAuthenticator $authenticator): Response

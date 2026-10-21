@@ -1,0 +1,7 @@
+{
+    "data": {
+        "two_factor": "boolean",
+        "challenge_token": "string",
+        "expires_at": "string"
+    }
+}

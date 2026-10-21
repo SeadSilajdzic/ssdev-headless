@@ -30,10 +30,7 @@ final class ApiTokenAuthenticator
         private PersonalAccessTokenService $tokens,
     ) {}
 
-    /**
-     * Device tokens get "*": the token ability gate still limits them to the owner's permissions.
-     */
-    public function issue(string $email, #[\SensitiveParameter] string $password, string $deviceName): NewAccessToken
+    public function authenticate(string $email, #[\SensitiveParameter] string $password): User
     {
         $email = mb_strtolower(trim($email));
 
@@ -55,6 +52,14 @@ final class ApiTokenAuthenticator
             throw ValidationException::withMessages(['email' => __('auth.failed')]);
         }
 
+        return $user;
+    }
+
+    /**
+     * Device tokens get "*": the token ability gate still limits them to the owner's permissions.
+     */
+    public function issueToken(User $user, string $deviceName): NewAccessToken
+    {
         if (! method_exists($user, 'createToken')) {
             throw new LogicException('Add the Laravel\Sanctum\HasApiTokens trait to your User model.');
         }

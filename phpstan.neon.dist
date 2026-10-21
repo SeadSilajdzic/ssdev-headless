@@ -6,3 +6,5 @@ parameters:
     paths:
         - src
         - config
+    stubFiles:
+        - phpstan/fortify-events.stub

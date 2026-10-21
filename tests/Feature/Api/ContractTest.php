@@ -15,18 +15,6 @@ use function Pest\Laravel\putJson;
 
 uses(InteractsWithApiContract::class);
 
-/**
- * The contracts package resolves its folder with base_path(), which points into Testbench's skeleton under vendor/.
- */
-function packageSnapshotDirectory(): string
-{
-    $packageRoot = str_replace('\\', '/', dirname(__DIR__, 3));
-    $basePath = str_replace('\\', '/', (string) realpath(base_path()));
-    $depth = substr_count(trim(substr($basePath, strlen($packageRoot)), '/'), '/') + 1;
-
-    return str_repeat('../', $depth).'tests/snapshots/api';
-}
-
 function contractUser(): User
 {
     $user = User::factory()->create();

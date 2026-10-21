@@ -6,7 +6,9 @@ use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\ServiceProvider;
 use Ssdev\Headless\Api\TokenAbilityGate;
+use Ssdev\Headless\Auth\ApiSignInChallenge;
 use Ssdev\Headless\Auth\FortifyIntegration;
+use Ssdev\Headless\Auth\NoApiSignInChallenge;
 use Ssdev\Headless\Auth\RateLimits;
 use Ssdev\Headless\Console\CreateAdminCommand;
 use Ssdev\Headless\Console\GrantPermissionsCommand;
@@ -46,7 +48,9 @@ class HeadlessServiceProvider extends ServiceProvider
             $app['config']->get('headless.features', []),
         ));
 
-        // After the Fortify setup, so feature providers can extend it; registered here so they boot after this provider.
+        $this->app->bind(ApiSignInChallenge::class, NoApiSignInChallenge::class);
+
+        // After the Fortify setup and default bindings, so features can extend them; registered here so they boot after this provider.
         $this->app->make(FeatureBootstrapper::class)->registerProviders($this->app->make(FeatureRegistry::class));
 
         $this->app->singleton(HeadlessTranslations::class, fn ($app) => new HeadlessTranslations(

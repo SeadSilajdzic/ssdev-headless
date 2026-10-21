@@ -1,0 +1,13 @@
+<?php
+
+namespace Laravel\Fortify\Events;
+
+// Fortify documents its two-factor events with App\Models\User, a class only applications have.
+abstract class TwoFactorAuthenticationEvent
+{
+    /** @var mixed */
+    public $user;
+
+    /** @param mixed $user */
+    public function __construct($user) {}
+}

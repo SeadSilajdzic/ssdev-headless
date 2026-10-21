@@ -8,6 +8,7 @@ use Laravel\Fortify\Contracts\FailedTwoFactorLoginResponse as FailedTwoFactorLog
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Ssdev\Headless\Auth\ApiSignInChallenge;
 use Ssdev\Headless\Auth\Responses\LoginResponse;
 use Ssdev\Headless\Features\TwoFactor\Http\Responses\FailedTwoFactorLoginResponse;
 use Ssdev\Headless\Http\Inertia\HeadlessPage;
@@ -24,6 +25,7 @@ final class TwoFactorServiceProvider extends ServiceProvider
 
         $this->app->singleton(TwoFactorLoginResponse::class, LoginResponse::class);
         $this->app->singleton(FailedTwoFactorLoginResponseContract::class, FailedTwoFactorLoginResponse::class);
+        $this->app->bind(ApiSignInChallenge::class, TwoFactorApiSignInChallenge::class);
     }
 
     public function boot(TwoFactorRateLimit $rateLimit, NavigationRegistry $navigation): void
@@ -31,6 +33,7 @@ final class TwoFactorServiceProvider extends ServiceProvider
         $rateLimit->register();
 
         PackageRoutes::web(__DIR__.'/../../../routes/two-factor.php');
+        PackageRoutes::api(__DIR__.'/../../../routes/two-factor-api.php');
 
         Fortify::twoFactorChallengeView(fn (): Response => HeadlessPage::render('TwoFactor/Challenge', [
             'submitUrl' => route('two-factor.login.store'),
