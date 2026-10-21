@@ -21,13 +21,15 @@ final class RoleAssignmentService
     {
         $this->roles->ensureManageable($actor, $role);
 
-        if ($this->isMember($role, $user)) {
-            return;
-        }
+        $this->attach($role, $user, $actor);
+    }
 
-        $role->users()->attach($user->getKey());
-
-        $this->events->dispatch(new RoleAssigned($role, $user, $actor));
+    /**
+     * For trusted callers such as the console, where no signed-in user hands the role out.
+     */
+    public function assignWithoutActor(Role $role, User $user): void
+    {
+        $this->attach($role, $user, null);
     }
 
     public function revoke(User $actor, Role $role, User $user): void
@@ -48,5 +50,16 @@ final class RoleAssignmentService
     public function isMember(Role $role, User $user): bool
     {
         return $role->users()->whereKey($user->getKey())->exists();
+    }
+
+    private function attach(Role $role, User $user, ?User $actor): void
+    {
+        if ($this->isMember($role, $user)) {
+            return;
+        }
+
+        $role->users()->attach($user->getKey());
+
+        $this->events->dispatch(new RoleAssigned($role, $user, $actor));
     }
 }

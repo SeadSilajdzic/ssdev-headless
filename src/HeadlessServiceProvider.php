@@ -5,6 +5,8 @@ namespace Ssdev\Headless;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\ServiceProvider;
+use Ssdev\Headless\Account\AdminAccess;
+use Ssdev\Headless\Account\DirectAdminAccess;
 use Ssdev\Headless\Api\TokenAbilityGate;
 use Ssdev\Headless\Auth\ApiSignInChallenge;
 use Ssdev\Headless\Auth\FortifyIntegration;
@@ -51,6 +53,7 @@ class HeadlessServiceProvider extends ServiceProvider
         ));
 
         $this->app->bind(ApiSignInChallenge::class, NoApiSignInChallenge::class);
+        $this->app->bind(AdminAccess::class, DirectAdminAccess::class);
 
         // After the Fortify setup and default bindings, so features can extend them; registered here so they boot after this provider.
         $this->app->make(FeatureBootstrapper::class)->registerProviders($this->app->make(FeatureRegistry::class));

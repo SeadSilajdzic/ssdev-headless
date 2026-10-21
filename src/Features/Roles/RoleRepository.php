@@ -52,6 +52,11 @@ final class RoleRepository
         return $role->users()->orderBy('name')->orderBy('id')->paginate(min(max($perPage, 1), self::MAX_PER_PAGE), pageName: $pageName);
     }
 
+    public function findByName(string $name): ?Role
+    {
+        return $this->query()->where('name', $name)->first();
+    }
+
     public function findOrFail(int|string $id): Role
     {
         return $this->query()->with('permissions')->withCount(['users', 'permissions'])->findOrFail($id);

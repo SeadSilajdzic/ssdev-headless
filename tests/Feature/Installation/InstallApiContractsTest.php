@@ -2,6 +2,7 @@
 
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Process;
+use Ssdev\Headless\Features\Roles\RolesModule;
 use Ssdev\Headless\Features\TwoFactor\TwoFactorModule;
 use Ssdev\Headless\Installation\Steps\InstallApiContracts;
 use Ssdev\Headless\Installation\StepStatus;
@@ -64,4 +65,15 @@ it('asks for manual steps when generating the snapshots fails', function () {
 
     expect($result->status)->toBe(StepStatus::Manual)
         ->and($result->instructions)->toContain('API_CONTRACT_UPDATE=1');
+});
+
+it('writes the roles contract test when roles are selected', function () {
+    Process::fake();
+    $files = fixtureProject();
+
+    app(InstallApiContracts::class)->handle(installContext($files, [new RolesModule]));
+
+    expect($files->get('tests/Feature/HeadlessRolesApiContractTest.php'))->toContain('headless_roles_GET_roles')
+        ->toContain('headless_roles_GET_permissions');
+    Process::assertRan(fn (PendingProcess $process) => str_ends_with((string) $process->command, 'artisan test tests/Feature/HeadlessApiContractTest.php tests/Feature/HeadlessRolesApiContractTest.php'));
 });

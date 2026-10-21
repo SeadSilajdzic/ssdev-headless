@@ -7,6 +7,8 @@ use Ssdev\Headless\Features\FeatureModule;
 
 final class RolesModule implements FeatureModule
 {
+    public const ADMIN_ROLE = 'Administrator';
+
     public function key(): string
     {
         return Feature::Roles->value;
@@ -48,8 +50,8 @@ final class RolesModule implements FeatureModule
         return [RolePermission::class];
     }
 
-    public function apiContractTest(): ?string
+    public function apiContractTest(): string
     {
-        return null;
+        return 'HeadlessRolesApiContractTest.php';
     }
 }
