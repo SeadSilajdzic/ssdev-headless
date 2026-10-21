@@ -7,6 +7,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Ssdev\Headless\Api\ApiRoutes;
+use Ssdev\Headless\Api\TokenAbilityGate;
 use Ssdev\Headless\Auth\FortifyIntegration;
 use Ssdev\Headless\Auth\RateLimits;
 use Ssdev\Headless\Console\CreateAdminCommand;
@@ -33,6 +34,9 @@ class HeadlessServiceProvider extends ServiceProvider
 
         $this->app->singleton(FortifyIntegration::class);
         $this->app->make(FortifyIntegration::class)->register();
+
+        // Gate::before callbacks run in order and Spatie's says yes on its own, so this one must come first.
+        $this->app->booting(fn () => $this->app->make(TokenAbilityGate::class)->register());
 
         $this->app->singleton(FeatureRegistry::class, fn ($app) => new FeatureRegistry(
             $app->make(FeatureCatalog::class)->modules(),
