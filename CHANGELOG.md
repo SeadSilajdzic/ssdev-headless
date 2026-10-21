@@ -26,6 +26,7 @@ All notable changes to this project are documented in this file. The format foll
 
 - Form fields now pass their `id` and ARIA attributes to the input element, so labels and error messages are linked for screen readers.
 - Sign-in pages fill the full screen height; the toast region no longer adds an empty row to the page grid.
+- Buttons and the user menu show a pointer cursor again (Tailwind 4 defaults buttons to the arrow cursor).
 
 ## [0.1.1] - 2026-10-21
 

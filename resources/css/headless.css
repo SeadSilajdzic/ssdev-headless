@@ -19,6 +19,8 @@
 @layer base {
     body { @apply font-sans text-ink-900 antialiased; }
     :focus-visible { outline: 2px solid var(--color-mint-500); outline-offset: 2px; }
+    /* Tailwind 4 gives buttons the default cursor. */
+    button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }
 }
 
 @utility scrollbar-thin {
