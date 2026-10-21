@@ -3,12 +3,16 @@
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
+use Laravel\Fortify\Fortify;
 use Laravel\Sanctum\Sanctum;
+use PragmaRX\Google2FA\Google2FA;
 use Ssdev\Headless\Api\ApiRoutes;
 use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Features\FeatureRegistry;
+use Ssdev\Headless\Features\TwoFactor\TwoFactorService;
 use Ssdev\Headless\Installation\InstallContext;
 use Ssdev\Headless\Installation\ProjectFiles;
 use Ssdev\Headless\Permissions\HeadlessPermission;
@@ -16,6 +20,7 @@ use Ssdev\Headless\Permissions\PermissionRegistry;
 use Ssdev\Headless\Tests\Support\FixtureProject;
 use Ssdev\Headless\Tests\Support\TwoFactorTestCase;
 use Ssdev\Headless\Tests\TestCase;
+use Workbench\App\Models\User;
 
 uses(TestCase::class, RefreshDatabase::class)
     ->afterEach(fn () => FixtureProject::cleanup())
@@ -53,6 +58,26 @@ function installContext(ProjectFiles $files, array $features = [], bool $overwri
 function useFeatures(array $available, array $enabled = []): void
 {
     app()->instance(FeatureRegistry::class, new FeatureRegistry($available, $enabled));
+}
+
+function currentOtp(User $user): string
+{
+    return app(Google2FA::class)->getCurrentOtp(Fortify::currentEncrypter()->decrypt($user->two_factor_secret));
+}
+
+function enabledTwoFactorUser(bool $confirmed = true): User
+{
+    $user = User::factory()->create();
+    $twoFactor = app(TwoFactorService::class);
+    $twoFactor->enable($user);
+
+    if ($confirmed) {
+        $twoFactor->confirm($user, currentOtp($user));
+        // Confirming used up the current code; tests start with it unused.
+        Cache::flush();
+    }
+
+    return $user->fresh();
 }
 
 function useDatabaseSessions(): void
