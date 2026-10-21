@@ -2,6 +2,8 @@
 
 namespace Ssdev\Headless\Features\TwoFactor;
 
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Response;
 use Laravel\Fortify\Contracts\FailedTwoFactorLoginResponse as FailedTwoFactorLoginResponseContract;
@@ -10,6 +12,7 @@ use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Ssdev\Headless\Auth\ApiSignInChallenge;
 use Ssdev\Headless\Auth\Responses\LoginResponse;
+use Ssdev\Headless\Features\TwoFactor\Http\Middleware\RequireTwoFactorAuthentication;
 use Ssdev\Headless\Features\TwoFactor\Http\Responses\FailedTwoFactorLoginResponse;
 use Ssdev\Headless\Http\Inertia\HeadlessPage;
 use Ssdev\Headless\Navigation\NavigationGroup;
@@ -28,9 +31,15 @@ final class TwoFactorServiceProvider extends ServiceProvider
         $this->app->bind(ApiSignInChallenge::class, TwoFactorApiSignInChallenge::class);
     }
 
-    public function boot(TwoFactorRateLimit $rateLimit, NavigationRegistry $navigation): void
+    public function boot(TwoFactorRateLimit $rateLimit, NavigationRegistry $navigation, HttpKernel $kernel): void
     {
         $rateLimit->register();
+
+        // Added to the kernel rather than the router, which the kernel overwrites whenever its own groups change.
+        if ($kernel instanceof Kernel) {
+            $kernel->appendMiddlewareToGroup('web', RequireTwoFactorAuthentication::class);
+            $kernel->appendMiddlewareToGroup('api', RequireTwoFactorAuthentication::class.':sanctum');
+        }
 
         PackageRoutes::web(__DIR__.'/../../../routes/two-factor.php');
         PackageRoutes::api(__DIR__.'/../../../routes/two-factor-api.php');

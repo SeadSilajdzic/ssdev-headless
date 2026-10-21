@@ -17,6 +17,9 @@ return [
     ],
 
     'two_factor' => [
+        // Users who must turn on two-factor authentication before they can use the app: everyone, or anyone with one of these permissions.
+        'required' => false,
+        'required_for_permissions' => [],
         // Minutes an API sign-in challenge stays valid.
         'challenge_expiration' => 5,
     ],
