@@ -9,6 +9,7 @@ import BaseModal from '@headless/components/ui/BaseModal.vue';
 import FormField from '@headless/components/ui/FormField.vue';
 import PasswordInput from '@headless/components/ui/PasswordInput.vue';
 import { useTrans } from '@headless/i18n';
+import type { SessionLocation } from '@headless/support/sessionMap';
 
 export interface BrowserSessionItem {
     id: string;
@@ -18,6 +19,7 @@ export interface BrowserSessionItem {
     last_active: string;
     is_current: boolean;
     logout_url: string;
+    location: SessionLocation | null;
 }
 
 const props = defineProps<{ supported: boolean; sessions: BrowserSessionItem[]; logoutOthersUrl: string }>();

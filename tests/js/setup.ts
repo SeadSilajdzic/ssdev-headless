@@ -48,6 +48,16 @@ export const fixtureTranslations = {
         },
         back_home: 'Back to dashboard',
     },
+    settings: {
+        sessions: {
+            this_device: 'This device',
+            unknown: 'Unknown device',
+            log_out: 'Log out',
+            unknown_location: 'Unknown location',
+            map_label: 'Map of your signed-in sessions',
+            place_sessions: ':place: :count sessions',
+        },
+    },
 };
 
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
