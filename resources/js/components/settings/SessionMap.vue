@@ -39,7 +39,12 @@ function position(place: MapPlace): Record<string, string> {
                     type="button"
                     data-test="map-point"
                     :data-current="place.hasCurrent ? 'true' : 'false'"
-                    :aria-label="t('settings.sessions.place_sessions', { place: place.label, count: place.sessions.length })"
+                    :aria-label="
+                        t(place.sessions.length === 1 ? 'settings.sessions.place_session' : 'settings.sessions.place_sessions', {
+                            place: place.label,
+                            count: place.sessions.length,
+                        })
+                    "
                     class="absolute grid h-6 w-6 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full focus-visible:ring-2 focus-visible:ring-mint-500 focus-visible:outline-none"
                     :style="position(place)"
                 >

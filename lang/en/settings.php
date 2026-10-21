@@ -58,6 +58,7 @@ return [
         'others_logged_out' => 'Your other sessions have been logged out.',
         'unknown_location' => 'Unknown location',
         'map_label' => 'Map of your signed-in sessions',
+        'place_session' => ':place: 1 session',
         'place_sessions' => ':place: :count sessions',
     ],
 

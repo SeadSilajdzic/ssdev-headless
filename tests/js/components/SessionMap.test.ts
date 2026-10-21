@@ -57,3 +57,9 @@ it('lists every session of a place with its own log out', async () => {
     buttons[1].click();
     expect(wrapper.emitted('logout')?.[0]).toEqual([sessions[2]]);
 });
+
+it('describes a place with one session in the singular', () => {
+    const labels = mountMap().findAll('[data-test="map-point"]').map((point) => point.attributes('aria-label'));
+
+    expect(labels).toEqual(['Sarajevo, Bosnia and Herzegovina: 1 session', 'Berlin, Germany: 2 sessions']);
+});
