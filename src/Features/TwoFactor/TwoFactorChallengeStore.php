@@ -17,6 +17,8 @@ final class TwoFactorChallengeStore
 
     private const TOKEN_LENGTH = 40;
 
+    private const CONSUMED_SUFFIX = '.consumed';
+
     public function __construct(
         private Cache $cache,
         private Config $config,
@@ -25,7 +27,7 @@ final class TwoFactorChallengeStore
     public function create(User $user, string $deviceName): PendingTwoFactorChallenge
     {
         $token = Str::random(self::TOKEN_LENGTH);
-        $expiresAt = CarbonImmutable::now()->addMinutes((int) $this->config->get('headless.two_factor.challenge_expiration'));
+        $expiresAt = $this->expiresAt();
 
         $this->cache->put($this->key($token), ['user_id' => $user->getKey(), 'device_name' => $deviceName], $expiresAt);
 
@@ -42,13 +44,25 @@ final class TwoFactorChallengeStore
         return is_array($challenge) ? $challenge : null;
     }
 
-    public function forget(#[\SensitiveParameter] string $token): void
+    /**
+     * Cache::add() is atomic, so of two answers racing for one challenge only the first gets a token.
+     */
+    public function consume(#[\SensitiveParameter] string $token): bool
     {
+        $consumed = $this->cache->add($this->key($token).self::CONSUMED_SUFFIX, true, $this->expiresAt());
+
         $this->cache->forget($this->key($token));
+
+        return $consumed;
     }
 
     private function key(string $token): string
     {
         return self::CACHE_PREFIX.hash('sha256', $token);
+    }
+
+    private function expiresAt(): CarbonImmutable
+    {
+        return CarbonImmutable::now()->addMinutes((int) $this->config->get('headless.two_factor.challenge_expiration'));
     }
 }

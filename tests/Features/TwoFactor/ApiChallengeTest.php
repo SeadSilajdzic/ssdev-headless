@@ -3,9 +3,11 @@
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
+use Laravel\Fortify\Events\RecoveryCodeReplaced;
 use Laravel\Fortify\Events\TwoFactorAuthenticationChallenged;
 use Laravel\Fortify\Events\TwoFactorAuthenticationFailed;
 use Laravel\Fortify\Events\ValidTwoFactorAuthenticationCodeProvided;
+use Ssdev\Headless\Features\TwoFactor\ApiTwoFactorChallengeService;
 use Workbench\App\Models\User;
 
 use function Pest\Laravel\getJson;
@@ -122,4 +124,35 @@ it('throttles challenge attempts', function () {
 
 it('issues tokens directly while setup is pending', function () {
     tokenSignIn(enabledTwoFactorUser(confirmed: false))->assertCreated()->assertJsonStructure(['data' => ['token']]);
+});
+
+it('limits challenge answers per user across challenges', function () {
+    $user = enabledTwoFactorUser();
+    $first = challengeToken($user);
+    $second = challengeToken($user);
+
+    foreach (range(1, 5) as $attempt) {
+        answerChallenge($first, ['code' => '000000']);
+    }
+
+    answerChallenge($second, ['code' => '000000'])->assertStatus(429);
+});
+
+it('issues one token per challenge even when two answers race', function () {
+    $user = enabledTwoFactorUser();
+    [$first, $second] = array_slice($user->recoveryCodes(), 0, 2);
+    $challenge = challengeToken($user);
+    $raced = false;
+
+    // A second answer arrives while the first is still being checked.
+    Event::listen(RecoveryCodeReplaced::class, function () use (&$raced, $challenge, $second) {
+        if (! $raced) {
+            $raced = true;
+            app(ApiTwoFactorChallengeService::class)->complete($challenge, null, $second);
+        }
+    });
+
+    answerChallenge($challenge, ['recovery_code' => $first])->assertStatus(422)->assertJsonValidationErrors('challenge_token');
+
+    expect($user->tokens()->count())->toBe(1);
 });

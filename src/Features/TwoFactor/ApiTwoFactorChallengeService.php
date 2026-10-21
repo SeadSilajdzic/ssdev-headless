@@ -39,7 +39,9 @@ final class ApiTwoFactorChallengeService
                 : ['code' => __('headless::two_factor.errors.invalid_code')]);
         }
 
-        $this->challenges->forget($challengeToken);
+        if (! $this->challenges->consume($challengeToken)) {
+            throw ValidationException::withMessages(['challenge_token' => __('headless::two_factor.errors.challenge_expired')]);
+        }
 
         ValidTwoFactorAuthenticationCodeProvided::dispatch($user);
 

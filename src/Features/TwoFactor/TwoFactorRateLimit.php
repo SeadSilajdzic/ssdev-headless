@@ -14,7 +14,10 @@ final class TwoFactorRateLimit
 
     private const CODE_FIELD = 'code';
 
-    public function __construct(private Repository $config) {}
+    public function __construct(
+        private Repository $config,
+        private TwoFactorChallengeStore $challenges,
+    ) {}
 
     public function register(): void
     {
@@ -24,16 +27,17 @@ final class TwoFactorRateLimit
     }
 
     /**
-     * A sign-in challenge has no signed-in user yet, so it counts per pending login or API challenge.
+     * One budget per user for every place a code is entered; a new sign-in or API challenge does not reset it.
      */
     private function key(Request $request): string
     {
         $pendingLogin = $request->hasSession() ? $request->session()->get('login.id') : null;
-        $challenge = $request->input('challenge_token');
+        $challengeToken = $request->input('challenge_token');
+        $challenge = is_string($challengeToken) ? $this->challenges->find($challengeToken) : null;
 
         return match (true) {
-            $pendingLogin !== null => 'login|'.$pendingLogin,
-            is_string($challenge) => 'challenge|'.hash('sha256', $challenge),
+            $pendingLogin !== null => 'user|'.$pendingLogin,
+            $challenge !== null => 'user|'.$challenge['user_id'],
             $request->user() !== null => 'user|'.$request->user()->getAuthIdentifier(),
             default => 'ip|'.$request->ip(),
         };
