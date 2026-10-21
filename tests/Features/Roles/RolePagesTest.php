@@ -16,20 +16,6 @@ function rolesViewer(): User
 }
 
 /**
- * @return list<string>
- */
-function navigationKeys(User $user): array
-{
-    $keys = [];
-
-    actingAs($user)->get(route('headless.dashboard'))->assertInertia(function (AssertableInertia $page) use (&$keys) {
-        $keys = collect($page->toArray()['props']['headless']['navigation'])->flatMap(fn (array $section) => array_column($section['items'], 'key'))->all();
-    });
-
-    return $keys;
-}
-
-/**
  * @param  list<array{abilities: list<array{name: string}>}>  $groups
  * @return list<string>
  */

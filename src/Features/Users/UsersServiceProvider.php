@@ -11,6 +11,9 @@ use Illuminate\Support\ServiceProvider;
 use Ssdev\Headless\Features\Users\Http\Middleware\LogOutBlockedUsers;
 use Ssdev\Headless\Features\Users\Listeners\CompletePendingInvitation;
 use Ssdev\Headless\Features\Users\Listeners\RejectBlockedSignIn;
+use Ssdev\Headless\Navigation\NavigationGroup;
+use Ssdev\Headless\Navigation\NavigationItem;
+use Ssdev\Headless\Navigation\NavigationRegistry;
 use Ssdev\Headless\Routing\PackageRoutes;
 
 final class UsersServiceProvider extends ServiceProvider
@@ -30,8 +33,10 @@ final class UsersServiceProvider extends ServiceProvider
         ]);
     }
 
-    public function boot(Dispatcher $events, HttpKernel $kernel): void
+    public function boot(Dispatcher $events, HttpKernel $kernel, InvitationRateLimit $rateLimit, NavigationRegistry $navigation): void
     {
+        $rateLimit->register();
+
         $events->listen(PasswordReset::class, CompletePendingInvitation::class);
         $events->listen(Login::class, RejectBlockedSignIn::class);
 
@@ -42,5 +47,14 @@ final class UsersServiceProvider extends ServiceProvider
         }
 
         PackageRoutes::web(__DIR__.'/../../../routes/users.php');
+
+        $navigation->add(new NavigationItem(
+            'users',
+            'headless::navigation.users',
+            'headless.users.index',
+            'users',
+            NavigationGroup::Administration,
+            permission: UserPermission::View->value,
+        ));
     }
 }

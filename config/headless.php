@@ -50,6 +50,7 @@ return [
         'email_change' => 6,
         'api' => 60,
         'two_factor' => 5,
+        'invitations' => 10,
     ],
 
     'session_locations' => [

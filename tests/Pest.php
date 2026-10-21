@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia;
 use Laravel\Fortify\Fortify;
 use Laravel\Sanctum\Sanctum;
 use PragmaRX\Google2FA\Google2FA;
@@ -29,6 +30,8 @@ use Ssdev\Headless\Tests\Support\UsersRolesTestCase;
 use Ssdev\Headless\Tests\Support\UsersTestCase;
 use Ssdev\Headless\Tests\TestCase;
 use Workbench\App\Models\User;
+
+use function Pest\Laravel\actingAs;
 
 uses(TestCase::class, RefreshDatabase::class)
     ->afterEach(fn () => FixtureProject::cleanup())
@@ -151,6 +154,20 @@ function roleManager(array $permissions = []): User
     $user->givePermissionTo(['roles.view', 'roles.manage', ...$permissions]);
 
     return $user;
+}
+
+/**
+ * @return list<string>
+ */
+function navigationKeys(User $user): array
+{
+    $keys = [];
+
+    actingAs($user)->get(route('headless.dashboard'))->assertInertia(function (AssertableInertia $page) use (&$keys) {
+        $keys = collect($page->toArray()['props']['headless']['navigation'])->flatMap(fn (array $section) => array_column($section['items'], 'key'))->all();
+    });
+
+    return $keys;
 }
 
 /**

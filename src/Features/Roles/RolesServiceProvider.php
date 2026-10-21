@@ -33,6 +33,7 @@ final class RolesServiceProvider extends ServiceProvider
             'shield-check',
             NavigationGroup::Administration,
             permission: RolePermission::View->value,
+            order: 10,
         ));
     }
 }

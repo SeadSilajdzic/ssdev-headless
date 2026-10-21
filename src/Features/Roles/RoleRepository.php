@@ -4,6 +4,7 @@ namespace Ssdev\Headless\Features\Roles;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Spatie\Permission\Models\Role;
@@ -50,6 +51,14 @@ final class RoleRepository
     public function members(Role $role, string $pageName = 'page', int $perPage = self::MEMBERS_PER_PAGE): LengthAwarePaginator
     {
         return $role->users()->orderBy('name')->orderBy('id')->paginate(min(max($perPage, 1), self::MAX_PER_PAGE), pageName: $pageName);
+    }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    public function all(): Collection
+    {
+        return $this->query()->orderBy('name')->get();
     }
 
     public function findByName(string $name): ?Role
