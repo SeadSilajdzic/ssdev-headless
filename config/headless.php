@@ -36,6 +36,7 @@ return [
         'reauthentication' => 5,
         'email_change' => 6,
         'api' => 60,
+        'two_factor' => 5,
     ],
 
     'avatars' => [

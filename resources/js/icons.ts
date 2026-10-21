@@ -1,4 +1,4 @@
-import { Building2, Circle, Key, LayoutDashboard, Shield, ShieldCheck, User, UserCog, Users } from '@lucide/vue';
+import { Building2, Circle, Key, LayoutDashboard, Shield, ShieldCheck, Smartphone, User, UserCog, Users } from '@lucide/vue';
 import type { Component } from 'vue';
 
 const icons: Record<string, Component> = {
@@ -6,6 +6,7 @@ const icons: Record<string, Component> = {
     user: User,
     shield: Shield,
     key: Key,
+    smartphone: Smartphone,
     users: Users,
     'shield-check': ShieldCheck,
     'building-2': Building2,

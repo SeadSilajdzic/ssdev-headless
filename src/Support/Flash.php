@@ -16,6 +16,9 @@ final class Flash
     // A new API token's plain text, shown on the next page load only.
     public const TOKEN = 'headless.flash.token';
 
+    // Two-factor recovery codes, shown on the next page load only.
+    public const RECOVERY_CODES = 'headless.flash.recovery_codes';
+
     public function __construct(private Session $session) {}
 
     public function success(string $message): void
