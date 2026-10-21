@@ -89,7 +89,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Pagination Limits | Planned (Plan 6) | Lists arrive with user management |
 | Bulk Operation Limits | Not applicable | No bulk operations in the core |
 | Export Limits | Not applicable | No exports in v1 |
-| External Request Timeouts | Not applicable | The package makes no outgoing requests |
+| External Request Timeouts | Not applicable | The package makes no outgoing requests; session locations come from a local MaxMind database, or from an `IpLocator` the application provides itself |
 | Input Type Validation | Covered | `string`, `email`, `image` and dimension rules |
 | HTTP Parameter Pollution Protection | Covered | Arrays are rejected where strings are expected |
 | Type Confusion / Type Juggling Protection | Covered | `hash_equals()` for fingerprints and session hashes, strict comparisons |
@@ -136,7 +136,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Do not expose internal credentials | Covered | None are shared |
 | Do not expose internal notes unless required | Not applicable | The core has no notes |
 | Do not expose unnecessary database fields | Covered | Explicit resources; the two-factor secret only while the setup is pending and recovery codes only once (`Features/TwoFactor/SettingsTest › never shares the secret or recovery codes once set up`, `ApiManagementTest › never returns the secret once enabled`) |
-| Do not expose data belonging to other users/tenants | Covered | Sessions of other users are never listed; tenants arrive in Plan 8 |
+| Do not expose data belonging to other users/tenants | Covered | Sessions of other users are never listed or placed on the session map; tenants arrive in Plan 8 |
 | Do not rely on frontend hiding sensitive data | Covered | Every check also runs on the server |
 
 ### Authentication & account security
@@ -235,7 +235,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Limit exports | Not applicable | No exports |
 | Limit bulk operations | Not applicable | No bulk operations |
 | Limit expensive searches | Planned (Plan 6) | |
-| Limit external API calls | Not applicable | No outgoing calls |
+| Limit external API calls | Not applicable | No outgoing calls; session locations are looked up locally, only for public addresses, and cached per address (`Feature/Settings/SessionLocationsTest › never looks up local or private addresses`, `› looks each address up once`) |
 | Limit queue job creation | Covered | Mails are sent from throttled endpoints only |
 | Limit pagination size | Planned (Plan 6) | |
 | Limit request payload size | Application responsibility | `post_max_size` and web server limits |

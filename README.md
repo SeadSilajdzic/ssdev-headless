@@ -65,6 +65,7 @@ Registration and password reset never reveal whether an email has an account. Pa
 - `honeypot.field` — name of the hidden field that traps bots.
 - `rate_limits` — attempts per minute for login (per email and IP, and per IP), registration, password reset, verification, password checks, email changes, two-factor codes and the API in general.
 - `avatars` — disk, directory, maximum size and dimensions, allowed formats.
+- `session_locations.locator`, `session_locations.maxmind_database`, `session_locations.cache_minutes` — turn on the session map (see below).
 - `permissions` — your own permission enums (see below).
 
 ## Permissions
@@ -171,6 +172,29 @@ Send `recovery_code` instead of `code` to use a recovery code. A challenge stays
 | DELETE | `me/two-factor` | turn it off (`password`) |
 
 Fortify's events fire for the web and the API alike, so you can log them: `TwoFactorAuthenticationEnabled`, `TwoFactorAuthenticationConfirmed`, `TwoFactorAuthenticationDisabled`, `RecoveryCodesGenerated`, `RecoveryCodeReplaced`, `TwoFactorAuthenticationChallenged`, `TwoFactorAuthenticationFailed` and `ValidTwoFactorAuthenticationCodeProvided`.
+
+## Session map
+
+The security page can show where a user is signed in: a world map with a point for every browser session, a popup to log a device out, and the city next to each session in the list. It stays off until you choose where locations come from, so no IP address leaves your server unless you decide it should.
+
+To use a local MaxMind GeoLite2 City database:
+
+```bash
+composer require geoip2/geoip2
+```
+
+Create a free MaxMind account, download GeoLite2 City with MaxMind's [`geoipupdate`](https://dev.maxmind.com/geoip/updating-databases/) tool (schedule it to keep the database current) and point the config at the file:
+
+```php
+// config/headless.php
+'session_locations' => [
+    'locator' => \Ssdev\Headless\Account\Location\MaxMindLocator::class,
+    'maxmind_database' => storage_path('app/geoip/GeoLite2-City.mmdb'),
+    'cache_minutes' => 1440,
+],
+```
+
+Any class that implements `Ssdev\Headless\Account\Location\IpLocator` works as a locator too, for example one that asks a service you already use. Local and private addresses are never looked up, every address is looked up once per `cache_minutes`, and a locator that fails shows the session as "Unknown location" instead of breaking the page. Locations are as precise as a city; a VPN shows up where its server is.
 
 ## Customization
 

@@ -9,6 +9,7 @@ All notable changes to this project are documented in this file. The format foll
 - Two-factor authentication, the first selectable feature (`two-factor`): setup with a QR code and a confirmation code, recovery codes shown once, a sign-in challenge on the web and over the API (`auth/two-factor-challenge`), management through `me/two-factor`, and an optional requirement for everyone or for users with given permissions.
 - `headless:add` command that adds a feature to an installed project.
 - Features declare their migrations, `User` model traits and API contract tests; `headless:install`, `headless:add` and `headless:upgrade` publish them.
+- Session map on the security page: a world map with a point for every browser session, log out from the map, and the city next to each session. Locations come from an `IpLocator` you configure, with a built-in `MaxMindLocator` for a local GeoLite2 City database; off by default.
 
 ### Changed
 
