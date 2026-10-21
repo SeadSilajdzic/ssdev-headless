@@ -1,0 +1,7 @@
+{
+    "data": {
+        "secret": "string",
+        "otpauth_url": "string",
+        "qr_code": "string"
+    }
+}

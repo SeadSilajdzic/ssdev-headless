@@ -84,7 +84,7 @@ it('throttles code confirmation', function () {
 
 it('never shares the secret or recovery codes once set up', function () {
     $user = enabledTwoFactorUser();
-    $secret = decrypt($user->two_factor_secret, false);
+    $secret = decrypt($user->two_factor_secret);
     confirmedPassword($user);
 
     foreach (['headless.two-factor.edit', 'headless.security.edit'] as $route) {
