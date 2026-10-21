@@ -21,6 +21,7 @@ All notable changes to this project are documented in this file. The format foll
 ### Fixed
 
 - Form fields now pass their `id` and ARIA attributes to the input element, so labels and error messages are linked for screen readers.
+- Sign-in pages fill the full screen height; the toast region no longer adds an empty row to the page grid.
 
 ## [0.1.1] - 2026-10-21
 

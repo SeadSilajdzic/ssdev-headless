@@ -31,6 +31,6 @@ const page = usePage();
                 <span class="font-display text-5xl font-bold tracking-tight text-mint-900">{{ page.props.headless.appName }}</span>
             </div>
         </div>
-        <ToastViewport />
     </div>
+    <ToastViewport />
 </template>
