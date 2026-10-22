@@ -2,6 +2,7 @@
 
 namespace Ssdev\Headless\Features\Roles;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Auth\User;
 use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Roles\Criteria\RoleCriteria;
 use Ssdev\Headless\Features\Roles\Criteria\SortRoles;
+use Ssdev\Headless\Permissions\GlobalAssignments;
 
 final class RoleRepository
 {
@@ -22,7 +24,11 @@ final class RoleRepository
 
     public const MEMBERS_PAGE = 'members_page';
 
-    public function __construct(private RoleGuard $guard) {}
+    public function __construct(
+        private RoleGuard $guard,
+        private GlobalAssignments $assignments,
+        private Repository $config,
+    ) {}
 
     /**
      * @param  list<RoleCriteria>  $criteria
@@ -30,7 +36,7 @@ final class RoleRepository
      */
     public function paginate(array $criteria, int $perPage = self::DEFAULT_PER_PAGE): LengthAwarePaginator
     {
-        $query = $this->query()->withCount(['users', 'permissions']);
+        $query = $this->query()->withCount(['users' => fn (Builder $members) => $this->assignments->onTable($members, $this->config->get('permission.table_names.model_has_roles')), 'permissions']);
 
         $sorted = false;
 
@@ -51,7 +57,7 @@ final class RoleRepository
      */
     public function members(Role $role, string $pageName = 'page', int $perPage = self::MEMBERS_PER_PAGE): LengthAwarePaginator
     {
-        return $role->users()->orderBy('name')->orderBy('id')->paginate(min(max($perPage, 1), self::MAX_PER_PAGE), pageName: $pageName);
+        return $this->guard->members($role)->orderBy('name')->orderBy('id')->paginate(min(max($perPage, 1), self::MAX_PER_PAGE), pageName: $pageName);
     }
 
     /**
@@ -67,7 +73,7 @@ final class RoleRepository
      */
     public function assignedTo(User $user): Collection
     {
-        return $this->query()->whereHas('users', fn (Builder $members) => $members->whereKey($user->getKey()))->orderBy('name')->get();
+        return $this->query()->whereHas('users', fn (Builder $members) => $this->assignments->onTable($members->whereKey($user->getKey()), $this->config->get('permission.table_names.model_has_roles')))->orderBy('name')->get();
     }
 
     public function findByName(string $name): ?Role
@@ -77,7 +83,7 @@ final class RoleRepository
 
     public function findOrFail(int|string $id): Role
     {
-        return $this->query()->with('permissions')->withCount(['users', 'permissions'])->findOrFail($id);
+        return $this->query()->with('permissions')->withCount(['users' => fn (Builder $members) => $this->assignments->onTable($members, $this->config->get('permission.table_names.model_has_roles')), 'permissions'])->findOrFail($id);
     }
 
     /**

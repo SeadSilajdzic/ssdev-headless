@@ -5,6 +5,7 @@ namespace Ssdev\Headless\Features\Users\Criteria;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Spatie\Permission\PermissionRegistrar;
+use Ssdev\Headless\Permissions\GlobalAssignments;
 
 final class FilterUsersByRole implements UserCriteria
 {
@@ -14,10 +15,12 @@ final class FilterUsersByRole implements UserCriteria
     {
         $model = $query->getModel();
 
-        return $query->whereIn($model->getQualifiedKeyName(), fn (QueryBuilder $members) => $members
+        $table = config('permission.table_names.model_has_roles');
+
+        return $query->whereIn($model->getQualifiedKeyName(), fn (QueryBuilder $members) => app(GlobalAssignments::class)->onTable($members
             ->select(config('permission.column_names.model_morph_key'))
-            ->from(config('permission.table_names.model_has_roles'))
+            ->from($table)
             ->where(app(PermissionRegistrar::class)->pivotRole, $this->roleId)
-            ->where('model_type', $model->getMorphClass()));
+            ->where('model_type', $model->getMorphClass()), $table));
     }
 }

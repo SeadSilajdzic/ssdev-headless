@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\User;
 use Spatie\Permission\PermissionRegistrar;
 use Ssdev\Headless\Features\Users\Criteria\SortUsers;
 use Ssdev\Headless\Features\Users\Criteria\UserCriteria;
+use Ssdev\Headless\Permissions\GlobalAssignments;
 
 final class ManagedUserRepository
 {
@@ -20,6 +21,7 @@ final class ManagedUserRepository
     public function __construct(
         private Repository $config,
         private PermissionRegistrar $registrar,
+        private GlobalAssignments $assignments,
     ) {}
 
     /**
@@ -65,17 +67,17 @@ final class ManagedUserRepository
         return $query
             ->whereNull('blocked_at')
             ->where(fn (Builder $holders) => $holders
-                ->whereIn($model->getQualifiedKeyName(), fn (QueryBuilder $direct) => $direct
+                ->whereIn($model->getQualifiedKeyName(), fn (QueryBuilder $direct) => $this->assignments->onTable($direct
                     ->select($morphKey)
                     ->from($tables['model_has_permissions'])
                     ->whereIn($this->registrar->pivotPermission, $permissionIds)
-                    ->where('model_type', $model->getMorphClass()))
-                ->orWhereIn($model->getQualifiedKeyName(), fn (QueryBuilder $viaRoles) => $viaRoles
+                    ->where('model_type', $model->getMorphClass()), $tables['model_has_permissions']))
+                ->orWhereIn($model->getQualifiedKeyName(), fn (QueryBuilder $viaRoles) => $this->assignments->onTable($viaRoles
                     ->select($tables['model_has_roles'].'.'.$morphKey)
                     ->from($tables['model_has_roles'])
                     ->join($tables['role_has_permissions'], $tables['role_has_permissions'].'.'.$this->registrar->pivotRole, '=', $tables['model_has_roles'].'.'.$this->registrar->pivotRole)
                     ->whereIn($tables['role_has_permissions'].'.'.$this->registrar->pivotPermission, $permissionIds)
-                    ->where($tables['model_has_roles'].'.model_type', $model->getMorphClass())))
+                    ->where($tables['model_has_roles'].'.model_type', $model->getMorphClass()), $tables['model_has_roles'])))
             ->lockForUpdate()
             ->pluck($model->getQualifiedKeyName())
             ->all();

@@ -197,7 +197,7 @@ final class RoleService
             ->get();
 
         return $roles->mapWithKeys(function (Role $role): array {
-            $members = $role->users();
+            $members = $this->guard->members($role);
 
             // A blocked member cannot manage anything, so they do not keep the role in use.
             if ($this->features->isEnabled(Feature::Users->value)) {

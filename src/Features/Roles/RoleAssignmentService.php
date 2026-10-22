@@ -9,11 +9,14 @@ use Illuminate\Foundation\Auth\User;
 use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Roles\Events\RoleAssigned;
 use Ssdev\Headless\Features\Roles\Events\RoleRevoked;
+use Ssdev\Headless\Permissions\GlobalAssignments;
 
 final class RoleAssignmentService
 {
     public function __construct(
         private RoleService $roles,
+        private RoleGuard $guard,
+        private GlobalAssignments $assignments,
         private ConnectionInterface $database,
         private Dispatcher $events,
     ) {}
@@ -40,7 +43,7 @@ final class RoleAssignmentService
         $revoked = $this->database->transaction(function () use ($role, $user): int {
             $this->roles->ensureManagersRemain($role, leaving: $user);
 
-            return $this->roles->keepingUserManagers(fn (): int => $role->users()->detach($user->getKey()));
+            return $this->roles->keepingUserManagers(fn (): int => $this->guard->members($role)->detach($user->getKey()));
         });
 
         if ($revoked > 0) {
@@ -50,7 +53,7 @@ final class RoleAssignmentService
 
     public function isMember(Role $role, User $user): bool
     {
-        return $role->users()->whereKey($user->getKey())->exists();
+        return $this->guard->members($role)->whereKey($user->getKey())->exists();
     }
 
     private function attach(Role $role, User $user, ?User $actor): void
@@ -61,7 +64,7 @@ final class RoleAssignmentService
 
         try {
             // The savepoint keeps an outer PostgreSQL transaction usable when a parallel request added the member first.
-            $this->database->transaction(fn () => $role->users()->attach($user->getKey()));
+            $this->database->transaction(fn () => $this->guard->members($role)->attach($user->getKey(), $this->assignments->pivot()));
         } catch (UniqueConstraintViolationException) {
             return;
         }

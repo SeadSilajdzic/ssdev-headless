@@ -2,10 +2,10 @@
 
 namespace Ssdev\Headless\Features\Teams;
 
-/**
- * Spatie's teams mode stores every role assignment under a team; system-wide assignments use this one.
- */
+use Ssdev\Headless\Permissions\GlobalAssignments;
+
 final class TeamContext
 {
-    public const GLOBAL = 0;
+    // Spatie's teams mode stores every assignment under a team; system-wide ones use this one.
+    public const GLOBAL = GlobalAssignments::TEAM;
 }
