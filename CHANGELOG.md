@@ -14,6 +14,8 @@ All notable changes to this project are documented in this file. The format foll
 - User management (`users`): a users list with search, filters and sorting; invitations that let people choose their own password; changing the name and email; blocking that ends every session and token; password reset links; signing someone out everywhere; soft deletes; roles on the user page; the same over the API (`users`); `UserInvited`, `UserBlocked`, `UserUnblocked` and `UserDeleted` events.
 - The roles and users pages ask for the password first.
 - Teams (`teams`): create teams and switch between them, invite people with signed links, hand teams over, team roles with a global context for application-wide permissions (`GlobalPermission`), personal teams on registration, and the same over the API.
+- Multi-tenancy (`tenancy`) on `spatie/laravel-multitenancy`: tenants on subdomains, one database with `tenant_id` and the `BelongsToTenant` scope, accounts, sessions, API tokens, reset links, cache, rate limits, files and queued jobs kept apart per tenant, closed sign-up inside tenants, and suspended tenants.
+- `Ssdev\Headless\Support\Isolation` for keeping files and keys apart.
 - Session map on the security page: a world map with a point for every browser session, log out from the map, and the city next to each session. Locations come from an `IpLocator` you configure, with a built-in `MaxMindLocator` for a local GeoLite2 City database; off by default.
 
 ### Changed

@@ -18,7 +18,7 @@ Every item of the project's security checklist, with how the package handles it.
 |---|---|
 | Covered | Implemented by the package and, where possible, proven by a test |
 | Partial | The package handles its part; the rest depends on the application or a later release |
-| Planned (Plan N) | Arrives with a feature that is not released yet: 8 multi-tenancy |
+| Planned (Plan N) | Arrives with a feature that is not released yet: 9 central administration, 10 features inside tenants |
 | Application responsibility | Belongs to the application, server or infrastructure, not to the package |
 | Not applicable | The package has no such functionality in v1 |
 
@@ -52,7 +52,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Item | Status | Evidence |
 |---|---|---|
 | Authentication | Covered | Laravel Fortify behind package routes; `Feature/Auth/LoginTest` |
-| Authorization | Partial | Code-defined permissions checked with `can()` (`Feature/Permissions`), roles that hand them out (`Features/Roles`), user management (`Features/Users/UserPagesTest › forbids each change without its permission`), teams through `TeamPolicy` (`Features/Teams/TeamPagesTest › lets only the owner rename, invite, remove members and delete`); tenant checks arrive with Plan 8 |
+| Authorization | Partial | Code-defined permissions checked with `can()` (`Feature/Permissions`), roles that hand them out (`Features/Roles`), user management (`Features/Users/UserPagesTest › forbids each change without its permission`), teams through `TeamPolicy` (`Features/Teams/TeamPagesTest › lets only the owner rename, invite, remove members and delete`); tenant boundaries through the tenant scope (`Features/Tenancy/TenantScopeTest › reads only the current tenant's rows`); tenant administration arrives with Plan 9 |
 | BOLA / IDOR | Covered | Account endpoints act on the signed-in user only; sessions are addressed by keyed hashes (`Feature/Settings/BrowserSessionsTest › returns not found for another user session`); a team outside your own answers 404 (`Features/Teams/TeamPagesTest › shows a team to members only`, `Features/Teams/TeamsApiTest › answers 404 for another team`) |
 | Broken Function Level Authorization | Covered | Role endpoints require `roles.view` or `roles.manage` on the web and the API; `Features/Roles/RolePagesTest › forbids changes with roles.view only`, `Features/Roles/RolesApiTest › forbids roles without roles.view` |
 | Horizontal Privilege Escalation | Covered | Same as BOLA/IDOR for every account endpoint |
@@ -74,7 +74,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Database Row Locking | Covered | `EmailChangeService::confirm()` uses `lockForUpdate()` |
 | Atomic Operations | Covered | Registration is a single insert guarded by the unique email index |
 | Replay Attack Protection | Covered | `Feature/Settings/EmailChangeTest › rejects a link issued before a newer email change`, `› rejects a link once the email changed away and back again`; reset tokens are single use |
-| Idempotency | Partial | Email confirmation and registration are safe to repeat; an invitation sent again replaces the earlier link and inviting a taken email is refused (`Features/Users/InvitationTest › replaces the old link when the invitation is sent again`); inviting the same address to a team again refreshes its invitation (`Features/Teams/TeamInvitationTest › sends the same invitation again instead of a duplicate`); tenant creation arrives with Plan 8 |
+| Idempotency | Partial | Email confirmation and registration are safe to repeat; an invitation sent again replaces the earlier link and inviting a taken email is refused (`Features/Users/InvitationTest › replaces the old link when the invitation is sent again`); inviting the same address to a team again refreshes its invitation (`Features/Teams/TeamInvitationTest › sends the same invitation again instead of a duplicate`); tenant creation arrives with Plan 9 |
 | Business Logic Abuse Protection | Partial | Enumeration-safe registration and reset, throttled mail endpoints; more rules arrive with each feature |
 | Webhook Signature Verification | Not applicable | No webhooks in v1 |
 | Webhook Replay Protection | Not applicable | No webhooks in v1 |
@@ -95,9 +95,9 @@ Tests are named `file › test`, relative to `tests/`.
 | Type Confusion / Type Juggling Protection | Covered | `hash_equals()` for fingerprints and session hashes, strict comparisons |
 | Open Redirect Protection | Covered | `Feature/Auth/LoginTest › ignores a protocol-relative intended url after login`, `Feature/Auth/PasswordConfirmationTest › ignores an external intended url after confirming` |
 | Host Header Injection Protection | Partial | Redirects are checked against `app.url`, not the Host header; configure `TrustHosts` in the application |
-| Multi-Tenant Data Isolation | Planned (Plan 8) | |
-| Cache Isolation | Planned (Plan 8) | |
-| Cache Key Security | Planned (Plan 8) | Rate limiter keys already include email, IP or user id |
+| Multi-Tenant Data Isolation | Partial | One database with `tenant_id`; `BelongsToTenant` scopes reads, updates and deletes and fills new rows from the current tenant (`Features/Tenancy/TenantScopeTest`); accounts, sessions, tokens and reset links stay in their tenant (`Features/Tenancy/AccountIsolationTest`, `Features/Tenancy/PasswordResetIsolationTest`); user management, roles and teams inside tenants arrive with Plan 10 |
+| Cache Isolation | Covered | The default cache store is prefixed per tenant (`Features/Tenancy/IsolationTest › keeps cache entries apart per tenant`) |
+| Cache Key Security | Covered | Rate limiter keys include email, IP or user id, and the tenant (`Features/Tenancy/IsolationTest › counts sign-in attempts per tenant`) |
 | Sensitive Data Protection | Covered | Hidden attributes, explicit resources, `#[\SensitiveParameter]` on password arguments |
 | Sensitive Data Logging Protection | Covered | The package logs nothing; password arguments are `#[\SensitiveParameter]`; Laravel does not flash password fields |
 | Error Information Disclosure Protection | Covered | `Feature/Exceptions/InertiaErrorRendererTest › renders server errors without exposing the exception message` |
@@ -113,7 +113,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Validate dynamic column/filter fields | Covered | One criteria class per filter, validated by `ListUsersRequest`; searches escape `%` and `_` (`Features/Users/UserRepositoryTest › treats wildcards in a search as text`) |
 | Prevent unauthorized resource access | Covered | Account endpoints are scoped to the signed-in user |
 | Enforce ownership checks | Covered | `Feature/Settings/BrowserSessionsTest › returns not found for another user session` |
-| Enforce tenant boundaries | Planned (Plan 8) | |
+| Enforce tenant boundaries | Partial | The tenant comes from the host only; unknown hosts answer 404 (`Features/Tenancy/HostIdentificationTest`); a given `tenant_id` is ignored and rows cannot move (`Features/Tenancy/TenantScopeTest › fills the tenant from the context and ignores a given tenant_id`, `› refuses moving a row to another tenant`); features inside tenants arrive with Plan 10 |
 | Prevent N+1 queries | Covered | Core pages run a fixed number of queries |
 | Use transactions for atomic operations | Covered | See Database Transactions |
 | Use lockForUpdate() where required | Covered | Email confirmation |
@@ -136,7 +136,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Do not expose internal credentials | Covered | None are shared |
 | Do not expose internal notes unless required | Not applicable | The core has no notes |
 | Do not expose unnecessary database fields | Covered | Explicit resources; the two-factor secret only while the setup is pending and recovery codes only once (`Features/TwoFactor/SettingsTest › never shares the secret or recovery codes once set up`, `ApiManagementTest › never returns the secret once enabled`) |
-| Do not expose data belonging to other users/tenants | Covered | Sessions of other users are never listed or placed on the session map; tenants arrive in Plan 8 |
+| Do not expose data belonging to other users/tenants | Covered | Sessions of other users are never listed or placed on the session map; another tenant's accounts are never found (`Features/Tenancy/TenantScopeTest › finds the account of the current tenant by email`) |
 | Do not rely on frontend hiding sensitive data | Covered | Every check also runs on the server |
 
 ### Authentication & account security
@@ -199,7 +199,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Prevent arbitrary field updates | Covered | Only validated fields are saved |
 | Prevent arbitrary IDs from bypassing authorization | Covered | Tokens are looked up through their owner; other ids answer 404 |
 | Prevent duplicate requests | Covered | Registration and token login are safe to repeat |
-| Idempotency where required | Partial | Account operations are idempotent; blocking a blocked user changes nothing (`Features/Users/BlockingTest › blocks a blocked user only once`); team invitations are refreshed rather than duplicated; tenant creation arrives with Plan 8 |
+| Idempotency where required | Partial | Account operations are idempotent; blocking a blocked user changes nothing (`Features/Users/BlockingTest › blocks a blocked user only once`); team invitations are refreshed rather than duplicated; tenant creation arrives with Plan 9 |
 | Secure error responses | Covered | `ApiErrorRenderer`; `Feature/Api/ApiErrorsTest › hides the model class of a missing record`, `› hides server errors`, `› answers unknown api routes with json even without an accept header` |
 | No sensitive data in API responses | Covered | `Feature/Api/ProfileApiTest › returns the current user without sensitive fields`; strict response contracts (`Feature/Api/ContractTest`) |
 | API login does not reveal accounts | Covered | `Feature/Api/AuthTokenTest › answers wrong passwords and unknown emails the same way`, `› answers unknown emails no faster than wrong passwords` |
@@ -252,17 +252,17 @@ Tests are named `file › test`, relative to `tests/`.
 | Item | Status | Evidence |
 |---|---|---|
 | Do not cache private responses incorrectly | Application responsibility | The package sets no HTTP caching; keep authenticated pages out of shared caches |
-| Include user/tenant context in cache keys where required | Planned (Plan 8) | Rate limiter keys already include email, IP or user id |
+| Include user/tenant context in cache keys where required | Covered | Cache entries and rate limiter keys carry the tenant (`Features/Tenancy/IsolationTest`) |
 | Include relevant permissions/context in cache keys | Covered | The package caches nothing per user; Spatie keeps its own permission cache |
 | Prevent cross-user cache leakage | Covered | No per-user cache entries |
-| Prevent cross-tenant cache leakage | Planned (Plan 8) | |
+| Prevent cross-tenant cache leakage | Covered | `Features/Tenancy/IsolationTest › keeps cache entries apart per tenant` |
 | Review cached Inertia responses | Application responsibility | |
 | Review CDN/reverse-proxy caching rules | Application responsibility | |
 | Protect against cache poisoning | Application responsibility | |
 
 ### Multi-tenancy
 
-**Planned (Plan 8)** — client-provided `tenant_id`, tenant scope on reads, updates, deletes, exports, jobs, repositories and background processing, and explicit cross-tenant tests.
+**Partial** — `tenant_id` never comes from a request; `BelongsToTenant` scopes reads, updates and deletes; queued jobs run in the tenant that dispatched them (`Features/Tenancy/QueueIsolationTest`); files go under `tenants/{id}/` (`Features/Tenancy/IsolationTest › stores avatars under the tenant's directory`); a suspended tenant answers 403 (`Features/Tenancy/SuspensionTest`). User management, roles and teams inside tenants arrive with Plan 10.
 
 ### Logging & error handling
 
@@ -333,7 +333,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Test every protected endpoint without using the frontend | Covered | Feature tests call the HTTP endpoints directly |
 | Test changing resource IDs manually | Covered | `Feature/Settings/BrowserSessionsTest › returns not found for another user session` |
 | Test accessing another user's resources | Covered | Same test |
-| Test accessing another tenant's resources | Planned (Plan 8) | |
+| Test accessing another tenant's resources | Partial | `Features/Tenancy/AccountIsolationTest`, `Features/Tenancy/TenantScopeTest`, `Features/Tenancy/QueueIsolationTest`; features inside tenants arrive with Plan 10 |
 | Test normal user access to admin endpoints | Covered | `Features/Roles/RolePagesTest › forbids the roles pages without roles.view`, `Features/Roles/RolesApiTest › forbids roles without roles.view` |
 | Test manipulating hidden/disabled fields | Covered | `Feature/Settings/ProfileTest › requires the current password to change the email` |
 | Test modifying privileged fields | Covered | Admins change only the name and email; blocking, invitations and roles have their own permissions (`Features/Users/UserPagesTest › forbids each change without its permission`) |
