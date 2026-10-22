@@ -1,0 +1,11 @@
+{
+    "data": [
+        {
+            "id": "integer",
+            "name": "string",
+            "email": "string",
+            "avatar_url": "null",
+            "is_owner": "boolean"
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+{
+    "data": [
+        {
+            "id": "integer",
+            "email": "string",
+            "role_id": "null",
+            "created_at": "string"
+        }
+    ]
+}

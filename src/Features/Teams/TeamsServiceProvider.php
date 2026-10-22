@@ -41,9 +41,11 @@ final class TeamsServiceProvider extends ServiceProvider
         Inertia::share('teams', fn () => $this->app->make(TeamSwitcherProps::class)->for(request()->user()));
 
         PackageRoutes::web(__DIR__.'/../../../routes/teams.php');
+        PackageRoutes::api(__DIR__.'/../../../routes/teams-api.php');
 
         if ($features->isEnabled(Feature::Roles->value)) {
             PackageRoutes::web(__DIR__.'/../../../routes/team-roles.php');
+            PackageRoutes::api(__DIR__.'/../../../routes/team-roles-api.php');
         }
     }
 }

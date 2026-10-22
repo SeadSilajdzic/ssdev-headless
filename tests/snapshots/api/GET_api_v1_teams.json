@@ -1,0 +1,11 @@
+{
+    "data": [
+        {
+            "id": "integer",
+            "name": "string",
+            "personal": "boolean",
+            "is_owner": "boolean",
+            "is_current": "boolean"
+        }
+    ]
+}
