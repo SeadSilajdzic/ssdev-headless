@@ -57,8 +57,8 @@ final class TeamsModule implements FeatureModule
         return [];
     }
 
-    public function apiContractTest(): ?string
+    public function apiContractTest(): string
     {
-        return null;
+        return 'HeadlessTeamsApiContractTest.php';
     }
 }

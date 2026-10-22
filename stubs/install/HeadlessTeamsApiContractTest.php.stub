@@ -1,0 +1,56 @@
+<?php
+
+namespace Tests\Feature;
+
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+use Ssdev\ApiContracts\Testing\InteractsWithApiContract;
+use Ssdev\Headless\Features\Teams\TeamService;
+use Tests\TestCase;
+
+/**
+ * Snapshots of the ssdev/laravel-headless teams API as this application serves it.
+ * After an intentional change: API_CONTRACT_UPDATE=1 php artisan test tests/Feature/HeadlessTeamsApiContractTest.php
+ */
+class HeadlessTeamsApiContractTest extends TestCase
+{
+    use InteractsWithApiContract;
+    use RefreshDatabase;
+
+    public function test_teams_list_matches_contract(): void
+    {
+        $user = $this->createUser();
+        app(TeamService::class)->create($user, 'Contract team');
+        Sanctum::actingAs($user, ['*']);
+
+        $response = $this->getJson($this->url('teams'));
+
+        $response->assertOk();
+        $this->assertMatchesApiContract('headless_teams_GET_teams', $response->json());
+    }
+
+    public function test_team_matches_contract(): void
+    {
+        $user = $this->createUser();
+        $team = app(TeamService::class)->create($user, 'Contract team');
+        Sanctum::actingAs($user, ['*']);
+
+        $response = $this->getJson($this->url('teams/'.$team->getKey()));
+
+        $response->assertOk();
+        $this->assertMatchesApiContract('headless_teams_GET_teams_show', $response->json());
+    }
+
+    private function createUser(): Authenticatable
+    {
+        $model = config('auth.providers.users.model');
+
+        return $model::factory()->create();
+    }
+
+    private function url(string $path): string
+    {
+        return '/'.trim(config('headless.api.prefix'), '/').'/'.$path;
+    }
+}

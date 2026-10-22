@@ -3,6 +3,7 @@
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Process;
 use Ssdev\Headless\Features\Roles\RolesModule;
+use Ssdev\Headless\Features\Teams\TeamsModule;
 use Ssdev\Headless\Features\TwoFactor\TwoFactorModule;
 use Ssdev\Headless\Features\Users\UsersModule;
 use Ssdev\Headless\Installation\Steps\InstallApiContracts;
@@ -87,4 +88,14 @@ it('writes the users contract test when users are selected', function () {
 
     expect($files->get('tests/Feature/HeadlessUsersApiContractTest.php'))->toContain('headless_users_GET_users')
         ->toContain('headless_users_GET_users_show');
+});
+
+it('writes the teams contract test when teams are selected', function () {
+    Process::fake();
+    $files = fixtureProject();
+
+    app(InstallApiContracts::class)->handle(installContext($files, [new TeamsModule]));
+
+    expect($files->get('tests/Feature/HeadlessTeamsApiContractTest.php'))->toContain('headless_teams_GET_teams')
+        ->toContain('headless_teams_GET_teams_show');
 });
