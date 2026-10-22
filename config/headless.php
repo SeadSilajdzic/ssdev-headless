@@ -29,6 +29,11 @@ return [
         'invitation_expire_minutes' => 10080,
     ],
 
+    'teams' => [
+        // Give every new account a team of its own when it registers.
+        'personal_team' => false,
+    ],
+
     'registration' => [
         'enabled' => true,
     ],
