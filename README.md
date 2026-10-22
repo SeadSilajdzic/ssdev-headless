@@ -246,7 +246,8 @@ Select it in `headless:install` or add it later with `php artisan headless:add t
 
 - Anyone can create teams and switch between them with the switcher under the logo. The current team is the user's `current_team_id`; scope your own data to it.
 - The owner renames and deletes the team, invites people by email, removes members and hands the team over to another member. The owner cannot leave without handing it over, and an account that owns a team with other members cannot be deleted until it does.
-- An invitation is a signed link that expires after `teams.invitation_expire_minutes` (a week), works once and only for the address it was sent to. Inviting the same address again refreshes the invitation. Invitations are limited by `rate_limits.team_invitations` per minute.
+- Only the owner sees the members' email addresses; other members see names, and their own address.
+- An invitation is a signed link that expires after `teams.invitation_expire_minutes` (a week), works once and only for the address it was sent to, once that address is verified; another account that opens it sees neither the team nor the address. Inviting the same address again refreshes the invitation. Invitations are limited by `rate_limits.team_invitations` per minute.
 - With `teams.personal_team` on, every new account gets a team of its own.
 
 With roles on, permissions follow Spatie's teams mode with a global context:
@@ -262,7 +263,7 @@ Over the API (`auth:sanctum`):
 | GET, POST | `teams` | your teams; create one (`name`) |
 | GET, PUT, DELETE | `teams/{team}` | one team; rename; delete (owner) |
 | PUT | `me/current-team` | switch (`team_id`) |
-| GET | `teams/{team}/members` | the members |
+| GET | `teams/{team}/members` | the members; `email` is null unless you own the team or it is yours |
 | DELETE | `teams/{team}/members/{user}` | remove a member (owner) |
 | DELETE | `teams/{team}/membership` | leave the team |
 | PUT | `teams/{team}/owner` | hand the team over (`user_id`, owner) |
