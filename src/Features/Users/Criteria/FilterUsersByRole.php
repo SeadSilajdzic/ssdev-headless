@@ -21,6 +21,6 @@ final class FilterUsersByRole implements UserCriteria
             ->select(config('permission.column_names.model_morph_key'))
             ->from($table)
             ->where(app(PermissionRegistrar::class)->pivotRole, $this->roleId)
-            ->where('model_type', $model->getMorphClass()), $table));
+            ->where(GlobalAssignments::MODEL_TYPE, $model->getMorphClass()), $table));
     }
 }

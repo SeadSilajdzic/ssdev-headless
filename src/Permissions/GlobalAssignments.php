@@ -15,6 +15,9 @@ final class GlobalAssignments
 {
     public const TEAM = 0;
 
+    // Spatie's column for the assigned model's class; unlike the other column names it is not configurable.
+    public const MODEL_TYPE = 'model_type';
+
     public function __construct(private Repository $config) {}
 
     /**

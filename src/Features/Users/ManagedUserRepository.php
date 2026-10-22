@@ -71,13 +71,13 @@ final class ManagedUserRepository
                     ->select($morphKey)
                     ->from($tables['model_has_permissions'])
                     ->whereIn($this->registrar->pivotPermission, $permissionIds)
-                    ->where('model_type', $model->getMorphClass()), $tables['model_has_permissions']))
+                    ->where(GlobalAssignments::MODEL_TYPE, $model->getMorphClass()), $tables['model_has_permissions']))
                 ->orWhereIn($model->getQualifiedKeyName(), fn (QueryBuilder $viaRoles) => $this->assignments->onTable($viaRoles
                     ->select($tables['model_has_roles'].'.'.$morphKey)
                     ->from($tables['model_has_roles'])
                     ->join($tables['role_has_permissions'], $tables['role_has_permissions'].'.'.$this->registrar->pivotRole, '=', $tables['model_has_roles'].'.'.$this->registrar->pivotRole)
                     ->whereIn($tables['role_has_permissions'].'.'.$this->registrar->pivotPermission, $permissionIds)
-                    ->where($tables['model_has_roles'].'.model_type', $model->getMorphClass()), $tables['model_has_roles'])))
+                    ->where($tables['model_has_roles'].'.'.GlobalAssignments::MODEL_TYPE, $model->getMorphClass()), $tables['model_has_roles'])))
             ->lockForUpdate()
             ->pluck($model->getQualifiedKeyName())
             ->all();

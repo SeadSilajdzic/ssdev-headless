@@ -16,7 +16,7 @@ final class CheckOwnedTeamsBeforeDeletion
 
     public function handle(AccountDeleting $event): void
     {
-        $owned = Team::query()->where('owner_id', $event->user->getKey())->withCount('members')->get();
+        $owned = Team::query()->where(Team::OWNER_KEY, $event->user->getKey())->withCount('members')->get();
 
         if ($owned->contains(fn (Team $team): bool => $team->getAttribute('members_count') > 1)) {
             throw ValidationException::withMessages(['account' => __('headless::teams.errors.owns_teams')]);

@@ -16,6 +16,10 @@ use Illuminate\Foundation\Auth\User;
  */
 final class Team extends Model
 {
+    public const OWNER_KEY = 'owner_id';
+
+    public const MEMBERSHIP_TABLE = 'team_user';
+
     protected $table = 'teams';
 
     protected $casts = ['personal' => 'boolean'];
@@ -25,7 +29,7 @@ final class Team extends Model
      */
     public function owner(): BelongsTo
     {
-        return $this->belongsTo($this->userModel(), 'owner_id');
+        return $this->belongsTo($this->userModel(), self::OWNER_KEY);
     }
 
     /**
@@ -33,7 +37,7 @@ final class Team extends Model
      */
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany($this->userModel(), 'team_user', 'team_id', 'user_id')->withTimestamps();
+        return $this->belongsToMany($this->userModel(), self::MEMBERSHIP_TABLE, 'team_id', 'user_id')->withTimestamps();
     }
 
     /**

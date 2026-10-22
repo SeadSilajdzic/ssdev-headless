@@ -16,7 +16,7 @@ final class TeamService
     {
         return $this->database->transaction(function () use ($owner, $name, $personal): Team {
             $team = new Team;
-            $team->forceFill(['owner_id' => $owner->getKey(), 'name' => $name, 'personal' => $personal])->save();
+            $team->forceFill([Team::OWNER_KEY => $owner->getKey(), 'name' => $name, 'personal' => $personal])->save();
             $team->members()->attach($owner->getKey());
 
             $owner->forceFill(['current_team_id' => $team->getKey()])->save();

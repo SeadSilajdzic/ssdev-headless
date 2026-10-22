@@ -7,6 +7,7 @@ use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Spatie\Permission\PermissionRegistrar;
+use Ssdev\Headless\Permissions\GlobalAssignments;
 
 /**
  * Names of the permissions a user holds outside any team, directly or through a role. Read once per request,
@@ -43,7 +44,7 @@ final class GlobalPermissionGrants
         $pivotPermission = $this->registrar->pivotPermission;
         $ownedBy = fn (Builder $query, string $table) => $query
             ->where($table.'.'.$team, TeamContext::GLOBAL)
-            ->where($table.'.model_type', $user->getMorphClass())
+            ->where($table.'.'.GlobalAssignments::MODEL_TYPE, $user->getMorphClass())
             ->where($table.'.'.$morphKey, $user->getKey());
 
         return $this->database->table($tables['permissions'])

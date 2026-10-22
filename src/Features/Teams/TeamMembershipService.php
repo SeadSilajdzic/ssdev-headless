@@ -6,6 +6,7 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Validation\ValidationException;
+use Ssdev\Headless\Permissions\GlobalAssignments;
 
 final class TeamMembershipService
 {
@@ -49,7 +50,7 @@ final class TeamMembershipService
             $locked = Team::query()->lockForUpdate()->findOrFail($team->getKey());
             $this->ensureMember($locked, $newOwner);
 
-            $locked->forceFill(['owner_id' => $newOwner->getKey()])->save();
+            $locked->forceFill([Team::OWNER_KEY => $newOwner->getKey()])->save();
             $team->setRawAttributes($locked->getAttributes(), true);
         });
     }
@@ -82,7 +83,7 @@ final class TeamMembershipService
         foreach ([$tables['model_has_roles'], $tables['model_has_permissions']] as $table) {
             $this->database->table($table)
                 ->where($teamColumn, $team->getKey())
-                ->when($member !== null, fn ($query) => $query->where($morphKey, $member?->getKey())->where('model_type', $member?->getMorphClass()))
+                ->when($member !== null, fn ($query) => $query->where($morphKey, $member?->getKey())->where(GlobalAssignments::MODEL_TYPE, $member?->getMorphClass()))
                 ->delete();
         }
     }
