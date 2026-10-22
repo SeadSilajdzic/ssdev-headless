@@ -61,7 +61,7 @@ final class TeamRoleService
 
         $this->database->transaction(function () use ($assignable, $member, $team, $added, $removed, $column): void {
             foreach ($added as $roleId) {
-                $assignable[$roleId]->users()->attach($member->getKey(), [$column => $team->getKey()]);
+                $this->grant($team, $member, $assignable[$roleId]);
             }
 
             foreach ($removed as $roleId) {
@@ -71,6 +71,19 @@ final class TeamRoleService
 
         if ($added !== [] || $removed !== []) {
             $this->events->dispatch(new TeamMemberRolesUpdated($team, $member, $owner, $added, $removed));
+        }
+    }
+
+    /**
+     * For trusted callers, such as accepting an invitation that names a role.
+     */
+    public function grant(Team $team, User $member, Role $role): void
+    {
+        $column = (string) $this->config->get('permission.column_names.team_foreign_key');
+        $members = $role->users()->wherePivot($column, $team->getKey());
+
+        if (! $members->whereKey($member->getKey())->exists()) {
+            $role->users()->attach($member->getKey(), [$column => $team->getKey()]);
         }
     }
 }

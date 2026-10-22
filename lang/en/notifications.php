@@ -28,6 +28,13 @@ return [
         'action' => 'Sign in',
     ],
 
+    'team_invitation' => [
+        'subject' => 'You are invited to join :team',
+        'intro' => 'You were invited to join the :team team on :app.',
+        'action' => 'Join the team',
+        'outro' => 'This invitation expires in :time. If you did not expect it, you can ignore this email.',
+    ],
+
     'user_invitation' => [
         'subject' => 'You are invited to :app',
         'intro' => 'An account was created for you on :app. Choose a password to start using it.',

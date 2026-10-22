@@ -6,6 +6,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
 use Ssdev\Headless\Features\Teams\Listeners\CreatePersonalTeam;
+use Ssdev\Headless\Routing\PackageRoutes;
 
 final class TeamsServiceProvider extends ServiceProvider
 {
@@ -27,5 +28,7 @@ final class TeamsServiceProvider extends ServiceProvider
     public function boot(Dispatcher $events): void
     {
         $events->listen(Registered::class, CreatePersonalTeam::class);
+
+        PackageRoutes::web(__DIR__.'/../../../routes/teams.php');
     }
 }

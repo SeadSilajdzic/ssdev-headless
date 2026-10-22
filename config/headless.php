@@ -32,6 +32,8 @@ return [
     'teams' => [
         // Give every new account a team of its own when it registers.
         'personal_team' => false,
+        // Minutes a team invitation link stays valid.
+        'invitation_expire_minutes' => 10080,
     ],
 
     'registration' => [
