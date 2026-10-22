@@ -8,12 +8,14 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\UploadedFile;
 use RuntimeException;
+use Ssdev\Headless\Support\Isolation;
 
 final class AvatarService
 {
     public function __construct(
         private Factory $storage,
         private Repository $config,
+        private Isolation $isolation,
     ) {}
 
     public function replace(User $user, UploadedFile $file): void
@@ -21,7 +23,7 @@ final class AvatarService
         $previous = $user->getAttribute('avatar_path');
 
         // store() names the file after a random hash and the extension guessed from its content.
-        $path = $file->store($this->setting('directory'), $this->setting('disk'));
+        $path = $file->store($this->isolation->path($this->setting('directory')), $this->setting('disk'));
 
         if ($path === false) {
             throw new RuntimeException('The avatar could not be stored.');

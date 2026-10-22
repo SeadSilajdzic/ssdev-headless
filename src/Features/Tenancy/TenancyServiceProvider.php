@@ -8,11 +8,13 @@ use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Multitenancy\Tasks\PrefixCacheTask;
 use Ssdev\Headless\Features\Tenancy\Auth\TenantPasswordBrokerManager;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureSessionMatchesTenant;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\IdentifyTenant;
 use Ssdev\Headless\Features\Tenancy\Tasks\ForceTenantRootUrl;
 use Ssdev\Headless\Features\Tenancy\Tasks\SwitchTenantRegistration;
+use Ssdev\Headless\Support\Isolation;
 
 final class TenancyServiceProvider extends ServiceProvider
 {
@@ -23,9 +25,12 @@ final class TenancyServiceProvider extends ServiceProvider
             'multitenancy.tenant_model' => Tenant::class,
             // IdentifyTenant finds the tenant, so Spatie's own lookup while booting stays off.
             'multitenancy.tenant_finder' => null,
-            'multitenancy.switch_tenant_tasks' => [ForceTenantRootUrl::class, SwitchTenantRegistration::class],
+            // The rate limiter keeps the cache store it started with, so its keys are kept apart through TenantIsolation instead.
+            'multitenancy.switch_tenant_tasks' => [PrefixCacheTask::class, ForceTenantRootUrl::class, SwitchTenantRegistration::class],
             'multitenancy.queues_are_tenant_aware_by_default' => true,
         ]);
+
+        $this->app->bind(Isolation::class, TenantIsolation::class);
 
         // Extended rather than rebound: Laravel's provider is deferred and would replace a plain binding when it loads.
         $this->app->extend('auth.password', fn (PasswordBrokerManager $manager, Application $app) => new TenantPasswordBrokerManager($app));

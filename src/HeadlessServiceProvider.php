@@ -29,7 +29,9 @@ use Ssdev\Headless\Navigation\NavigationItem;
 use Ssdev\Headless\Navigation\NavigationRegistry;
 use Ssdev\Headless\Permissions\PermissionRegistry;
 use Ssdev\Headless\Routing\PackageRoutes;
+use Ssdev\Headless\Support\Isolation;
 use Ssdev\Headless\Support\PackageConfig;
+use Ssdev\Headless\Support\SharedIsolation;
 use Ssdev\Headless\Translations\HeadlessTranslations;
 
 class HeadlessServiceProvider extends ServiceProvider
@@ -54,6 +56,7 @@ class HeadlessServiceProvider extends ServiceProvider
 
         $this->app->bind(ApiSignInChallenge::class, NoApiSignInChallenge::class);
         $this->app->bind(AdminAccess::class, DirectAdminAccess::class);
+        $this->app->bind(Isolation::class, SharedIsolation::class);
 
         // After the Fortify setup and default bindings, so features can extend them; registered here so they boot after this provider.
         $this->app->make(FeatureBootstrapper::class)->registerProviders($this->app->make(FeatureRegistry::class));

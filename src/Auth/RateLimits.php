@@ -8,6 +8,7 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Ssdev\Headless\Support\Isolation;
 use Symfony\Component\HttpFoundation\Response;
 
 final class RateLimits
@@ -28,7 +29,10 @@ final class RateLimits
 
     private const EMAIL_FIELD = 'email';
 
-    public function __construct(private Repository $config) {}
+    public function __construct(
+        private Repository $config,
+        private Isolation $isolation,
+    ) {}
 
     public function register(): void
     {
@@ -39,16 +43,16 @@ final class RateLimits
 
         RateLimiter::for(self::REGISTRATION, fn (Request $request) => $this->formLimit('registration', (string) $request->ip()));
         RateLimiter::for(self::PASSWORD_RESET, fn (Request $request) => $this->formLimit('password_reset', (string) $request->ip()));
-        RateLimiter::for(self::VERIFICATION, fn (Request $request) => $this->limit('verification')->by($this->userKey($request)));
-        RateLimiter::for(self::REAUTHENTICATION, fn (Request $request) => $this->limit('reauthentication')->by($this->userKey($request)));
-        RateLimiter::for(self::EMAIL_CHANGE, fn (Request $request) => $this->limit('email_change')->by($this->userKey($request)));
+        RateLimiter::for(self::VERIFICATION, fn (Request $request) => $this->limitBy('verification', $this->userKey($request)));
+        RateLimiter::for(self::REAUTHENTICATION, fn (Request $request) => $this->limitBy('reauthentication', $this->userKey($request)));
+        RateLimiter::for(self::EMAIL_CHANGE, fn (Request $request) => $this->limitBy('email_change', $this->userKey($request)));
         // Runs before route authentication, so the token owner is looked up through the sanctum guard.
-        RateLimiter::for(self::API, fn (Request $request) => $this->limit('api')->by((string) ($request->user('sanctum')?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for(self::API, fn (Request $request) => $this->limitBy('api', (string) ($request->user('sanctum')?->getAuthIdentifier() ?? $request->ip())));
     }
 
-    private function limit(string $name): Limit
+    private function limitBy(string $name, string $key): Limit
     {
-        return Limit::perMinute((int) $this->config->get("headless.rate_limits.{$name}"));
+        return Limit::perMinute((int) $this->config->get("headless.rate_limits.{$name}"))->by($this->isolation->key($key));
     }
 
     /**
@@ -56,7 +60,7 @@ final class RateLimits
      */
     private function formLimit(string $name, string $key, bool $lockout = false): Limit
     {
-        return $this->limit($name)->by($key)->response(function (Request $request, array $headers) use ($lockout): Response {
+        return $this->limitBy($name, $key)->response(function (Request $request, array $headers) use ($lockout): Response {
             if ($lockout) {
                 event(new Lockout($request));
             }
