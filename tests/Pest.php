@@ -34,6 +34,7 @@ use Ssdev\Headless\Tests\Support\TwoFactorTestCase;
 use Ssdev\Headless\Tests\Support\UsersRolesTestCase;
 use Ssdev\Headless\Tests\Support\UsersTestCase;
 use Ssdev\Headless\Tests\TestCase;
+use Workbench\App\Models\TenantUser;
 use Workbench\App\Models\User;
 
 use function Pest\Laravel\actingAs;
@@ -229,6 +230,14 @@ function makeRole(string $name, array $permissions, ?User $member = null): Role
 function makeTenant(string $subdomain, array $attributes = []): Tenant
 {
     return Tenant::query()->forceCreate(['name' => ucfirst($subdomain), 'subdomain' => $subdomain, ...$attributes]);
+}
+
+/**
+ * @param  array<string, mixed>  $attributes
+ */
+function tenantUser(Tenant $tenant, array $attributes = []): TenantUser
+{
+    return $tenant->execute(fn (): TenantUser => TenantUser::factory()->create($attributes));
 }
 
 function failsOn(string $field): Closure

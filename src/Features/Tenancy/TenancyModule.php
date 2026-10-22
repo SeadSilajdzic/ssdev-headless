@@ -48,7 +48,7 @@ final class TenancyModule implements FeatureModule
 
     public function userTraits(): array
     {
-        return [];
+        return ['BelongsToTenant' => 'use Ssdev\Headless\Features\Tenancy\BelongsToTenant;'];
     }
 
     public function permissions(): array

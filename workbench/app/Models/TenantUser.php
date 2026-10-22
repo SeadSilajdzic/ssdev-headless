@@ -2,6 +2,7 @@
 
 namespace Workbench\App\Models;
 
+use Ssdev\Headless\Features\Tenancy\BelongsToTenant;
 use Workbench\Database\Factories\TenantUserFactory;
 
 /**
@@ -9,6 +10,8 @@ use Workbench\Database\Factories\TenantUserFactory;
  */
 class TenantUser extends User
 {
+    use BelongsToTenant;
+
     protected $table = 'users';
 
     protected static function newFactory(): TenantUserFactory
