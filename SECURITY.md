@@ -18,7 +18,7 @@ Every item of the project's security checklist, with how the package handles it.
 |---|---|
 | Covered | Implemented by the package and, where possible, proven by a test |
 | Partial | The package handles its part; the rest depends on the application or a later release |
-| Planned (Plan N) | Arrives with a feature that is not released yet: 7 teams, 8 multi-tenancy |
+| Planned (Plan N) | Arrives with a feature that is not released yet: 8 multi-tenancy |
 | Application responsibility | Belongs to the application, server or infrastructure, not to the package |
 | Not applicable | The package has no such functionality in v1 |
 
@@ -52,11 +52,11 @@ Tests are named `file › test`, relative to `tests/`.
 | Item | Status | Evidence |
 |---|---|---|
 | Authentication | Covered | Laravel Fortify behind package routes; `Feature/Auth/LoginTest` |
-| Authorization | Partial | Code-defined permissions checked with `can()` (`Feature/Permissions`), roles that hand them out (`Features/Roles`), user management (`Features/Users/UserPagesTest › forbids each change without its permission`); checks for teams and tenants arrive with Plans 7–8 |
-| BOLA / IDOR | Covered | Account endpoints act on the signed-in user only; sessions are addressed by keyed hashes (`Feature/Settings/BrowserSessionsTest › returns not found for another user session`) |
+| Authorization | Partial | Code-defined permissions checked with `can()` (`Feature/Permissions`), roles that hand them out (`Features/Roles`), user management (`Features/Users/UserPagesTest › forbids each change without its permission`), teams through `TeamPolicy` (`Features/Teams/TeamPagesTest › lets only the owner rename, invite, remove members and delete`); tenant checks arrive with Plan 8 |
+| BOLA / IDOR | Covered | Account endpoints act on the signed-in user only; sessions are addressed by keyed hashes (`Feature/Settings/BrowserSessionsTest › returns not found for another user session`); a team outside your own answers 404 (`Features/Teams/TeamPagesTest › shows a team to members only`, `Features/Teams/TeamsApiTest › answers 404 for another team`) |
 | Broken Function Level Authorization | Covered | Role endpoints require `roles.view` or `roles.manage` on the web and the API; `Features/Roles/RolePagesTest › forbids changes with roles.view only`, `Features/Roles/RolesApiTest › forbids roles without roles.view` |
 | Horizontal Privilege Escalation | Covered | Same as BOLA/IDOR for every account endpoint |
-| Vertical Privilege Escalation | Covered | Nobody can give a role a permission they lack or change a role holding one; the last role that manages roles keeps a member; tokens stay within their abilities. `Features/Roles/RoleServiceTest › refuses permissions the actor does not have`, `› refuses to change a role with permissions the actor lacks`, `› keeps the last role that manages roles`, `Features/Roles/RoleAssignmentTest › refuses to assign a role with permissions the actor lacks`, `Features/Roles/RolesApiTest › respects token abilities` |
+| Vertical Privilege Escalation | Covered | Nobody can give a role a permission they lack or change a role holding one; the last role that manages roles keeps a member; tokens stay within their abilities. `Features/Roles/RoleServiceTest › refuses permissions the actor does not have`, `› refuses to change a role with permissions the actor lacks`, `› keeps the last role that manages roles`, `Features/Roles/RoleAssignmentTest › refuses to assign a role with permissions the actor lacks`, `Features/Roles/RolesApiTest › respects token abilities`; inside a team no role with an application-wide permission can be given and such a permission never counts (`Features/TeamsRoles/PermissionContextTest › never counts a system permission given inside a team`, `Features/TeamsRoles/TeamRolesTest › refuses a role with a system permission`) |
 | Mass Assignment | Covered | Models are filled with `forceFill()` from validated fields; the application's `$fillable` is never changed |
 | Strict Request Validation | Covered | A FormRequest for every write route |
 | SQL Injection | Covered | Query builder bindings only |
@@ -69,12 +69,12 @@ Tests are named `file › test`, relative to `tests/`.
 | Session Fixation Protection | Covered | `Feature/Auth/LoginTest › logs in and regenerates the session` |
 | Session Hijacking Protection | Partial | HttpOnly, SameSite and Secure are checked by the installer; HTTPS is the application's job |
 | Account Takeover Protection | Covered | Email changes need the password and a confirmation from the new address, the old address is notified (`Feature/Settings/EmailChangeTest`); password changes end other sessions and API tokens (`Feature/Settings/PasswordUpdateTest`, `Feature/Api/ProfileApiTest › keeps only the current token on a password change`); resets end every session and API token (`Feature/Auth/PasswordResetTest`) |
-| Race Conditions | Covered | `Feature/Auth/RegistrationTest › treats a duplicate insert race as an existing account`; email confirmation locks the user row; removing the last user manager or role manager reads the managers with locks (`Features/Users/UserServiceTest › refuses to delete the last active user manager`, `Features/UsersRoles/DeletionTest › refuses to delete the last member of the last managing role`) |
+| Race Conditions | Covered | `Feature/Auth/RegistrationTest › treats a duplicate insert race as an existing account`; email confirmation locks the user row; removing the last user manager or role manager reads the managers with locks (`Features/Users/UserServiceTest › refuses to delete the last active user manager`, `Features/UsersRoles/DeletionTest › refuses to delete the last member of the last managing role`); accepting a team invitation locks it, so a second click finds nothing (`Features/Teams/TeamInvitationTest › accepts once`) |
 | Database Transactions | Covered | Email change, account deletion and admin creation |
 | Database Row Locking | Covered | `EmailChangeService::confirm()` uses `lockForUpdate()` |
 | Atomic Operations | Covered | Registration is a single insert guarded by the unique email index |
 | Replay Attack Protection | Covered | `Feature/Settings/EmailChangeTest › rejects a link issued before a newer email change`, `› rejects a link once the email changed away and back again`; reset tokens are single use |
-| Idempotency | Partial | Email confirmation and registration are safe to repeat; an invitation sent again replaces the earlier link and inviting a taken email is refused (`Features/Users/InvitationTest › replaces the old link when the invitation is sent again`); team invitations and tenant creation arrive with Plans 7–8 |
+| Idempotency | Partial | Email confirmation and registration are safe to repeat; an invitation sent again replaces the earlier link and inviting a taken email is refused (`Features/Users/InvitationTest › replaces the old link when the invitation is sent again`); inviting the same address to a team again refreshes its invitation (`Features/Teams/TeamInvitationTest › sends the same invitation again instead of a duplicate`); tenant creation arrives with Plan 8 |
 | Business Logic Abuse Protection | Partial | Enumeration-safe registration and reset, throttled mail endpoints; more rules arrive with each feature |
 | Webhook Signature Verification | Not applicable | No webhooks in v1 |
 | Webhook Replay Protection | Not applicable | No webhooks in v1 |
@@ -199,7 +199,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Prevent arbitrary field updates | Covered | Only validated fields are saved |
 | Prevent arbitrary IDs from bypassing authorization | Covered | Tokens are looked up through their owner; other ids answer 404 |
 | Prevent duplicate requests | Covered | Registration and token login are safe to repeat |
-| Idempotency where required | Partial | Account operations are idempotent; blocking a blocked user changes nothing (`Features/Users/BlockingTest › blocks a blocked user only once`); team invitations arrive with Plan 7 |
+| Idempotency where required | Partial | Account operations are idempotent; blocking a blocked user changes nothing (`Features/Users/BlockingTest › blocks a blocked user only once`); team invitations are refreshed rather than duplicated; tenant creation arrives with Plan 8 |
 | Secure error responses | Covered | `ApiErrorRenderer`; `Feature/Api/ApiErrorsTest › hides the model class of a missing record`, `› hides server errors`, `› answers unknown api routes with json even without an accept header` |
 | No sensitive data in API responses | Covered | `Feature/Api/ProfileApiTest › returns the current user without sensitive fields`; strict response contracts (`Feature/Api/ContractTest`) |
 | API login does not reveal accounts | Covered | `Feature/Api/AuthTokenTest › answers wrong passwords and unknown emails the same way`, `› answers unknown emails no faster than wrong passwords` |

@@ -24,11 +24,13 @@ Roles are optional too. Add them with `php artisan headless:add roles --migrate`
 
 User management is optional as well. Add it with `php artisan headless:add users --migrate` and run `npm run build`; it adds `SoftDeletes` to `app/Models/User.php`, the `invited_at`, `blocked_at` and `deleted_at` columns and a `user_invitation_tokens` table. Give existing admins the new `users.*` permissions with `php artisan headless:permissions:grant admin@example.com --all`.
 
-- Deleting your own account now removes it for good even if your `User` model already used `SoftDeletes`.
-- The roles and users pages ask for the password before they open, like the API tokens page.
+Teams are optional too. Add them with `php artisan headless:add teams --migrate` and run `npm run build`. The migration adds a `team_id` column to Spatie's permission tables and keeps every existing assignment global. Scope your own data to the user's `current_team_id`, and implement `Ssdev\Headless\Permissions\GlobalPermission` on permission enums that must never be given inside a team.
 
+- Deleting your own account now removes it for good even if your `User` model already used `SoftDeletes`.
+- With teams on, deleting an account that owns a team with other members is refused until the team is handed over.
+- The roles and users pages ask for the password before they open, like the API tokens page.
 - If your code calls `Ssdev\Headless\Account\ApiTokenAuthenticator::issue()`, call `authenticate()` and then `issueToken()` instead.
-- New config keys: `two_factor`, `users`, `rate_limits.two_factor` and `rate_limits.invitations`. A published `config/headless.php` picks up their defaults; add them only to change them.
+- New config keys: `two_factor`, `users`, `teams`, `rate_limits.two_factor`, `rate_limits.invitations` and `rate_limits.team_invitations`. A published `config/headless.php` picks up their defaults; add them only to change them.
 
 ## Upgrading to 0.3 from 0.2
 
