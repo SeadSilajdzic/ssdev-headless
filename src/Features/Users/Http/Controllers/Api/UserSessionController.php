@@ -10,7 +10,7 @@ final class UserSessionController
 {
     public function destroy(string $user, ManagedUserRepository $users, AccessRevoker $access): Response
     {
-        $access->endSessions($users->findOrFail($user));
+        $access->signOutEverywhere($users->findOrFail($user));
 
         return response()->noContent();
     }

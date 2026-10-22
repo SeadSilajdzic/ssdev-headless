@@ -185,3 +185,9 @@ it('asks for the password before the users pages', function () {
 
     actingAs(usersAdmin())->get(route('headless.users.index'))->assertRedirect(route('password.confirm'));
 });
+
+it('refuses to sign out everywhere without database sessions', function () {
+    $user = User::factory()->create();
+
+    actingAs(usersAdmin())->delete(route('headless.users.sessions.destroy', $user->id))->assertSessionHasErrors(['user' => __('headless::users.errors.sessions_unsupported')]);
+});

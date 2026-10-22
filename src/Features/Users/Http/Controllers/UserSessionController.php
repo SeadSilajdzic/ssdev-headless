@@ -11,7 +11,7 @@ final class UserSessionController
 {
     public function destroy(string $user, ManagedUserRepository $users, AccessRevoker $access): RedirectResponse
     {
-        $access->endSessions($users->findOrFail($user));
+        $access->signOutEverywhere($users->findOrFail($user));
 
         return back()->with(Flash::SUCCESS, __('headless::users.sessions_ended'));
     }

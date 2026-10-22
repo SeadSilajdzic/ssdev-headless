@@ -17,6 +17,7 @@ import type { ManagedUser } from '@headless/pages/Users/Index.vue';
 const props = defineProps<{
     user: ManagedUser;
     isSelf: boolean;
+    sessionsSupported: boolean;
     can: { update: boolean; block: boolean; delete: boolean; invite: boolean; manageRoles: boolean };
     roles: UserRoleChoice[] | null;
     rolesUrl: string | null;
@@ -98,7 +99,7 @@ function act(method: 'post' | 'delete', url: string, onDone?: () => void): void 
                     <BaseButton v-if="!invited && can.update" variant="ghost" data-test="send-password-reset" :disabled="busy" @click="act('post', passwordResetUrl)">
                         {{ t('users.access.send_password_reset') }}
                     </BaseButton>
-                    <BaseButton v-if="!isSelf && can.update" variant="ghost" data-test="end-sessions" :disabled="busy" @click="act('delete', sessionsUrl)">
+                    <BaseButton v-if="!isSelf && can.update && sessionsSupported" variant="ghost" data-test="end-sessions" :disabled="busy" @click="act('delete', sessionsUrl)">
                         {{ t('users.access.end_sessions') }}
                     </BaseButton>
                     <BaseButton v-if="!isSelf && can.block && !blocked" variant="destructive" data-test="block-user" @click="confirmingBlock = true">

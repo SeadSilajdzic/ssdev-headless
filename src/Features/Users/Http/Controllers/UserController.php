@@ -12,6 +12,7 @@ use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Features\Roles\RolePermission;
 use Ssdev\Headless\Features\Roles\RoleRepository;
 use Ssdev\Headless\Features\Roles\RoleService;
+use Ssdev\Headless\Features\Users\AccessRevoker;
 use Ssdev\Headless\Features\Users\Http\Requests\ListUsersRequest;
 use Ssdev\Headless\Features\Users\Http\Requests\SaveUserRequest;
 use Ssdev\Headless\Features\Users\Http\Resources\ManagedUserResource;
@@ -32,6 +33,7 @@ final class UserController
         private FeatureRegistry $features,
         private RoleRepository $roles,
         private RoleService $roleService,
+        private AccessRevoker $access,
     ) {}
 
     public function index(ListUsersRequest $request): Response
@@ -76,6 +78,7 @@ final class UserController
         return HeadlessPage::render('Users/Show', [
             'user' => ManagedUserResource::make($managed)->resolve($request),
             'isSelf' => $actor->is($managed),
+            'sessionsSupported' => $this->access->supportsSigningOut(),
             'can' => [
                 'update' => $actor->can(UserPermission::Update->value),
                 'block' => $actor->can(UserPermission::Block->value),
