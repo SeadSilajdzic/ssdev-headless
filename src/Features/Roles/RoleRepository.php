@@ -13,6 +13,7 @@ use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Roles\Criteria\RoleCriteria;
 use Ssdev\Headless\Features\Roles\Criteria\SortRoles;
 use Ssdev\Headless\Permissions\GlobalAssignments;
+use Ssdev\Headless\Permissions\PermissionRegistry;
 
 final class RoleRepository
 {
@@ -28,6 +29,7 @@ final class RoleRepository
         private RoleGuard $guard,
         private GlobalAssignments $assignments,
         private Repository $config,
+        private PermissionRegistry $permissions,
     ) {}
 
     /**
@@ -74,6 +76,33 @@ final class RoleRepository
     public function assignedTo(User $user): Collection
     {
         return $this->query()->whereHas('users', fn (Builder $members) => $this->assignments->onTable($members->whereKey($user->getKey()), $this->config->get('permission.table_names.model_has_roles')))->orderBy('name')->get();
+    }
+
+    /**
+     * Roles a team owner may give inside a team: none of their permissions is global.
+     *
+     * @return Collection<int, Role>
+     */
+    public function assignableInTeams(): Collection
+    {
+        return $this->query()
+            ->whereDoesntHave('permissions', fn (Builder $permissions) => $permissions->whereIn('name', $this->permissions->globalNames()))
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    public function assignedInTeam(User $user, int|string $teamId): Collection
+    {
+        $table = $this->config->get('permission.table_names.model_has_roles');
+        $column = $this->config->get('permission.column_names.team_foreign_key');
+
+        return $this->query()
+            ->whereHas('users', fn (Builder $members) => $members->whereKey($user->getKey())->where($table.'.'.$column, $teamId))
+            ->orderBy('name')
+            ->get();
     }
 
     public function findByName(string $name): ?Role
