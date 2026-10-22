@@ -4,9 +4,7 @@ namespace Ssdev\Headless\Exceptions;
 
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Ssdev\Headless\Http\Inertia\HeadlessPage;
-use Ssdev\Headless\Http\Inertia\SharedProps;
+use Ssdev\Headless\Http\Inertia\StandalonePage;
 use Ssdev\Headless\Support\Flash;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -17,7 +15,7 @@ final class InertiaErrorRenderer
 
     private const PAGE_EXPIRED = 419;
 
-    public function __construct(private SharedProps $sharedProps) {}
+    public function __construct(private StandalonePage $pages) {}
 
     public static function register(Exceptions $exceptions): void
     {
@@ -41,21 +39,11 @@ final class InertiaErrorRenderer
         }
 
         try {
-            return $this->renderErrorPage($request, $status);
+            // Unmatched routes never pass through the web middleware, so the page brings its own shared props.
+            return $this->pages->render($request, 'Errors/Error', ['status' => $status], $status);
         } catch (Throwable) {
             // The error page must never break error handling itself, e.g. while the database is down.
             return $response;
         }
-    }
-
-    private function renderErrorPage(Request $request, int $status): Response
-    {
-        // Unmatched routes never pass through the web middleware, so shared props are added here.
-        Inertia::setRootView('headless::app');
-        Inertia::share($this->sharedProps->toArray($request));
-
-        return HeadlessPage::render('Errors/Error', ['status' => $status])
-            ->toResponse($request)
-            ->setStatusCode($status);
     }
 }

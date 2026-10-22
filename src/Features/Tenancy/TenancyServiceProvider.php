@@ -11,6 +11,7 @@ use Illuminate\Support\ServiceProvider;
 use Spatie\Multitenancy\Tasks\PrefixCacheTask;
 use Ssdev\Headless\Features\Tenancy\Auth\TenantPasswordBrokerManager;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureSessionMatchesTenant;
+use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureTenantIsActive;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\IdentifyTenant;
 use Ssdev\Headless\Features\Tenancy\Queue\KeepQueuedJobsInTheirTenantAction;
 use Ssdev\Headless\Features\Tenancy\Tasks\ForceTenantRootUrl;
@@ -44,8 +45,11 @@ final class TenancyServiceProvider extends ServiceProvider
         if ($kernel instanceof Kernel) {
             $kernel->pushMiddleware(IdentifyTenant::class);
             $kernel->appendMiddlewareToGroup('web', EnsureSessionMatchesTenant::class);
-            // Right after the session starts, so routes that authenticate never see a sign-in from another tenant.
+            $kernel->appendMiddlewareToGroup('web', EnsureTenantIsActive::class);
+            $kernel->appendMiddlewareToGroup('api', EnsureTenantIsActive::class.':'.EnsureTenantIsActive::JSON);
+            // Right after the session starts, so routes that authenticate never see a sign-in from another tenant or a suspended one.
             $kernel->addToMiddlewarePriorityAfter(StartSession::class, EnsureSessionMatchesTenant::class);
+            $kernel->addToMiddlewarePriorityAfter(EnsureSessionMatchesTenant::class, EnsureTenantIsActive::class);
         }
     }
 }
