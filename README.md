@@ -278,12 +278,12 @@ Over the API (`auth:sanctum`):
 
 Select it in `headless:install` or add it later with `php artisan headless:add tenancy --migrate`. It installs `spatie/laravel-multitenancy`, adds a `tenants` table and a `tenant_id` column to `users`, and adds `BelongsToTenant` to `app/Models/User.php`.
 
-Every tenant lives on a subdomain of `tenancy.base_domain`, such as `acme.example.com`, and `tenancy.central_domain` is the platform's own domain; set both in `config/headless.php`. Any other host, an IP address included, answers 404. Leave `SESSION_DOMAIN` empty, so a session cookie stays on its own subdomain. Create a tenant with `Tenant::query()->forceCreate(['name' => 'Acme', 'subdomain' => 'acme'])` (`Ssdev\Headless\Features\Tenancy\Tenant`).
+Every tenant lives on a subdomain of `tenancy.base_domain`, such as `acme.example.com`, and `tenancy.central_domain` is the platform's own domain; set both in `config/headless.php`. Any other host, an IP address included, answers 404, except the paths in `tenancy.any_host_paths` (`up`, for health checks), which run on the central level. Leave `SESSION_DOMAIN` empty, so a session cookie stays on its own subdomain. Create a tenant with `Tenant::query()->forceCreate(['name' => 'Acme', 'subdomain' => 'acme'])` (`Ssdev\Headless\Features\Tenancy\Tenant`).
 
 - An account belongs to one tenant: the same email in another tenant is a separate account with its own password, sessions, API tokens and reset links. `tenant_id` 0 is the central level, so accounts that existed before become central accounts.
-- `tenant_id` never comes from a request. `BelongsToTenant` limits every query to the current tenant and fills new rows from it, and moving a row to another tenant throws. Use it on your own models with an indexed `unsignedBigInteger('tenant_id')->default(0)` column.
+- `tenant_id` never comes from a request. `BelongsToTenant` limits every query to the current tenant and fills new rows from it, and saving a model never moves it to another tenant. A mass `update()` skips model events, so never pass `tenant_id` to one. Use it on your own models with an indexed `unsignedBigInteger('tenant_id')->default(0)` column.
 - Kept apart per tenant: queries, sessions, API tokens, password reset links, the default cache store, rate limits, avatars (under `tenants/{id}/`) and queued jobs, which run in the tenant that dispatched them. Use `Ssdev\Headless\Support\Isolation` for your own files (`path()`) and keys (`key()`).
-- Dispatch from a block closure when you run code for a tenant: `$tenant->execute(fn () => SendReport::dispatch())` sends the job only after the tenant was left.
+- Run code for one tenant with `$tenant->execute(fn () => SendReport::dispatch())`; jobs dispatched there run in that tenant.
 - Sign-up inside a tenant is off; turn it on with `tenancy.registration`.
 - A tenant with `suspended_at` set shows a suspension page, its API answers 403 and nobody can sign in.
 - User management, roles and teams do not work inside tenants yet.
