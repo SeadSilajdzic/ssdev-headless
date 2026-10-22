@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('subdomain')->unique();
+            // The first account inside the tenant; no foreign key, as accounts are read through the tenant scope.
+            $table->unsignedBigInteger('owner_id')->nullable();
             $table->timestamp('suspended_at')->nullable();
             $table->timestamps();
         });

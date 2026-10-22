@@ -10,6 +10,7 @@ use Spatie\Multitenancy\Models\Tenant as SpatieTenant;
  * @property int $id
  * @property string $name
  * @property string $subdomain
+ * @property int|null $owner_id
  * @property Carbon|null $suspended_at
  */
 final class Tenant extends SpatieTenant

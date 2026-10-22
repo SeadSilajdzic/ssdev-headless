@@ -47,6 +47,8 @@ return [
         'storage_directory' => 'tenants',
         // Paths answered on any host, on the central level: health checks often call the server by its IP address.
         'any_host_paths' => ['up'],
+        // Subdomains no tenant may take.
+        'reserved_subdomains' => ['www', 'admin', 'api', 'app', 'mail', 'ftp', 'smtp', 'imap', 'static', 'assets', 'cdn', 'status', 'help', 'support', 'docs', 'blog'],
     ],
 
     'registration' => [
