@@ -28,6 +28,6 @@ final class AcceptTeamInvitationController
     {
         $team = $invitations->accept($request->user(), $invitation);
 
-        return redirect()->route('headless.dashboard')->with(Flash::SUCCESS, __('headless::teams.invitation.joined', ['team' => $team->name]));
+        return redirect()->route('headless.teams.show', $team->getKey())->with(Flash::SUCCESS, __('headless::teams.invitation.joined', ['team' => $team->name]));
     }
 }

@@ -20,6 +20,19 @@ export interface NavigationSection {
     items: NavigationLink[];
 }
 
+export interface TeamSummary {
+    id: number;
+    name: string;
+}
+
+export interface TeamSwitcherProps {
+    current: TeamSummary | null;
+    all: TeamSummary[];
+    switchUrl: string;
+    createUrl: string;
+    settingsUrl: string | null;
+}
+
 export interface Translations {
     [key: string]: string | Translations;
 }
@@ -36,6 +49,8 @@ export interface HeadlessSharedProps {
         honeypot: string;
     };
     flash: { success: string | null; error: string | null };
+    // Shared only with the teams feature.
+    teams?: TeamSwitcherProps | null;
 }
 
 export type PageMap = Record<string, () => Promise<unknown>>;

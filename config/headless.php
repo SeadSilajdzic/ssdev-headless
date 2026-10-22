@@ -58,6 +58,7 @@ return [
         'api' => 60,
         'two_factor' => 5,
         'invitations' => 10,
+        'team_invitations' => 10,
     ],
 
     'session_locations' => [

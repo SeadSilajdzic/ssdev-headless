@@ -4,6 +4,72 @@ return [
 
     'personal_name' => ":name's Team",
 
+    'switcher' => [
+        'label' => 'Switch team',
+        'no_team' => 'No team',
+        'settings' => 'Team settings',
+        'create' => 'Create team',
+    ],
+
+    'create' => [
+        'title' => 'Create team',
+        'description' => 'A team groups people who work together.',
+        'submit' => 'Create team',
+    ],
+
+    'fields' => [
+        'name' => 'Team name',
+        'email' => 'Email',
+        'role' => 'Role',
+    ],
+
+    'details' => [
+        'title' => 'Team details',
+        'save' => 'Save',
+        'personal' => 'Personal team',
+    ],
+
+    'members' => [
+        'title' => 'Members',
+        'description' => 'People in this team.',
+        'owner' => 'Owner',
+        'remove' => 'Remove',
+        'make_owner' => 'Make owner',
+        'transfer_title' => 'Hand the team over?',
+        'transfer_description' => 'The new owner manages the team. You stay a member.',
+    ],
+
+    'invitations' => [
+        'title' => 'Invitations',
+        'description' => 'Invite people by email. The link works once and only for that address.',
+        'invite' => 'Send invitation',
+        'pending' => 'Pending invitations',
+        'none' => 'No pending invitations.',
+        'cancel' => 'Cancel',
+        'no_role' => 'No role',
+    ],
+
+    'leave' => [
+        'button' => 'Leave team',
+        'confirm_title' => 'Leave this team?',
+        'confirm_description' => 'You lose access to the team until someone invites you again.',
+    ],
+
+    'delete' => [
+        'button' => 'Delete team',
+        'confirm_title' => 'Delete this team?',
+        'confirm_description' => 'Members lose access and its invitations stop working.',
+    ],
+
+    'created' => 'Team created.',
+    'updated' => 'Team saved.',
+    'deleted' => 'Team deleted.',
+    'left' => 'You left the team.',
+    'member_removed' => 'Member removed.',
+    'transferred' => 'The team has a new owner.',
+    'invited' => 'Invitation sent.',
+    'invitation_cancelled' => 'Invitation cancelled.',
+
     'invitation' => [
         'title' => 'Team invitation',
         'description' => 'You were invited to join :team as :email.',
