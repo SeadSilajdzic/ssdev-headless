@@ -79,13 +79,17 @@ final class RoleRepository
     }
 
     /**
-     * Roles a team owner may give inside a team: none of their permissions is global.
+     * Roles a team owner may give inside a team: none of their permissions is global, and they are not tied to
+     * a team, which Spatie's Role::create does and which keeps a role from counting in any other team.
      *
      * @return Collection<int, Role>
      */
     public function assignableInTeams(): Collection
     {
-        return $this->query()
+        $roles = $this->query();
+
+        return $roles
+            ->whereNull($roles->qualifyColumn((string) $this->config->get('permission.column_names.team_foreign_key')))
             ->whereDoesntHave('permissions', fn (Builder $permissions) => $permissions->whereIn('name', $this->permissions->globalNames()))
             ->orderBy('name')
             ->get();

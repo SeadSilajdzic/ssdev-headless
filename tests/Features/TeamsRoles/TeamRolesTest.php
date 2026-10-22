@@ -2,6 +2,7 @@
 
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Event;
+use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Roles\RoleAssignmentService;
 use Ssdev\Headless\Features\Roles\RoleRepository;
 use Ssdev\Headless\Features\Teams\Events\TeamMemberRolesUpdated;
@@ -60,6 +61,15 @@ it('refuses a role with a system permission', function () {
 
     expect(fn () => app(TeamRoleService::class)->sync($owner, $team, $member, [$admins->id]))->toThrow(failsOn('roles'))
         ->and(app(RoleRepository::class)->assignableInTeams()->pluck('name')->all())->not->toContain('Admins');
+});
+
+it('refuses a role that belongs to the global context only', function () {
+    [$team, $owner, $member] = ownedTeamWithMember();
+    // As Spatie's Role::create leaves it in the global context; Spatie never counts such a role inside a team.
+    $seeded = Role::query()->forceCreate(['name' => 'Seeded', 'guard_name' => 'web', 'team_id' => 0]);
+
+    expect(fn () => app(TeamRoleService::class)->sync($owner, $team, $member, [$seeded->id]))->toThrow(failsOn('roles'))
+        ->and(app(RoleRepository::class)->assignableInTeams()->pluck('name')->all())->not->toContain('Seeded');
 });
 
 it('refuses members of other teams', function () {
