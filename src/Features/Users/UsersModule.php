@@ -49,8 +49,8 @@ final class UsersModule implements FeatureModule
         return [UserPermission::class];
     }
 
-    public function apiContractTest(): ?string
+    public function apiContractTest(): string
     {
-        return null;
+        return 'HeadlessUsersApiContractTest.php';
     }
 }

@@ -1,0 +1,58 @@
+<?php
+
+namespace Tests\Feature;
+
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+use Ssdev\ApiContracts\Testing\InteractsWithApiContract;
+use Ssdev\Headless\Account\AdminAccess;
+use Ssdev\Headless\Permissions\PermissionSynchronizer;
+use Tests\TestCase;
+
+/**
+ * Snapshots of the ssdev/laravel-headless user management API as this application serves it.
+ * After an intentional change: API_CONTRACT_UPDATE=1 php artisan test tests/Feature/HeadlessUsersApiContractTest.php
+ */
+class HeadlessUsersApiContractTest extends TestCase
+{
+    use InteractsWithApiContract;
+    use RefreshDatabase;
+
+    public function test_users_list_matches_contract(): void
+    {
+        Sanctum::actingAs($this->createAdmin(), ['*']);
+
+        $response = $this->getJson($this->url('users'));
+
+        $response->assertOk();
+        $this->assertMatchesApiContract('headless_users_GET_users', $response->json());
+    }
+
+    public function test_user_matches_contract(): void
+    {
+        $admin = $this->createAdmin();
+        Sanctum::actingAs($admin, ['*']);
+
+        $response = $this->getJson($this->url('users/'.$admin->getAuthIdentifier()));
+
+        $response->assertOk();
+        $this->assertMatchesApiContract('headless_users_GET_users_show', $response->json());
+    }
+
+    private function createAdmin(): Authenticatable
+    {
+        $model = config('auth.providers.users.model');
+        $admin = $model::factory()->create();
+
+        app(PermissionSynchronizer::class)->sync();
+        app(AdminAccess::class)->grant($admin);
+
+        return $admin;
+    }
+
+    private function url(string $path): string
+    {
+        return '/'.trim(config('headless.api.prefix'), '/').'/'.$path;
+    }
+}

@@ -4,6 +4,7 @@ use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Process;
 use Ssdev\Headless\Features\Roles\RolesModule;
 use Ssdev\Headless\Features\TwoFactor\TwoFactorModule;
+use Ssdev\Headless\Features\Users\UsersModule;
 use Ssdev\Headless\Installation\Steps\InstallApiContracts;
 use Ssdev\Headless\Installation\StepStatus;
 
@@ -76,4 +77,14 @@ it('writes the roles contract test when roles are selected', function () {
     expect($files->get('tests/Feature/HeadlessRolesApiContractTest.php'))->toContain('headless_roles_GET_roles')
         ->toContain('headless_roles_GET_permissions');
     Process::assertRan(fn (PendingProcess $process) => str_ends_with((string) $process->command, 'artisan test tests/Feature/HeadlessApiContractTest.php tests/Feature/HeadlessRolesApiContractTest.php'));
+});
+
+it('writes the users contract test when users are selected', function () {
+    Process::fake();
+    $files = fixtureProject();
+
+    app(InstallApiContracts::class)->handle(installContext($files, [new UsersModule]));
+
+    expect($files->get('tests/Feature/HeadlessUsersApiContractTest.php'))->toContain('headless_users_GET_users')
+        ->toContain('headless_users_GET_users_show');
 });
