@@ -37,6 +37,17 @@ final class TeamRoleService
     }
 
     /**
+     * @param  Collection<int, User>  $members
+     * @return array<int|string, list<int>>
+     */
+    public function roleIdsOf(Team $team, Collection $members): array
+    {
+        $assigned = $this->roles->idsAssignedInTeam($members->modelKeys(), $team->getKey());
+
+        return $members->mapWithKeys(fn (User $member): array => [$member->getKey() => $assigned[$member->getKey()] ?? []])->all();
+    }
+
+    /**
      * @param  list<int>  $roleIds
      */
     public function sync(User $owner, Team $team, User $member, array $roleIds): void

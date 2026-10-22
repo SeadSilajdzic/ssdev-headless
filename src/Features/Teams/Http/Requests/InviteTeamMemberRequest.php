@@ -16,11 +16,12 @@ final class InviteTeamMemberRequest extends FormRequest
     /**
      * @return array<string, mixed>
      */
-    public function rules(): array
+    public function rules(FeatureRegistry $features): array
     {
         return [
             'email' => ['required', 'string', 'email', 'max:255'],
-            'role' => ['nullable', 'integer'],
+            // Without the roles feature there are no team roles, so a role in the request is left out.
+            'role' => $features->isEnabled(Feature::Roles->value) ? ['nullable', 'integer'] : ['exclude'],
         ];
     }
 
@@ -29,11 +30,10 @@ final class InviteTeamMemberRequest extends FormRequest
         return (string) $this->validated('email');
     }
 
-    // Without the roles feature there are no team roles, so a role in the request is ignored.
     public function roleId(): ?int
     {
         $role = $this->validated('role');
 
-        return $role === null || ! app(FeatureRegistry::class)->isEnabled(Feature::Roles->value) ? null : (int) $role;
+        return $role === null ? null : (int) $role;
     }
 }

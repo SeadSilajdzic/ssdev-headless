@@ -3,22 +3,16 @@
 namespace Ssdev\Headless\Features\Teams\Http\Controllers;
 
 use Illuminate\Contracts\Auth\Access\Gate;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
-use Ssdev\Headless\Features\Feature;
-use Ssdev\Headless\Features\FeatureRegistry;
-use Ssdev\Headless\Features\Roles\RoleRepository;
 use Ssdev\Headless\Features\Teams\Http\Requests\SaveTeamRequest;
 use Ssdev\Headless\Features\Teams\Http\Resources\TeamInvitationResource;
 use Ssdev\Headless\Features\Teams\Http\Resources\TeamMemberResource;
 use Ssdev\Headless\Features\Teams\Http\Resources\TeamResource;
-use Ssdev\Headless\Features\Teams\Team;
 use Ssdev\Headless\Features\Teams\TeamRepository;
-use Ssdev\Headless\Features\Teams\TeamRoleService;
+use Ssdev\Headless\Features\Teams\TeamRoleProps;
 use Ssdev\Headless\Features\Teams\TeamService;
 use Ssdev\Headless\Http\Inertia\HeadlessPage;
 use Ssdev\Headless\Support\Flash;
@@ -29,9 +23,7 @@ final class TeamController
         private TeamRepository $teams,
         private TeamService $service,
         private Gate $gate,
-        private FeatureRegistry $features,
-        private RoleRepository $roles,
-        private TeamRoleService $teamRoles,
+        private TeamRoleProps $roleProps,
     ) {}
 
     public function create(): Response
@@ -63,25 +55,8 @@ final class TeamController
             'ownerUrl' => route('headless.teams.owner.update', $model->getKey()),
             'invitationsUrl' => route('headless.teams.invitations.store', $model->getKey()),
             'removeMemberUrls' => $members->mapWithKeys(fn (User $member) => [$member->getKey() => route('headless.teams.members.destroy', [$model->getKey(), $member->getKey()])])->all(),
-            ...$this->roleProps($model, $members, $isOwner),
+            ...$this->roleProps->for($model, $members, $isOwner),
         ]);
-    }
-
-    /**
-     * @param  Collection<int, User>  $members
-     * @return array{roles: list<array{id: int, name: string}>, memberRoles: array<int|string, list<int>>, memberRolesUrls: array<int|string, string>}
-     */
-    private function roleProps(Team $team, Collection $members, bool $isOwner): array
-    {
-        if (! $this->features->isEnabled(Feature::Roles->value)) {
-            return ['roles' => [], 'memberRoles' => [], 'memberRolesUrls' => []];
-        }
-
-        return [
-            'roles' => $this->roles->assignableInTeams()->map(fn (Role $role): array => ['id' => (int) $role->getKey(), 'name' => $role->name])->values()->all(),
-            'memberRoles' => $members->mapWithKeys(fn (User $member) => [$member->getKey() => $this->teamRoles->rolesOf($team, $member)->map(fn (Role $role): int => (int) $role->getKey())->values()->all()])->all(),
-            'memberRolesUrls' => $isOwner ? $members->mapWithKeys(fn (User $member) => [$member->getKey() => route('headless.teams.members.roles.update', [$team->getKey(), $member->getKey()])])->all() : [],
-        ];
     }
 
     public function update(SaveTeamRequest $request, string $team): RedirectResponse

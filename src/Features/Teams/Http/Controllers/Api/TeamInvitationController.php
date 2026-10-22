@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\URL;
+use Ssdev\Headless\Features\Teams\Http\Requests\AcceptTeamInvitationRequest;
 use Ssdev\Headless\Features\Teams\Http\Requests\InviteTeamMemberRequest;
 use Ssdev\Headless\Features\Teams\Http\Resources\TeamInvitationResource;
 use Ssdev\Headless\Features\Teams\Http\Resources\TeamResource;
@@ -51,15 +51,8 @@ final class TeamInvitationController
         return response()->noContent();
     }
 
-    /**
-     * The mail links to the web page; an API client sends that link's expires and signature along instead.
-     */
-    public function accept(Request $request, string $invitation): TeamResource
+    public function accept(AcceptTeamInvitationRequest $request, string $invitation): TeamResource
     {
-        $signed = Request::create(route('headless.team-invitations.show', ['invitation' => $invitation]).'?'.http_build_query($request->only(['expires', 'signature'])));
-
-        abort_unless(URL::hasValidSignature($signed), Response::HTTP_FORBIDDEN);
-
         return TeamResource::make($this->invitations->accept($request->user(), $invitation));
     }
 }

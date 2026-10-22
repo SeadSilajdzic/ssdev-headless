@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
 use Ssdev\Headless\Features\Teams\Team;
 use Ssdev\Headless\Features\Teams\TeamRoleService;
@@ -33,6 +34,24 @@ it('shows the assignable roles and the members\' roles to the owner', function (
         ->where('roles', [['id' => $editor->id, 'name' => 'Editor']])
         ->where("memberRoles.{$member->id}", [$editor->id])
         ->where("memberRolesUrls.{$member->id}", route('headless.teams.members.roles.update', [$team->id, $member->id])));
+});
+
+it('reads the team roles of every member at once', function () {
+    [$team, $owner] = teamRolesFixture();
+    $roleQueries = function () use ($team, $owner): int {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        actingAs($owner)->get(route('headless.teams.show', $team->id))->assertOk();
+
+        return collect(DB::getQueryLog())->filter(fn (array $query): bool => str_contains($query['query'], 'model_has_roles'))->count();
+    };
+
+    // The first load also reads the owner's own permissions, which later loads reuse.
+    $roleQueries();
+    $withOneMember = $roleQueries();
+    $team->members()->attach(User::factory()->count(3)->create());
+
+    expect($roleQueries())->toBe($withOneMember);
 });
 
 it('sets a member\'s team roles from the page', function () {

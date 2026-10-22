@@ -7,6 +7,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Foundation\Auth\User;
 use Spatie\Permission\Models\Role;
@@ -79,20 +80,16 @@ final class RoleRepository
     }
 
     /**
-     * Roles a team owner may give inside a team: none of their permissions is global, and they are not tied to
-     * a team, which Spatie's Role::create does and which keeps a role from counting in any other team.
-     *
      * @return Collection<int, Role>
      */
     public function assignableInTeams(): Collection
     {
-        $roles = $this->query();
+        return $this->assignableInTeamsQuery()->orderBy('name')->get();
+    }
 
-        return $roles
-            ->whereNull($roles->qualifyColumn((string) $this->config->get('permission.column_names.team_foreign_key')))
-            ->whereDoesntHave('permissions', fn (Builder $permissions) => $permissions->whereIn('name', $this->permissions->globalNames()))
-            ->orderBy('name')
-            ->get();
+    public function findAssignableInTeams(int|string $id): ?Role
+    {
+        return $this->assignableInTeamsQuery()->whereKey($id)->first();
     }
 
     /**
@@ -109,6 +106,34 @@ final class RoleRepository
             ->get();
     }
 
+    /**
+     * The ids of each user's roles inside a team, ordered by role name; users without any are left out.
+     *
+     * @param  list<int|string>  $userIds
+     * @return array<int|string, list<int>>
+     */
+    public function idsAssignedInTeam(array $userIds, int|string $teamId): array
+    {
+        $table = $this->config->get('permission.table_names.model_has_roles');
+        $column = $this->config->get('permission.column_names.team_foreign_key');
+
+        $roles = $this->query()
+            ->whereHas('users', fn (Builder $members) => $members->whereKey($userIds)->where($table.'.'.$column, $teamId))
+            ->with(['users' => fn (BelongsToMany $members) => $members->whereKey($userIds)->wherePivot($column, $teamId)])
+            ->orderBy('name')
+            ->get();
+
+        $ids = [];
+
+        foreach ($roles as $role) {
+            foreach ($role->users as $user) {
+                $ids[$user->getKey()][] = (int) $role->getKey();
+            }
+        }
+
+        return $ids;
+    }
+
     public function findByName(string $name): ?Role
     {
         return $this->query()->where('name', $name)->first();
@@ -117,6 +142,21 @@ final class RoleRepository
     public function findOrFail(int|string $id): Role
     {
         return $this->query()->with('permissions')->withCount(['users' => fn (Builder $members) => $this->assignments->onTable($members, $this->config->get('permission.table_names.model_has_roles')), 'permissions'])->findOrFail($id);
+    }
+
+    /**
+     * Roles a team owner may give inside a team: none of their permissions is global, and they are not tied to
+     * a team, which Spatie's Role::create does and which keeps a role from counting in any other team.
+     *
+     * @return Builder<Role>
+     */
+    private function assignableInTeamsQuery(): Builder
+    {
+        $roles = $this->query();
+
+        return $roles
+            ->whereNull($roles->qualifyColumn((string) $this->config->get('permission.column_names.team_foreign_key')))
+            ->whereDoesntHave('permissions', fn (Builder $permissions) => $permissions->whereIn('name', $this->permissions->globalNames()));
     }
 
     /**
