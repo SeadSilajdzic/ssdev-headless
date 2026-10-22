@@ -16,14 +16,27 @@ use Ssdev\Headless\Features\Tenancy\Http\Middleware\IdentifyTenant;
 use Ssdev\Headless\Features\Tenancy\Queue\KeepQueuedJobsInTheirTenantAction;
 use Ssdev\Headless\Features\Tenancy\Tasks\ForceTenantRootUrl;
 use Ssdev\Headless\Features\Tenancy\Tasks\SwitchTenantRegistration;
+use Ssdev\Headless\Routing\PackageRoutes;
 use Ssdev\Headless\Support\Isolation;
 
 final class TenancyServiceProvider extends ServiceProvider
 {
+    private const OWNER_INVITATION_THROTTLE_SECONDS = 60;
+
     public function register(): void
     {
+        $config = $this->app['config'];
+
+        // A table of their own, so a reset token never counts as an owner's invitation that lives a week.
+        $config->set('auth.passwords.'.TenantOwnerService::BROKER, [
+            'provider' => $config->get('auth.passwords.users.provider', 'users'),
+            'table' => TenancyModule::OWNER_TOKENS_TABLE,
+            'expire' => (int) $config->get('headless.tenancy.owner_invitation_expire_minutes'),
+            'throttle' => self::OWNER_INVITATION_THROTTLE_SECONDS,
+        ]);
+
         // Set before Spatie's provider boots, which reads these once.
-        $this->app['config']->set([
+        $config->set([
             'multitenancy.tenant_model' => Tenant::class,
             // IdentifyTenant finds the tenant, so Spatie's own lookup while booting stays off.
             'multitenancy.tenant_finder' => null,
@@ -56,5 +69,7 @@ final class TenancyServiceProvider extends ServiceProvider
             $kernel->addToMiddlewarePriorityAfter(StartSession::class, EnsureSessionMatchesTenant::class);
             $kernel->addToMiddlewarePriorityAfter(EnsureSessionMatchesTenant::class, EnsureTenantIsActive::class);
         }
+
+        PackageRoutes::web(__DIR__.'/../../../routes/tenant-owner.php');
     }
 }

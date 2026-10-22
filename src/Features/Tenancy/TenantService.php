@@ -31,6 +31,7 @@ final class TenantService
             throw ValidationException::withMessages(['subdomain' => __('headless::tenancy.errors.subdomain_taken')]);
         }
 
+        $this->owners->invite($tenant);
         $this->events->dispatch(new TenantCreated($tenant, $actor));
 
         return $tenant;

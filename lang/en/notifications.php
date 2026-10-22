@@ -35,6 +35,13 @@ return [
         'outro' => 'This invitation expires in :time. If you did not expect it, you can ignore this email.',
     ],
 
+    'tenant_owner_invitation' => [
+        'subject' => 'Your :tenant account is ready',
+        'intro' => 'An account was created for you as the owner of :tenant. Choose your name and a password to start using it.',
+        'action' => 'Set up your account',
+        'outro' => 'This invitation expires in :time. If you did not expect it, you can ignore this email.',
+    ],
+
     'user_invitation' => [
         'subject' => 'You are invited to :app',
         'intro' => 'An account was created for you on :app. Choose a password to start using it.',
