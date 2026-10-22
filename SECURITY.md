@@ -18,7 +18,7 @@ Every item of the project's security checklist, with how the package handles it.
 |---|---|
 | Covered | Implemented by the package and, where possible, proven by a test |
 | Partial | The package handles its part; the rest depends on the application or a later release |
-| Planned (Plan N) | Arrives with a feature that is not released yet: 6 user management, 7 teams, 8 multi-tenancy |
+| Planned (Plan N) | Arrives with a feature that is not released yet: 7 teams, 8 multi-tenancy |
 | Application responsibility | Belongs to the application, server or infrastructure, not to the package |
 | Not applicable | The package has no such functionality in v1 |
 
@@ -52,7 +52,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Item | Status | Evidence |
 |---|---|---|
 | Authentication | Covered | Laravel Fortify behind package routes; `Feature/Auth/LoginTest` |
-| Authorization | Partial | Code-defined permissions checked with `can()` (`Feature/Permissions`), roles that hand them out (`Features/Roles`); checks for later features arrive with Plans 6–8 |
+| Authorization | Partial | Code-defined permissions checked with `can()` (`Feature/Permissions`), roles that hand them out (`Features/Roles`), user management (`Features/Users/UserPagesTest › forbids each change without its permission`); checks for teams and tenants arrive with Plans 7–8 |
 | BOLA / IDOR | Covered | Account endpoints act on the signed-in user only; sessions are addressed by keyed hashes (`Feature/Settings/BrowserSessionsTest › returns not found for another user session`) |
 | Broken Function Level Authorization | Covered | Role endpoints require `roles.view` or `roles.manage` on the web and the API; `Features/Roles/RolePagesTest › forbids changes with roles.view only`, `Features/Roles/RolesApiTest › forbids roles without roles.view` |
 | Horizontal Privilege Escalation | Covered | Same as BOLA/IDOR for every account endpoint |
@@ -62,19 +62,19 @@ Tests are named `file › test`, relative to `tests/`.
 | SQL Injection | Covered | Query builder bindings only |
 | XSS protection | Covered | Escaped output in Vue, Blade and mail |
 | CSRF protection | Covered | `web` middleware; the GET email confirmation is a signed, expiring URL |
-| Rate Limiting | Covered | `RateLimits`, values in `config/headless.php`; throttle tests in every `Feature/Auth` file |
+| Rate Limiting | Covered | `RateLimits`, values in `config/headless.php`; throttle tests in every `Feature/Auth` file and for invitations (`Features/Users/UserPagesTest › throttles invitations`) |
 | Brute Force Protection | Covered | `Feature/Auth/LoginTest › throttles login attempts per email and ip`, `Feature/Auth/PasswordConfirmationTest › throttles password confirmation attempts` |
 | Credential Stuffing Protection | Covered | `Feature/Auth/LoginTest › throttles attempts across many emails from one ip` |
 | Session Security | Covered | Session settings checked by the installer (`Feature/Installation/CheckSessionConfigurationTest`) |
 | Session Fixation Protection | Covered | `Feature/Auth/LoginTest › logs in and regenerates the session` |
 | Session Hijacking Protection | Partial | HttpOnly, SameSite and Secure are checked by the installer; HTTPS is the application's job |
 | Account Takeover Protection | Covered | Email changes need the password and a confirmation from the new address, the old address is notified (`Feature/Settings/EmailChangeTest`); password changes end other sessions and API tokens (`Feature/Settings/PasswordUpdateTest`, `Feature/Api/ProfileApiTest › keeps only the current token on a password change`); resets end every session and API token (`Feature/Auth/PasswordResetTest`) |
-| Race Conditions | Covered | `Feature/Auth/RegistrationTest › treats a duplicate insert race as an existing account`; email confirmation locks the user row |
+| Race Conditions | Covered | `Feature/Auth/RegistrationTest › treats a duplicate insert race as an existing account`; email confirmation locks the user row; removing the last user manager or role manager reads the managers with locks (`Features/Users/UserServiceTest › refuses to delete the last active user manager`, `Features/UsersRoles/DeletionTest › refuses to delete the last member of the last managing role`) |
 | Database Transactions | Covered | Email change, account deletion and admin creation |
 | Database Row Locking | Covered | `EmailChangeService::confirm()` uses `lockForUpdate()` |
 | Atomic Operations | Covered | Registration is a single insert guarded by the unique email index |
 | Replay Attack Protection | Covered | `Feature/Settings/EmailChangeTest › rejects a link issued before a newer email change`, `› rejects a link once the email changed away and back again`; reset tokens are single use |
-| Idempotency | Partial | Email confirmation and registration are safe to repeat; invitations and tenant creation arrive with Plans 7–8 |
+| Idempotency | Partial | Email confirmation and registration are safe to repeat; an invitation sent again replaces the earlier link and inviting a taken email is refused (`Features/Users/InvitationTest › replaces the old link when the invitation is sent again`); team invitations and tenant creation arrive with Plans 7–8 |
 | Business Logic Abuse Protection | Partial | Enumeration-safe registration and reset, throttled mail endpoints; more rules arrive with each feature |
 | Webhook Signature Verification | Not applicable | No webhooks in v1 |
 | Webhook Replay Protection | Not applicable | No webhooks in v1 |
@@ -86,7 +86,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Safe File Storage | Covered | Server-generated names on the configured disk; `Feature/Settings/AvatarTest › stores an uploaded avatar under a generated name` |
 | Resource Exhaustion Protection | Partial | Rate limits and image dimension limits; PHP and web server upload limits belong to the application |
 | Denial of Wallet Protection | Partial | Every endpoint that sends mail is throttled; mail provider quotas belong to the application |
-| Pagination Limits | Planned (Plan 6) | Lists arrive with user management |
+| Pagination Limits | Covered | `per_page` is capped for users and roles (`Features/Users/UserRepositoryTest › caps the page size`, `Features/Roles/RoleRepositoryTest › caps the page size`) |
 | Bulk Operation Limits | Not applicable | No bulk operations in the core |
 | Export Limits | Not applicable | No exports in v1 |
 | External Request Timeouts | Not applicable | The package makes no outgoing requests; session locations come from a local MaxMind database, or from an `IpLocator` the application provides itself |
@@ -109,8 +109,8 @@ Tests are named `file › test`, relative to `tests/`.
 |---|---|---|
 | Eloquent/query builder parameter binding | Covered | No raw queries |
 | No raw user input in SQL | Covered | No raw queries |
-| Validate dynamic ORDER BY fields | Planned (Plan 6) | Sorting whitelists arrive with lists |
-| Validate dynamic column/filter fields | Planned (Plan 6) | Criteria classes with whitelists |
+| Validate dynamic ORDER BY fields | Covered | `SortUsers` and `SortRoles` whitelist their columns (`Features/Users/UserRepositoryTest › sorts newest first by default and by whitelisted columns only`) |
+| Validate dynamic column/filter fields | Covered | One criteria class per filter, validated by `ListUsersRequest`; searches escape `%` and `_` (`Features/Users/UserRepositoryTest › treats wildcards in a search as text`) |
 | Prevent unauthorized resource access | Covered | Account endpoints are scoped to the signed-in user |
 | Enforce ownership checks | Covered | `Feature/Settings/BrowserSessionsTest › returns not found for another user session` |
 | Enforce tenant boundaries | Planned (Plan 8) | |
@@ -199,7 +199,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Prevent arbitrary field updates | Covered | Only validated fields are saved |
 | Prevent arbitrary IDs from bypassing authorization | Covered | Tokens are looked up through their owner; other ids answer 404 |
 | Prevent duplicate requests | Covered | Registration and token login are safe to repeat |
-| Idempotency where required | Partial | Account operations are idempotent; invitations arrive with Plans 6–7 |
+| Idempotency where required | Partial | Account operations are idempotent; blocking a blocked user changes nothing (`Features/Users/BlockingTest › blocks a blocked user only once`); team invitations arrive with Plan 7 |
 | Secure error responses | Covered | `ApiErrorRenderer`; `Feature/Api/ApiErrorsTest › hides the model class of a missing record`, `› hides server errors`, `› answers unknown api routes with json even without an accept header` |
 | No sensitive data in API responses | Covered | `Feature/Api/ProfileApiTest › returns the current user without sensitive fields`; strict response contracts (`Feature/Api/ContractTest`) |
 | API login does not reveal accounts | Covered | `Feature/Api/AuthTokenTest › answers wrong passwords and unknown emails the same way`, `› answers unknown emails no faster than wrong passwords` |
@@ -234,10 +234,10 @@ Tests are named `file › test`, relative to `tests/`.
 | Limit image processing | Covered | Avatars are stored as uploaded, never processed; dimensions are limited |
 | Limit exports | Not applicable | No exports |
 | Limit bulk operations | Not applicable | No bulk operations |
-| Limit expensive searches | Planned (Plan 6) | |
+| Limit expensive searches | Covered | Searches are capped at 100 characters and run on paged lists |
 | Limit external API calls | Not applicable | No outgoing calls; session locations are looked up locally, only for public addresses, and cached per address (`Feature/Settings/SessionLocationsTest › never looks up local or private addresses`, `› looks each address up once`) |
 | Limit queue job creation | Covered | Mails are sent from throttled endpoints only |
-| Limit pagination size | Planned (Plan 6) | |
+| Limit pagination size | Covered | See Pagination Limits |
 | Limit request payload size | Application responsibility | `post_max_size` and web server limits |
 | Use queues for long-running operations | Application responsibility | Configure a queue for mail |
 | Apply timeouts to external requests | Not applicable | No outgoing requests |
@@ -282,7 +282,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Do not expose filesystem paths | Covered | Same renderer |
 | Do not expose internal hostnames | Covered | Same renderer |
 | Do not expose infrastructure details | Covered | Same renderer |
-| Audit security-sensitive actions where appropriate | Covered | Events: `PasswordChanged`, `EmailChanged`, `AccountDeleted`, plus Laravel's `Login`, `Failed`, `Lockout`, `Registered`, `Verified`, `PasswordReset` |
+| Audit security-sensitive actions where appropriate | Covered | Events: `PasswordChanged`, `EmailChanged`, `AccountDeleted`, `RoleAssigned`, `RoleRevoked`, `UserInvited`, `UserBlocked`, `UserUnblocked`, `UserDeleted`, plus Laravel's `Login`, `Failed`, `Lockout`, `Registered`, `Verified`, `PasswordReset` |
 
 ### Dependencies & supply chain
 
@@ -336,14 +336,14 @@ Tests are named `file › test`, relative to `tests/`.
 | Test accessing another tenant's resources | Planned (Plan 8) | |
 | Test normal user access to admin endpoints | Covered | `Features/Roles/RolePagesTest › forbids the roles pages without roles.view`, `Features/Roles/RolesApiTest › forbids roles without roles.view` |
 | Test manipulating hidden/disabled fields | Covered | `Feature/Settings/ProfileTest › requires the current password to change the email` |
-| Test modifying privileged fields | Partial | Only validated fields are saved; dedicated tests arrive with user management |
+| Test modifying privileged fields | Covered | Admins change only the name and email; blocking, invitations and roles have their own permissions (`Features/Users/UserPagesTest › forbids each change without its permission`) |
 | Test duplicate requests | Covered | `Feature/Auth/RegistrationTest › responds identically when the email is already registered` |
 | Test concurrent requests | Covered | `Feature/Auth/RegistrationTest › treats a duplicate insert race as an existing account` |
 | Test replaying valid requests | Covered | `Feature/Settings/EmailChangeTest › rejects a link issued before a newer email change` |
 | Test expired tokens/codes | Covered | `Feature/Settings/EmailChangeTest › rejects an expired link`, `Feature/Auth/PasswordResetTest › rejects an invalid reset token` |
 | Test invalid/modified webhook signatures | Not applicable | No webhooks |
 | Test oversized payloads | Covered | `Feature/Settings/AvatarTest › rejects avatars over the size limit` |
-| Test excessive pagination values | Planned (Plan 6) | |
+| Test excessive pagination values | Covered | `Features/Users/UserRepositoryTest › caps the page size` |
 | Test unauthorized exports | Not applicable | No exports |
 | Test unauthorized bulk operations | Not applicable | No bulk operations |
 | Test sensitive data in Inertia props | Covered | `Feature/Settings/ProfileTest › renders the profile page without sensitive data` |

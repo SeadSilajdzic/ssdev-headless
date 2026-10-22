@@ -22,6 +22,11 @@ Two-factor authentication is optional. Add it with `php artisan headless:add two
 
 Roles are optional too. Add them with `php artisan headless:add roles --migrate` and run `npm run build`. Admins created before have their permissions directly, but not the new `roles.view` and `roles.manage`; give them every permission with `php artisan headless:permissions:grant admin@example.com --all`, or create a new admin with `php artisan headless:create-admin`, who gets the `Administrator` role.
 
+User management is optional as well. Add it with `php artisan headless:add users --migrate` and run `npm run build`; it adds `SoftDeletes` to `app/Models/User.php` and the `invited_at`, `blocked_at` and `deleted_at` columns. Give existing admins the new `users.*` permissions with `php artisan headless:permissions:grant admin@example.com --all`.
+
+- Deleting your own account now removes it for good even if your `User` model already used `SoftDeletes`.
+- The roles and users pages ask for the password before they open, like the API tokens page.
+
 - If your code calls `Ssdev\Headless\Account\ApiTokenAuthenticator::issue()`, call `authenticate()` and then `issueToken()` instead.
 - New config keys: `two_factor` and `rate_limits.two_factor`. A published `config/headless.php` picks up their defaults; add them only to change them.
 

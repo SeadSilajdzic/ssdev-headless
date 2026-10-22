@@ -175,7 +175,7 @@ Fortify's events fire for the web and the API alike, so you can log them: `TwoFa
 
 ## Roles
 
-Select it in `headless:install` or add it later with `php artisan headless:add roles --migrate`. A role groups permissions, so many people can get the same access at once. People with `roles.view` see **Administration → Roles**; people with `roles.manage` also create, change and delete roles and add or remove their members by email.
+Select it in `headless:install` or add it later with `php artisan headless:add roles --migrate`. A role groups permissions, so many people can get the same access at once. People with `roles.view` see **Administration → Roles**; people with `roles.manage` as well also create, change and delete roles and add or remove their members by email. The pages ask for the password first, like the API tokens page.
 
 Three rules keep roles from becoming a way around permissions:
 
@@ -203,7 +203,42 @@ Over the API (`auth:sanctum`; token abilities limit what a token may do):
 | POST | `roles/{role}/members` | add a member by `email` (`roles.manage`) |
 | DELETE | `roles/{role}/members/{user}` | remove a member (`roles.manage`) |
 
-`Ssdev\Headless\Features\Roles\Events\RoleAssigned` and `RoleRevoked` fire whenever someone gets or loses a role, with the role, the user and the actor (`null` when it came from the console).
+`Ssdev\Headless\Features\Roles\Events\RoleAssigned` and `RoleRevoked` fire whenever someone gets or loses a role, with the role, the user and the actor (`null` when it came from the console). Inside a database transaction they wait for the commit, so a change that is rolled back is never announced.
+
+## User management
+
+Select it in `headless:install` or add it later with `php artisan headless:add users --migrate`. It adds `Illuminate\Database\Eloquent\SoftDeletes` to `app/Models/User.php` and three columns to `users`: `invited_at`, `blocked_at` and `deleted_at`. People with `users.view` see **Administration → Users**: a list with search, filters for status, verified email, role and registration date, sorting and paging. The pages ask for the password first.
+
+| Permission | Lets you |
+|---|---|
+| `users.view` | see the list and the details of a user |
+| `users.create` | invite people and send an invitation again |
+| `users.update` | change the name and email, send a password reset link, sign someone out everywhere |
+| `users.block` | block and unblock |
+| `users.delete` | delete |
+
+- **Invitations.** An admin enters a name and an email; the person gets a link to choose their own password, so nobody else ever knows it. The link works once, only for that email, and expires after `users.invitation_expire_minutes` (a week); sending it again replaces the old one. Invitations are limited by `rate_limits.invitations` per minute.
+- **Blocking** signs the person out everywhere at once, revokes their API tokens and ends "remember me". They cannot sign in again, on the web or over the API, until someone unblocks them.
+- **Deleting** is a soft delete: the account stays in the database, cannot sign in and keeps its email taken. Deleting your own account from the profile page still removes it for good.
+- Nobody can block or delete themselves. The last active user with `users.block` cannot be deleted, and with roles on, neither can the last member of the last role that manages roles.
+- With roles on, the user page also shows the user's roles; people with `roles.manage` can change those they fully hold.
+
+Over the API (`auth:sanctum`, same permissions):
+
+| Method | Path | |
+|---|---|---|
+| GET | `users` | users; `search`, `status` (`active`, `invited`, `blocked`), `verified`, `role`, `registered_from`, `registered_to` (`Y-m-d`), `sort` (`name`, `email`, `created_at`), `direction`, `per_page` |
+| POST | `users` | invite (`name`, `email`) |
+| GET | `users/{user}` | one user |
+| PUT | `users/{user}` | change `name` and `email`; a new email has to be verified again |
+| DELETE | `users/{user}` | delete |
+| POST, DELETE | `users/{user}/block` | block, unblock |
+| POST | `users/{user}/invitation` | send the invitation again |
+| POST | `users/{user}/password-reset` | send a password reset link |
+| DELETE | `users/{user}/sessions` | sign out everywhere |
+| GET, PUT | `users/{user}/roles` | the user's roles; set them with `roles` (role ids). Only with roles on |
+
+`Ssdev\Headless\Features\Users\Events\UserInvited`, `UserBlocked`, `UserUnblocked` and `UserDeleted` carry the user and the admin who acted.
 
 ## Session map
 

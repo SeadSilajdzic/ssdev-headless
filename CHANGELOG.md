@@ -11,11 +11,15 @@ All notable changes to this project are documented in this file. The format foll
 - Features declare their migrations, `User` model traits and API contract tests; `headless:install`, `headless:add` and `headless:upgrade` publish them.
 - Roles and permissions (`roles`): a roles page under Administration, roles built only from permissions the actor holds, members added by email, a guard that keeps the last role that manages roles, the same over the API (`permissions`, `roles`, `roles/{role}/members`), `RoleAssigned` and `RoleRevoked` events, and `headless:roles:assign`.
 - With roles on, `headless:create-admin` gives the admin an `Administrator` role that holds every permission.
+- User management (`users`): a users list with search, filters and sorting; invitations that let people choose their own password; changing the name and email; blocking that ends every session and token; password reset links; signing someone out everywhere; soft deletes; roles on the user page; the same over the API (`users`); `UserInvited`, `UserBlocked`, `UserUnblocked` and `UserDeleted` events.
+- The roles and users pages ask for the password first.
 - Session map on the security page: a world map with a point for every browser session, log out from the map, and the city next to each session. Locations come from an `IpLocator` you configure, with a built-in `MaxMindLocator` for a local GeoLite2 City database; off by default.
 
 ### Changed
 
 - Page actions (the `actions` slot of `AppLayout`) sit next to the page title instead of in the top bar.
+- Deleting your own account removes it for good, also when the `User` model uses `SoftDeletes`.
+- Searches ignore case and treat `%` and `_` as text on SQLite, MySQL and PostgreSQL alike.
 - `headless:install` keeps installed features when it runs again and preselects them.
 - `ApiTokenAuthenticator::issue()` is split into `authenticate()` and `issueToken()`.
 
