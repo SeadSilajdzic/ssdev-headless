@@ -3,6 +3,7 @@
 namespace Ssdev\Headless\Features\Tenancy\Http\Middleware;
 
 use Closure;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Http\Request;
 use Ssdev\Headless\Features\Tenancy\Tenant;
 use Ssdev\Headless\Features\Tenancy\TenantHosts;
@@ -13,13 +14,16 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class IdentifyTenant
 {
-    public function __construct(private TenantHosts $hosts) {}
+    public function __construct(
+        private TenantHosts $hosts,
+        private Repository $config,
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
         $host = $request->getHost();
 
-        if ($this->hosts->isCentral($host)) {
+        if ($this->hosts->isCentral($host) || $request->is(...$this->config->get('headless.tenancy.any_host_paths', []))) {
             Tenant::forgetCurrent();
 
             return $next($request);

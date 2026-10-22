@@ -30,6 +30,12 @@ it('answers 404 for a nested subdomain, www and a foreign host', function (strin
     get("http://{$host}/tenant-key")->assertNotFound();
 })->with(['a.acme.localhost', 'www.localhost', '127.0.0.1', 'example.com']);
 
+it('answers health checks on any host on the central level', function () {
+    Route::get('/up', fn () => (string) TenantContext::currentKey());
+
+    get('http://10.0.0.5/up')->assertOk()->assertContent((string) TenantContext::CENTRAL);
+});
+
 it('ignores letter case and the port', function () {
     $acme = makeTenant('acme');
 
