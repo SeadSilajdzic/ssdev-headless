@@ -183,6 +183,11 @@ function permittedUser(string ...$permissions): User
     return $user;
 }
 
+function usersAdmin(): User
+{
+    return permittedUser('users.view', 'users.create', 'users.update', 'users.block', 'users.delete');
+}
+
 /**
  * @param  list<string>  $permissions
  */

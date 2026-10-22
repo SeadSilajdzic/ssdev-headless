@@ -14,11 +14,6 @@ use Workbench\App\Models\User;
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\travel;
 
-function usersAdmin(): User
-{
-    return permittedUser('users.view', 'users.create', 'users.update', 'users.block', 'users.delete');
-}
-
 it('lists users to users.view holders and echoes the filters', function () {
     $viewer = permittedUser('users.view');
     User::factory()->create(['name' => 'Grace Hopper', 'email' => 'grace@example.com']);

@@ -49,9 +49,11 @@ final class UsersServiceProvider extends ServiceProvider
         }
 
         PackageRoutes::web(__DIR__.'/../../../routes/users.php');
+        PackageRoutes::api(__DIR__.'/../../../routes/users-api.php');
 
         if ($features->isEnabled(Feature::Roles->value)) {
             PackageRoutes::web(__DIR__.'/../../../routes/user-roles.php');
+            PackageRoutes::api(__DIR__.'/../../../routes/user-roles-api.php');
         }
 
         $navigation->add(new NavigationItem(
