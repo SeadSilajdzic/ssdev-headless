@@ -6,6 +6,8 @@ use Workbench\App\Models\User;
 
 use function Pest\Laravel\actingAs;
 
+beforeEach(fn () => confirmPassword());
+
 it('lists the members on the role page', function () {
     $actor = roleManager(['reports.view']);
     $member = User::factory()->create(['name' => 'Grace Hopper']);

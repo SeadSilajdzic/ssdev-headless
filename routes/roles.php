@@ -6,7 +6,7 @@ use Ssdev\Headless\Features\Roles\Http\Controllers\RoleMemberController;
 use Ssdev\Headless\Features\Roles\RolePermission;
 use Ssdev\Headless\Http\Middleware\RequireVerifiedEmail;
 
-Route::middleware(['auth', RequireVerifiedEmail::class])->prefix('roles')->group(function () {
+Route::middleware(['auth', RequireVerifiedEmail::class, 'password.confirm'])->prefix('roles')->group(function () {
     Route::get('/', [RoleController::class, 'index'])
         ->middleware('can:'.RolePermission::View->value)
         ->name('headless.roles.index');

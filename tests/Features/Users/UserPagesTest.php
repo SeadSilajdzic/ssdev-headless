@@ -14,6 +14,8 @@ use Workbench\App\Models\User;
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\travel;
 
+beforeEach(fn () => confirmPassword());
+
 it('lists users to users.view holders and echoes the filters', function () {
     $viewer = permittedUser('users.view');
     User::factory()->create(['name' => 'Grace Hopper', 'email' => 'grace@example.com']);
@@ -110,6 +112,7 @@ it('explains why you cannot block yourself', function () {
 it('sends a password reset link, an invitation again and logs out all sessions', function () {
     Notification::fake();
     useDatabaseSessions();
+    confirmPassword();
     $admin = usersAdmin();
     $user = User::factory()->create();
     insertSession('their-session', $user);
@@ -175,4 +178,10 @@ it('offers no roles without the roles feature', function () {
         ->where('rolesUrl', null));
 
     expect(Route::has('headless.users.roles.update'))->toBeFalse();
+});
+
+it('asks for the password before the users pages', function () {
+    session()->forget('auth.password_confirmed_at');
+
+    actingAs(usersAdmin())->get(route('headless.users.index'))->assertRedirect(route('password.confirm'));
 });

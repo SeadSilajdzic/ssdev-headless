@@ -5,6 +5,8 @@ use Workbench\App\Models\User;
 
 use function Pest\Laravel\actingAs;
 
+beforeEach(fn () => confirmPassword());
+
 it('filters users by role and offers the roles as options', function () {
     $viewer = permittedUser('users.view', 'roles.view');
     $role = makeRole('Editor', []);

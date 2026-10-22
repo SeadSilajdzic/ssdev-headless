@@ -32,6 +32,7 @@ use Ssdev\Headless\Tests\TestCase;
 use Workbench\App\Models\User;
 
 use function Pest\Laravel\actingAs;
+use function Pest\Laravel\withSession;
 
 uses(TestCase::class, RefreshDatabase::class)
     ->afterEach(fn () => FixtureProject::cleanup())
@@ -181,6 +182,14 @@ function permittedUser(string ...$permissions): User
     $user->givePermissionTo($permissions);
 
     return $user;
+}
+
+/**
+ * The roles and users pages ask for the password first, as the API tokens page does.
+ */
+function confirmPassword(): void
+{
+    withSession(['auth.password_confirmed_at' => time()]);
 }
 
 function usersAdmin(): User

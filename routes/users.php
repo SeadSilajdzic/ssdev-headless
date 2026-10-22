@@ -22,7 +22,7 @@ Route::middleware('guest')->group(function () {
 // Every change lands back on the users pages, so each one needs users.view as well.
 $canView = 'can:'.UserPermission::View->value;
 
-Route::middleware(['auth', RequireVerifiedEmail::class])->prefix('users')->group(function () use ($canView) {
+Route::middleware(['auth', RequireVerifiedEmail::class, 'password.confirm'])->prefix('users')->group(function () use ($canView) {
     Route::get('/', [UserController::class, 'index'])->middleware($canView)->name('headless.users.index');
 
     Route::middleware([$canView, 'can:'.UserPermission::Create->value])->group(function () {

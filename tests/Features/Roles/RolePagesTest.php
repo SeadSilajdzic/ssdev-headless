@@ -24,6 +24,8 @@ function pickerPermissions(array $groups): array
     return collect($groups)->flatMap(fn (array $group) => array_column($group['abilities'], 'name'))->all();
 }
 
+beforeEach(fn () => confirmPassword());
+
 it('lists roles to users with roles.view', function () {
     $viewer = rolesViewer();
     makeRole('Editor', ['reports.view']);
@@ -136,4 +138,10 @@ it('gives viewers no read-only reason', function () {
     actingAs(rolesViewer())->get(route('headless.roles.edit', $role->getKey()))->assertInertia(fn (AssertableInertia $page) => $page
         ->where('can.manage', false)
         ->where('readOnlyReason', null));
+});
+
+it('asks for the password before the roles pages', function () {
+    session()->forget('auth.password_confirmed_at');
+
+    actingAs(rolesViewer())->get(route('headless.roles.index'))->assertRedirect(route('password.confirm'));
 });

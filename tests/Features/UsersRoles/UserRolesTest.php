@@ -21,6 +21,8 @@ function userRolesManager(array $permissions = []): User
     return $actor;
 }
 
+beforeEach(fn () => confirmPassword());
+
 it('shows the roles on the user page', function () {
     $actor = userRolesManager(['reports.view']);
     $user = User::factory()->create();
