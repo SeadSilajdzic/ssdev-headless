@@ -207,13 +207,13 @@ Over the API (`auth:sanctum`; token abilities limit what a token may do):
 
 ## User management
 
-Select it in `headless:install` or add it later with `php artisan headless:add users --migrate`. It adds `Illuminate\Database\Eloquent\SoftDeletes` to `app/Models/User.php` and three columns to `users`: `invited_at`, `blocked_at` and `deleted_at`. People with `users.view` see **Administration → Users**: a list with search, filters for status, verified email, role and registration date, sorting and paging. The pages ask for the password first.
+Select it in `headless:install` or add it later with `php artisan headless:add users --migrate`. It adds `Illuminate\Database\Eloquent\SoftDeletes` to `app/Models/User.php`, three columns to `users` (`invited_at`, `blocked_at` and `deleted_at`) and a `user_invitation_tokens` table, so invitation links never mix with password reset links. People with `users.view` see **Administration → Users**: a list with search, filters for status, verified email, role and registration date, sorting and paging. The pages ask for the password first.
 
 | Permission | Lets you |
 |---|---|
 | `users.view` | see the list and the details of a user |
 | `users.create` | invite people and send an invitation again |
-| `users.update` | change the name and email, send a password reset link, sign someone out everywhere |
+| `users.update` | change the name and email, send a password reset link, sign someone out everywhere (needs the `database` session driver) |
 | `users.block` | block and unblock |
 | `users.delete` | delete |
 
