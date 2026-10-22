@@ -2,10 +2,13 @@
 
 namespace Ssdev\Headless\Features\Tenancy;
 
+use Illuminate\Auth\Passwords\PasswordBrokerManager;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\ServiceProvider;
+use Ssdev\Headless\Features\Tenancy\Auth\TenantPasswordBrokerManager;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureSessionMatchesTenant;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\IdentifyTenant;
 use Ssdev\Headless\Features\Tenancy\Tasks\ForceTenantRootUrl;
@@ -23,6 +26,9 @@ final class TenancyServiceProvider extends ServiceProvider
             'multitenancy.switch_tenant_tasks' => [ForceTenantRootUrl::class, SwitchTenantRegistration::class],
             'multitenancy.queues_are_tenant_aware_by_default' => true,
         ]);
+
+        // Extended rather than rebound: Laravel's provider is deferred and would replace a plain binding when it loads.
+        $this->app->extend('auth.password', fn (PasswordBrokerManager $manager, Application $app) => new TenantPasswordBrokerManager($app));
     }
 
     public function boot(HttpKernel $kernel): void
