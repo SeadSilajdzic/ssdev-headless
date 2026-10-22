@@ -7,8 +7,10 @@ use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
+use Ssdev\Headless\Events\AccountDeleting;
 use Ssdev\Headless\Features\Feature;
 use Ssdev\Headless\Features\FeatureRegistry;
+use Ssdev\Headless\Features\Teams\Listeners\CheckOwnedTeamsBeforeDeletion;
 use Ssdev\Headless\Features\Teams\Listeners\CreatePersonalTeam;
 use Ssdev\Headless\Routing\PackageRoutes;
 
@@ -32,6 +34,7 @@ final class TeamsServiceProvider extends ServiceProvider
     public function boot(Dispatcher $events, Gate $gate, TeamInvitationRateLimit $rateLimit, FeatureRegistry $features): void
     {
         $events->listen(Registered::class, CreatePersonalTeam::class);
+        $events->listen(AccountDeleting::class, CheckOwnedTeamsBeforeDeletion::class);
         $gate->policy(Team::class, TeamPolicy::class);
         $rateLimit->register();
 

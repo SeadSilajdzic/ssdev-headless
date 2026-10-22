@@ -6,6 +6,7 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Foundation\Auth\User;
 use Ssdev\Headless\Events\AccountDeleted;
+use Ssdev\Headless\Events\AccountDeleting;
 
 final class AccountDeletionService
 {
@@ -24,6 +25,7 @@ final class AccountDeletionService
         $avatar = $user->getAttribute('avatar_path');
 
         $this->database->transaction(function () use ($user) {
+            $this->events->dispatch(new AccountDeleting($user, permanent: true));
             $this->sessions->deleteForUser($user);
             $this->tokens->revokeAll($user);
 

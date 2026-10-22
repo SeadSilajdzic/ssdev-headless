@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Foundation\Auth\User;
+use Ssdev\Headless\Events\AccountDeleting;
 use Ssdev\Headless\Features\Feature;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Features\Roles\RoleService;
@@ -54,6 +55,7 @@ final class UserService
                 $this->roles->ensureManagersRemainWithout($user);
             }
 
+            $this->events->dispatch(new AccountDeleting($user, permanent: false));
             $this->access->endAllAccess($user);
             $user->delete();
         });

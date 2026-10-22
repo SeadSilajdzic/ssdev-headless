@@ -37,7 +37,7 @@ const confirmingBlock = ref(false);
 const confirmingDelete = ref(false);
 const busy = ref(false);
 
-const error = computed(() => page.props.errors.user ?? page.props.errors.role);
+const error = computed(() => page.props.errors.user ?? page.props.errors.role ?? page.props.errors.account);
 const invited = computed(() => props.user.status === 'invited');
 const blocked = computed(() => props.user.status === 'blocked');
 

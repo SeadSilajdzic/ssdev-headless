@@ -87,6 +87,7 @@ return [
         'cannot_remove_owner' => 'The owner cannot be removed from the team.',
         'already_member' => 'This person is already a member of the team.',
         'invitation_other_email' => 'This invitation was sent to another email address.',
+        'owns_teams' => 'This account owns a team with other members. Hand the team over to someone else first.',
         'role_not_assignable' => 'Only roles without application-wide permissions can be given inside a team.',
     ],
 
