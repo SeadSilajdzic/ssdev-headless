@@ -2,8 +2,10 @@
 
 namespace Ssdev\Headless\Http\Requests\Settings;
 
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Ssdev\Headless\Account\UserRepository;
 
 class UpdateProfileRequest extends FormRequest
 {
@@ -15,13 +17,18 @@ class UpdateProfileRequest extends FormRequest
     /**
      * @return array<string, mixed>
      */
-    public function rules(): array
+    public function rules(UserRepository $users): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
-                'required', 'string', 'email', 'max:255',
-                Rule::unique((string) config('auth.providers.users.model'), 'email')->ignore($this->user()?->getAuthIdentifier()),
+                'bail', 'required', 'string', 'email', 'max:255',
+                // Through the model, so its scopes apply: with tenancy an email only needs to be free within the tenant.
+                function (string $attribute, mixed $value, Closure $fail) use ($users): void {
+                    if ($users->emailTaken((string) $value, $this->user()?->getAuthIdentifier())) {
+                        $fail(__('validation.unique', ['attribute' => $attribute]));
+                    }
+                },
             ],
             // Changing the email is a sensitive action, so it needs the password in the same request.
             'current_password' => [Rule::requiredIf(fn () => $this->changesEmail()), 'nullable', 'string', 'current_password'],

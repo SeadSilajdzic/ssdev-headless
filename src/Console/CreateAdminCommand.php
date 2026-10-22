@@ -2,11 +2,12 @@
 
 namespace Ssdev\Headless\Console;
 
+use Closure;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Ssdev\Headless\Account\AdminAccountCreator;
+use Ssdev\Headless\Account\UserRepository;
 
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\text;
@@ -19,7 +20,7 @@ final class CreateAdminCommand extends Command
 
     protected $description = 'Create an admin account with every registered permission';
 
-    public function handle(AdminAccountCreator $creator, ValidatorFactory $validator): int
+    public function handle(AdminAccountCreator $creator, ValidatorFactory $validator, UserRepository $users): int
     {
         // The password is only read from a hidden prompt, never from an option that would stay in the shell history.
         if (! $this->input->isInteractive()) {
@@ -35,7 +36,11 @@ final class CreateAdminCommand extends Command
 
         if (! $this->passes($validator, $account, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique((string) config('auth.providers.users.model'), 'email')],
+            'email' => ['bail', 'required', 'string', 'email', 'max:255', function (string $attribute, mixed $value, Closure $fail) use ($users): void {
+                if ($users->emailTaken((string) $value)) {
+                    $fail(__('validation.unique', ['attribute' => $attribute]));
+                }
+            }],
         ])) {
             return self::FAILURE;
         }
