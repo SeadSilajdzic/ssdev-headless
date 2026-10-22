@@ -9,6 +9,10 @@ final class UsersModule implements FeatureModule
 {
     public const MIGRATION = 'add_user_management_columns_to_users_table';
 
+    public const INVITATION_TOKENS_MIGRATION = 'create_user_invitation_tokens_table';
+
+    public const INVITATION_TOKENS_TABLE = 'user_invitation_tokens';
+
     public function key(): string
     {
         return Feature::Users->value;
@@ -36,7 +40,10 @@ final class UsersModule implements FeatureModule
 
     public function migrations(): array
     {
-        return [self::MIGRATION => __DIR__.'/../../../database/migrations/users/'.self::MIGRATION.'.php'];
+        return [
+            self::MIGRATION => __DIR__.'/../../../database/migrations/users/'.self::MIGRATION.'.php',
+            self::INVITATION_TOKENS_MIGRATION => __DIR__.'/../../../database/migrations/users/'.self::INVITATION_TOKENS_MIGRATION.'.php',
+        ];
     }
 
     public function userTraits(): array

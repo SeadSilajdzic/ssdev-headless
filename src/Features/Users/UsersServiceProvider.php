@@ -26,10 +26,10 @@ final class UsersServiceProvider extends ServiceProvider
     {
         $config = $this->app['config'];
 
-        // Invitations share the reset token table but live longer, so they get a broker of their own.
+        // A table of their own, so a reset token never counts as an invitation that lives a week.
         $config->set('auth.passwords.'.UserInvitationService::BROKER, [
             'provider' => $config->get('auth.passwords.users.provider', 'users'),
-            'table' => $config->get('auth.passwords.users.table', 'password_reset_tokens'),
+            'table' => UsersModule::INVITATION_TOKENS_TABLE,
             'expire' => (int) $config->get('headless.users.invitation_expire_minutes'),
             'throttle' => self::INVITATION_THROTTLE_SECONDS,
         ]);

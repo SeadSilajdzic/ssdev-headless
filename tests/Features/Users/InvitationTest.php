@@ -136,3 +136,20 @@ it('counts a deleted user as taking the email', function () {
 
     expect(app(UserRepository::class)->emailTaken('gone@example.com'))->toBeTrue();
 });
+
+it('rejects a password reset token on the invitation page', function () {
+    $user = User::factory()->create(['email' => 'ada@example.com']);
+    $token = Password::broker('users')->createToken($user);
+
+    acceptInvitation($token, 'ada@example.com')->assertSessionHasErrors('email');
+    expect(Hash::check(INVITEE_PASSWORD, $user->fresh()->password))->toBeFalse();
+});
+
+it('rejects an invitation once the password was set another way', function () {
+    $user = invite();
+    $invitation = invitationToken($user);
+    $reset = Password::broker('users')->createToken($user);
+    post(route('password.update'), ['token' => $reset, 'email' => 'ada@example.com', 'password' => INVITEE_PASSWORD, 'password_confirmation' => INVITEE_PASSWORD]);
+
+    acceptInvitation($invitation, 'ada@example.com', 'An0ther-password!')->assertSessionHasErrors('email');
+});

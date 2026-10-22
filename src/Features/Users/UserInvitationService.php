@@ -71,8 +71,16 @@ final class UserInvitationService
 
     public function accept(string $token, string $email, #[\SensitiveParameter] string $password): void
     {
+        $email = mb_strtolower(trim($email));
+        $invitee = $this->users->findByEmail($email);
+
+        // Once the password was set another way, a link still in the inbox must not set it again.
+        if ($invitee === null || $invitee->getAttribute('invited_at') === null) {
+            throw ValidationException::withMessages(['email' => __('headless::users.errors.invitation_invalid')]);
+        }
+
         $status = $this->broker()->reset(
-            ['email' => mb_strtolower(trim($email)), 'token' => $token, 'password' => $password],
+            ['email' => $email, 'token' => $token, 'password' => $password],
             function (User $user, string $password): void {
                 $user->forceFill(['password' => $this->hasher->make($password), 'remember_token' => Str::random(60)])->save();
 
