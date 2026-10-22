@@ -240,6 +240,11 @@ function tenantUser(Tenant $tenant, array $attributes = []): TenantUser
     return $tenant->execute(fn (): TenantUser => TenantUser::factory()->create($attributes));
 }
 
+function tenantUrl(Tenant $tenant, string $path = ''): string
+{
+    return 'http://'.$tenant->subdomain.'.localhost/'.ltrim($path, '/');
+}
+
 function failsOn(string $field): Closure
 {
     return fn (ValidationException $exception) => expect($exception->errors())->toHaveKey($field);
