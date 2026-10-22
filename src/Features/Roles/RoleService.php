@@ -8,6 +8,9 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
+use Ssdev\Headless\Features\Feature;
+use Ssdev\Headless\Features\FeatureRegistry;
+use Ssdev\Headless\Features\Users\UserManagerGuard;
 use Ssdev\Headless\Permissions\PermissionRegistry;
 
 /**
@@ -19,6 +22,8 @@ final class RoleService
         private RoleGuard $guard,
         private PermissionRegistry $permissions,
         private ConnectionInterface $database,
+        private FeatureRegistry $features,
+        private UserManagerGuard $userManagers,
     ) {}
 
     public function create(User $actor, RoleData $data): Role
@@ -41,10 +46,12 @@ final class RoleService
         return $this->rejectingTakenName(fn (): Role => $this->database->transaction(function () use ($role, $data): Role {
             $this->ensureManagersRemain($role, permissionsAfter: $data->permissions);
 
-            $role->update(['name' => $data->name]);
-            $role->syncPermissions($data->permissions);
+            return $this->keepingUserManagers(function () use ($role, $data): Role {
+                $role->update(['name' => $data->name]);
+                $role->syncPermissions($data->permissions);
 
-            return $role->refresh();
+                return $role->refresh();
+            });
         }));
     }
 
@@ -55,8 +62,26 @@ final class RoleService
         $this->database->transaction(function () use ($role): void {
             $this->ensureManagersRemain($role, permissionsAfter: []);
 
-            $role->delete();
+            $this->keepingUserManagers(fn () => $role->delete());
         });
+    }
+
+    /**
+     * With user management on, a role change must also leave someone active who can block and unblock users.
+     * Call inside a transaction.
+     *
+     * @template TResult
+     *
+     * @param  Closure(): TResult  $change
+     * @return TResult
+     */
+    public function keepingUserManagers(Closure $change): mixed
+    {
+        if (! $this->features->isEnabled(Feature::Users->value)) {
+            return $change();
+        }
+
+        return $this->userManagers->ensureManagersRemainAfter($change, 'role');
     }
 
     /**
@@ -173,6 +198,11 @@ final class RoleService
 
         return $roles->mapWithKeys(function (Role $role): array {
             $members = $role->users();
+
+            // A blocked member cannot manage anything, so they do not keep the role in use.
+            if ($this->features->isEnabled(Feature::Users->value)) {
+                $members->whereNull($members->getRelated()->qualifyColumn('blocked_at'));
+            }
 
             return [$role->getKey() => $members->lockForUpdate()->pluck($members->getRelated()->getQualifiedKeyName())->all()];
         })->all();

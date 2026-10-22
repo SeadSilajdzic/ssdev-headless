@@ -40,7 +40,7 @@ final class RoleAssignmentService
         $revoked = $this->database->transaction(function () use ($role, $user): int {
             $this->roles->ensureManagersRemain($role, leaving: $user);
 
-            return $role->users()->detach($user->getKey());
+            return $this->roles->keepingUserManagers(fn (): int => $role->users()->detach($user->getKey()));
         });
 
         if ($revoked > 0) {
