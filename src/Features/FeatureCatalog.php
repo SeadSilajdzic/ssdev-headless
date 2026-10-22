@@ -3,6 +3,7 @@
 namespace Ssdev\Headless\Features;
 
 use Ssdev\Headless\Features\Roles\RolesModule;
+use Ssdev\Headless\Features\Teams\TeamsModule;
 use Ssdev\Headless\Features\TwoFactor\TwoFactorModule;
 use Ssdev\Headless\Features\Users\UsersModule;
 
@@ -13,6 +14,6 @@ final class FeatureCatalog
      */
     public function modules(): array
     {
-        return [new TwoFactorModule, new RolesModule, new UsersModule];
+        return [new TwoFactorModule, new RolesModule, new UsersModule, new TeamsModule];
     }
 }

@@ -24,7 +24,7 @@ it('rejects an unknown feature', function () {
     fixtureProject();
 
     artisan('headless:add', ['feature' => 'nope', '--no-interaction' => true])
-        ->expectsOutputToContain('Unknown feature [nope]. Available features: two-factor, roles, users.')
+        ->expectsOutputToContain('Unknown feature [nope]. Available features: two-factor, roles, users, teams.')
         ->assertFailed();
 });
 

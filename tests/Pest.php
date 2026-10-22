@@ -25,6 +25,9 @@ use Ssdev\Headless\Permissions\PermissionSynchronizer;
 use Ssdev\Headless\Tests\Fixtures\Permissions\FakePermission;
 use Ssdev\Headless\Tests\Support\FixtureProject;
 use Ssdev\Headless\Tests\Support\RolesTestCase;
+use Ssdev\Headless\Tests\Support\TeamsRolesTestCase;
+use Ssdev\Headless\Tests\Support\TeamsTestCase;
+use Ssdev\Headless\Tests\Support\TeamsUsersTestCase;
 use Ssdev\Headless\Tests\Support\TwoFactorTestCase;
 use Ssdev\Headless\Tests\Support\UsersRolesTestCase;
 use Ssdev\Headless\Tests\Support\UsersTestCase;
@@ -45,6 +48,12 @@ uses(RolesTestCase::class, RefreshDatabase::class)->in('Features/Roles');
 uses(UsersTestCase::class, RefreshDatabase::class)->in('Features/Users');
 
 uses(UsersRolesTestCase::class, RefreshDatabase::class)->in('Features/UsersRoles');
+
+uses(TeamsTestCase::class, RefreshDatabase::class)->in('Features/Teams');
+
+uses(TeamsRolesTestCase::class, RefreshDatabase::class)->in('Features/TeamsRoles');
+
+uses(TeamsUsersTestCase::class, RefreshDatabase::class)->in('Features/TeamsUsers');
 
 function headlessPage(string $name): string
 {

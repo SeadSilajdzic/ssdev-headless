@@ -6,8 +6,8 @@ use Ssdev\Headless\Features\FeatureCatalog;
 use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Permissions\PermissionRegistry;
 
-it('offers two-factor authentication, roles and user management', function () {
-    expect(array_map(fn (FeatureModule $module) => $module->key(), app(FeatureCatalog::class)->modules()))->toBe(['two-factor', 'roles', 'users']);
+it('offers two-factor authentication, roles, user management and teams', function () {
+    expect(array_map(fn (FeatureModule $module) => $module->key(), app(FeatureCatalog::class)->modules()))->toBe(['two-factor', 'roles', 'users', 'teams']);
 });
 
 it('keeps role permissions and routes out while the feature is disabled', function () {
