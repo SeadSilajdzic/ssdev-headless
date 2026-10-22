@@ -12,6 +12,7 @@ use Spatie\Multitenancy\Tasks\PrefixCacheTask;
 use Ssdev\Headless\Features\Tenancy\Auth\TenantPasswordBrokerManager;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureSessionMatchesTenant;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\IdentifyTenant;
+use Ssdev\Headless\Features\Tenancy\Queue\KeepQueuedJobsInTheirTenantAction;
 use Ssdev\Headless\Features\Tenancy\Tasks\ForceTenantRootUrl;
 use Ssdev\Headless\Features\Tenancy\Tasks\SwitchTenantRegistration;
 use Ssdev\Headless\Support\Isolation;
@@ -28,6 +29,7 @@ final class TenancyServiceProvider extends ServiceProvider
             // The rate limiter keeps the cache store it started with, so its keys are kept apart through TenantIsolation instead.
             'multitenancy.switch_tenant_tasks' => [PrefixCacheTask::class, ForceTenantRootUrl::class, SwitchTenantRegistration::class],
             'multitenancy.queues_are_tenant_aware_by_default' => true,
+            'multitenancy.actions.make_queue_tenant_aware_action' => KeepQueuedJobsInTheirTenantAction::class,
         ]);
 
         $this->app->bind(Isolation::class, TenantIsolation::class);
