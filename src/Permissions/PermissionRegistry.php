@@ -51,6 +51,16 @@ final class PermissionRegistry
     }
 
     /**
+     * @return list<string>
+     */
+    public function globalNames(): array
+    {
+        $global = array_filter($this->all(), fn (HeadlessPermission $permission) => $permission instanceof GlobalPermission);
+
+        return array_values(array_map(fn (HeadlessPermission $permission) => (string) $permission->value, $global));
+    }
+
+    /**
      * @return array<string, list<HeadlessPermission>>
      */
     public function grouped(): array

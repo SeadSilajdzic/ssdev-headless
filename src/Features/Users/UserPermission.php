@@ -2,9 +2,9 @@
 
 namespace Ssdev\Headless\Features\Users;
 
-use Ssdev\Headless\Permissions\HeadlessPermission;
+use Ssdev\Headless\Permissions\GlobalPermission;
 
-enum UserPermission: string implements HeadlessPermission
+enum UserPermission: string implements GlobalPermission
 {
     case View = 'users.view';
     case Create = 'users.create';

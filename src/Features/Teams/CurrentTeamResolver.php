@@ -5,6 +5,10 @@ namespace Ssdev\Headless\Features\Teams;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Contracts\PermissionsTeamResolver;
 
+/**
+ * The signed-in user's current team, or the global context when there is none. An application may still
+ * pin a team with setPermissionsTeamId().
+ */
 final class CurrentTeamResolver implements PermissionsTeamResolver
 {
     private int|string|null $teamId = null;
@@ -16,6 +20,8 @@ final class CurrentTeamResolver implements PermissionsTeamResolver
 
     public function getPermissionsTeamId(): int|string
     {
-        return $this->teamId ?? TeamContext::GLOBAL;
+        $currentTeam = auth()->user()?->getAttribute('current_team_id');
+
+        return $this->teamId ?? $currentTeam ?? TeamContext::GLOBAL;
     }
 }

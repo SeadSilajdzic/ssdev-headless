@@ -2,9 +2,9 @@
 
 namespace Ssdev\Headless\Features\Roles;
 
-use Ssdev\Headless\Permissions\HeadlessPermission;
+use Ssdev\Headless\Permissions\GlobalPermission;
 
-enum RolePermission: string implements HeadlessPermission
+enum RolePermission: string implements GlobalPermission
 {
     case View = 'roles.view';
     case Manage = 'roles.manage';

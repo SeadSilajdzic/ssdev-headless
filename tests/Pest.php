@@ -211,7 +211,8 @@ function usersAdmin(): User
  */
 function makeRole(string $name, array $permissions, ?User $member = null): Role
 {
-    $role = Role::create(['name' => $name, 'guard_name' => 'web']);
+    // Like RoleService: through query() Spatie does not stamp the current team on the definition, so it stays global.
+    $role = Role::query()->create(['name' => $name, 'guard_name' => 'web']);
     $role->givePermissionTo($permissions);
     $member?->assignRole($role);
 

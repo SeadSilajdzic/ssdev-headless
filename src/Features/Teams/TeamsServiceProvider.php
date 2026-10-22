@@ -17,6 +17,11 @@ final class TeamsServiceProvider extends ServiceProvider
             'permission.team_resolver' => CurrentTeamResolver::class,
             'permission.column_names.team_foreign_key' => 'team_id',
         ]);
+
+        $this->app->scoped(GlobalPermissionGrants::class);
+
+        // On booting, so it follows the token ability gate and precedes Spatie's, which registers while booting.
+        $this->app->booting(fn () => $this->app->make(TeamPermissionGate::class)->register());
     }
 
     public function boot(Dispatcher $events): void
