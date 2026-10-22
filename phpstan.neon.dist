@@ -6,5 +6,7 @@ parameters:
     paths:
         - src
         - config
+        # Only applications use BelongsToTenant; this model lets PHPStan analyse the trait.
+        - workbench/app/Models/Note.php
     stubFiles:
         - phpstan/fortify-events.stub
