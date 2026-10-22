@@ -11,7 +11,8 @@ import { useTrans } from '@headless/i18n';
 export interface TeamMember {
     id: number;
     name: string;
-    email: string;
+    // Only the owner and the member themselves see the address.
+    email: string | null;
     avatar_url: string | null;
     is_owner: boolean;
 }
@@ -64,7 +65,7 @@ function handOver(): void {
             <BaseAvatar :name="member.name" :src="member.avatar_url" size="sm" />
             <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-semibold text-ink-900">{{ member.name }}</p>
-                <p class="truncate text-xs text-ink-500">{{ member.email }}</p>
+                <p v-if="member.email" data-test="member-email" class="truncate text-xs text-ink-500">{{ member.email }}</p>
             </div>
             <BaseBadge v-if="member.is_owner" color="mint">{{ t('teams.members.owner') }}</BaseBadge>
             <template v-else-if="isOwner">

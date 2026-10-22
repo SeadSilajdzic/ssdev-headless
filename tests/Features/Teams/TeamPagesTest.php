@@ -64,6 +64,15 @@ it('shows a team to members only', function () {
     actingAs(User::factory()->create())->get(route('headless.teams.show', $team->id))->assertNotFound();
 });
 
+it('shows member addresses to the owner and each member only their own', function () {
+    [$team, $owner, $member] = teamPageFixture();
+
+    actingAs($owner)->get(route('headless.teams.show', $team->id))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('members', fn ($members) => collect($members)->pluck('email', 'id')->all() == [$owner->id => $owner->email, $member->id => $member->email]));
+    actingAs($member)->get(route('headless.teams.show', $team->id))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('members', fn ($members) => collect($members)->pluck('email', 'id')->all() == [$owner->id => null, $member->id => $member->email]));
+});
+
 it('lets only the owner rename, invite, remove members and delete', function () {
     [$team, $owner, $member] = teamPageFixture();
 

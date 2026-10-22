@@ -41,6 +41,26 @@ it('lets the owner pick roles per member', async () => {
     save.mockRestore();
 });
 
+it('shows only the addresses the viewer may see', () => {
+    const wrapper = mount(TeamMembers, {
+        props: {
+            members: [
+                { id: 1, name: 'Ada Lovelace', email: null, avatar_url: null, is_owner: true },
+                { id: 2, name: 'Grace Hopper', email: 'grace@example.com', avatar_url: null, is_owner: false },
+            ],
+            isOwner: false,
+            ownerUrl: '/teams/1/owner',
+            removeMemberUrls: {},
+            roles: [],
+            memberRoles: {},
+            memberRolesUrls: {},
+        },
+        global: { stubs: { ConfirmDialog: true } },
+    });
+
+    expect(wrapper.findAll('[data-test="member-email"]').map((email) => email.text())).toEqual(['grace@example.com']);
+});
+
 it('shows members their roles without letting them change them', () => {
     const wrapper = mountMembers(false);
 

@@ -23,6 +23,21 @@ it('lists only my teams', function () {
     getJson('/api/v1/teams')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', 'Research');
 });
 
+it('lists member addresses for the owner and each member only their own', function () {
+    $owner = User::factory()->create();
+    $team = app(TeamService::class)->create($owner, 'Research');
+    $member = User::factory()->create();
+    $team->members()->attach($member);
+
+    apiAs($member);
+    expect(collect(getJson("/api/v1/teams/{$team->id}/members")->assertOk()->json('data'))->pluck('email', 'id')->all())
+        ->toEqual([$owner->id => null, $member->id => $member->email]);
+
+    apiAs($owner);
+    expect(collect(getJson("/api/v1/teams/{$team->id}/members")->assertOk()->json('data'))->pluck('email', 'id')->all())
+        ->toEqual([$owner->id => $owner->email, $member->id => $member->email]);
+});
+
 it('answers 404 for another team', function () {
     apiAs(User::factory()->create());
     $foreign = app(TeamService::class)->create(User::factory()->create(), 'Foreign');
