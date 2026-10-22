@@ -61,7 +61,7 @@ it('keeps registration closed inside tenants unless configured', function () {
     $acme = makeTenant('acme');
 
     get(tenantUrl($acme, 'register'))->assertNotFound();
-    get('http://localhost/register')->assertOk();
+    get('http://localhost/register')->assertNotFound();
 
     config(['headless.tenancy.registration' => true]);
 

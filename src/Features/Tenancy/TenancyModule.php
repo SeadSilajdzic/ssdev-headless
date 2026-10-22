@@ -53,7 +53,7 @@ final class TenancyModule implements FeatureModule
 
     public function permissions(): array
     {
-        return [];
+        return [TenantPermission::class];
     }
 
     public function apiContractTest(): ?string

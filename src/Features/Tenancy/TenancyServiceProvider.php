@@ -31,7 +31,12 @@ final class TenancyServiceProvider extends ServiceProvider
             'multitenancy.switch_tenant_tasks' => [PrefixCacheTask::class, ForceTenantRootUrl::class, SwitchTenantRegistration::class],
             'multitenancy.queues_are_tenant_aware_by_default' => true,
             'multitenancy.actions.make_queue_tenant_aware_action' => KeepQueuedJobsInTheirTenantAction::class,
+            // The central level has its own administrators; SwitchTenantRegistration opens sign-up per tenant.
+            'headless.registration.enabled' => false,
         ]);
+
+        // On booting, so it follows the token ability gate and precedes Spatie's, which registers while booting.
+        $this->app->booting(fn () => $this->app->make(TenantPermissionGate::class)->register());
 
         $this->app->bind(Isolation::class, TenantIsolation::class);
 
