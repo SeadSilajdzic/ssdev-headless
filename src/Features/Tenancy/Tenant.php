@@ -2,6 +2,7 @@
 
 namespace Ssdev\Headless\Features\Tenancy;
 
+use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Carbon;
 use Spatie\Multitenancy\Models\Tenant as SpatieTenant;
 
@@ -20,5 +21,15 @@ final class Tenant extends SpatieTenant
     public function isSuspended(): bool
     {
         return $this->suspended_at !== null;
+    }
+
+    public function execute(callable $callable): mixed
+    {
+        return parent::execute(function (self $tenant) use ($callable): mixed {
+            $result = $callable($tenant);
+
+            // A pending dispatch is sent when it is destroyed, so it must not outlive this tenant: fn () => Job::dispatch().
+            return $result instanceof PendingDispatch ? null : $result;
+        });
     }
 }

@@ -37,6 +37,15 @@ it('runs each job in the tenant it was dispatched from', function () {
     ]);
 });
 
+it('sends a job dispatched from an arrow function in its tenant', function () {
+    $acme = makeTenant('acme');
+
+    $acme->execute(fn () => RecordTenant::dispatch());
+    workOneJob();
+
+    expect(RecordTenant::$seen)->toBe([[$acme->id, 'http://acme.localhost/login']]);
+});
+
 it('runs a job dispatched on the central level centrally', function () {
     makeTenant('acme');
 
