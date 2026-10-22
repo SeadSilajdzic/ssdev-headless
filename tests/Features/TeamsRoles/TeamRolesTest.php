@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Roles\RoleAssignmentService;
@@ -70,6 +72,27 @@ it('refuses a role that belongs to the global context only', function () {
 
     expect(fn () => app(TeamRoleService::class)->sync($owner, $team, $member, [$seeded->id]))->toThrow(failsOn('roles'))
         ->and(app(RoleRepository::class)->assignableInTeams()->pluck('name')->all())->not->toContain('Seeded');
+});
+
+it('treats a team role added by a parallel request as already given', function () {
+    [$team, $owner, $member] = ownedTeamWithMember();
+    $editor = makeRole('Editor', ['reports.view']);
+    $raced = false;
+
+    // Gives the role right after the check for an existing assignment, as a parallel request would.
+    DB::listen(function (QueryExecuted $query) use (&$raced, $editor, $member, $team) {
+        if ($raced || ! str_starts_with($query->sql, 'select exists') || ! str_contains($query->sql, 'model_has_roles')) {
+            return;
+        }
+
+        $raced = true;
+        $editor->users()->attach($member->id, ['team_id' => $team->id]);
+    });
+
+    app(TeamRoleService::class)->sync($owner, $team, $member, [$editor->id]);
+
+    expect($raced)->toBeTrue()
+        ->and(teamRoleNames($team, $member))->toBe(['Editor']);
 });
 
 it('refuses members of other teams', function () {

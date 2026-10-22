@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia;
 use Ssdev\Headless\Features\Teams\Notifications\TeamInvitationNotification;
@@ -116,6 +118,26 @@ it('sends the same invitation again instead of a duplicate', function () {
 
     expect(TeamInvitation::count())->toBe(1);
     Notification::assertSentOnDemandTimes(TeamInvitationNotification::class, 2);
+});
+
+it('refreshes an invitation that a parallel request added', function () {
+    [$team, $owner] = invitingTeam();
+    $raced = false;
+
+    // Adds the invitation right after any read of the team's invitations, as a parallel request would.
+    DB::listen(function (QueryExecuted $query) use (&$raced, $team, $owner) {
+        if ($raced || ! str_starts_with($query->sql, 'select') || ! str_contains($query->sql, 'team_invitations')) {
+            return;
+        }
+
+        $raced = true;
+        DB::table('team_invitations')->insertOrIgnore(['team_id' => $team->id, 'email' => 'ada@example.com', 'invited_by' => $owner->id, 'created_at' => now(), 'updated_at' => now()]);
+    });
+
+    app(TeamInvitationService::class)->invite($owner, $team, 'ada@example.com', null);
+
+    expect(TeamInvitation::count())->toBe(1);
+    Notification::assertSentOnDemandTimes(TeamInvitationNotification::class, 1);
 });
 
 it('refuses inviting a member', function () {

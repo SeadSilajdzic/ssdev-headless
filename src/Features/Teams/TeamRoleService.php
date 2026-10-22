@@ -7,6 +7,7 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
@@ -82,8 +83,15 @@ final class TeamRoleService
         $column = (string) $this->config->get('permission.column_names.team_foreign_key');
         $members = $role->users()->wherePivot($column, $team->getKey());
 
-        if (! $members->whereKey($member->getKey())->exists()) {
-            $role->users()->attach($member->getKey(), [$column => $team->getKey()]);
+        if ($members->whereKey($member->getKey())->exists()) {
+            return;
+        }
+
+        try {
+            // The savepoint keeps an outer PostgreSQL transaction usable when a parallel request gave the role first.
+            $this->database->transaction(fn () => $role->users()->attach($member->getKey(), [$column => $team->getKey()]));
+        } catch (UniqueConstraintViolationException) {
+            // The member already has the role.
         }
     }
 }

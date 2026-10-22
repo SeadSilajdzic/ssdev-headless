@@ -45,9 +45,13 @@ final class TeamInvitationService
             throw ValidationException::withMessages(['role' => __('headless::teams.errors.role_not_assignable')]);
         }
 
-        $invitation = $team->invitations()->where('email', $email)->first() ?? new TeamInvitation;
-        $invitation->forceFill(['team_id' => $team->getKey(), 'email' => $email, 'role_id' => $roleId, 'invited_by' => $owner->getKey()])->save();
-        $invitation->touch();
+        // One statement, so two invitations to the same address at once cannot collide on the unique index.
+        $team->invitations()->upsert(
+            [['team_id' => $team->getKey(), 'email' => $email, 'role_id' => $roleId, 'invited_by' => $owner->getKey()]],
+            ['team_id', 'email'],
+            ['role_id', 'invited_by'],
+        );
+        $invitation = $team->invitations()->where('email', $email)->firstOrFail();
 
         $this->notifications->send(
             (new AnonymousNotifiable)->route('mail', $email),
