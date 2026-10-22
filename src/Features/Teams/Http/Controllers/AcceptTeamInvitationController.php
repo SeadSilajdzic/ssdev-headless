@@ -16,6 +16,11 @@ final class AcceptTeamInvitationController
     {
         $pending = TeamInvitation::query()->with('team')->findOrFail($invitation);
 
+        // A forwarded link tells another account neither the team nor the address.
+        if (! $pending->isFor($request->user())) {
+            return HeadlessPage::render('Teams/Invitation', ['team' => null, 'email' => null, 'acceptUrl' => null]);
+        }
+
         return HeadlessPage::render('Teams/Invitation', [
             'team' => ['name' => $pending->team?->name],
             'email' => $pending->email,

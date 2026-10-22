@@ -9,7 +9,6 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Account\UserRepository;
 use Ssdev\Headless\Features\Roles\RoleRepository;
 use Ssdev\Headless\Features\Teams\Notifications\TeamInvitationNotification;
@@ -41,7 +40,7 @@ final class TeamInvitationService
             throw ValidationException::withMessages(['email' => __('headless::teams.errors.already_member')]);
         }
 
-        if ($roleId !== null && $this->assignableRole($roleId) === null) {
+        if ($roleId !== null && $this->roles->findAssignableInTeams($roleId) === null) {
             throw ValidationException::withMessages(['role' => __('headless::teams.errors.role_not_assignable')]);
         }
 
@@ -67,7 +66,7 @@ final class TeamInvitationService
             // Locked, so two clicks on the same link cannot both join.
             $invitation = TeamInvitation::query()->lockForUpdate()->findOrFail($invitationId);
 
-            if (mb_strtolower((string) $user->getAttribute('email')) !== $invitation->email) {
+            if (! $invitation->isFor($user)) {
                 throw ValidationException::withMessages(['invitation' => __('headless::teams.errors.invitation_other_email')]);
             }
 
@@ -77,7 +76,7 @@ final class TeamInvitationService
                 $team->members()->attach($user->getKey());
             }
 
-            $role = $invitation->role_id === null ? null : $this->assignableRole($invitation->role_id);
+            $role = $invitation->role_id === null ? null : $this->roles->findAssignableInTeams($invitation->role_id);
 
             if ($role !== null) {
                 $this->teamRoles->grant($team, $user, $role);
@@ -100,10 +99,5 @@ final class TeamInvitationService
         $expires = now()->addMinutes((int) $this->config->get('headless.teams.invitation_expire_minutes'));
 
         return URL::temporarySignedRoute('headless.team-invitations.show', $expires, ['invitation' => $invitation->getKey()]);
-    }
-
-    private function assignableRole(int $roleId): ?Role
-    {
-        return $this->roles->assignableInTeams()->first(fn (Role $role): bool => (int) $role->getKey() === $roleId);
     }
 }

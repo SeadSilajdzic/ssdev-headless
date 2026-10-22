@@ -10,7 +10,7 @@ use Ssdev\Headless\Features\Teams\Http\Controllers\TeamOwnerController;
 use Ssdev\Headless\Features\Teams\TeamInvitationRateLimit;
 use Ssdev\Headless\Http\Middleware\RequireVerifiedEmail;
 
-Route::middleware(['auth', 'signed'])->prefix('team-invitations')->group(function () {
+Route::middleware(['auth', RequireVerifiedEmail::class, 'signed'])->prefix('team-invitations')->group(function () {
     Route::get('{invitation}', [AcceptTeamInvitationController::class, 'show'])->whereNumber('invitation')->name('headless.team-invitations.show');
     Route::post('{invitation}', [AcceptTeamInvitationController::class, 'store'])->whereNumber('invitation')->name('headless.team-invitations.store');
 });

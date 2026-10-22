@@ -67,6 +67,39 @@ it('invites by email and adds the member on accept', function () {
         ->and(TeamInvitation::count())->toBe(0);
 });
 
+it('asks for a verified email before the invitation opens', function () {
+    [$team, $owner] = invitingTeam();
+    $ada = User::factory()->unverified()->create(['email' => 'ada@example.com']);
+
+    app(TeamInvitationService::class)->invite($owner, $team, 'ada@example.com', null);
+    $link = teamInvitationLink('ada@example.com');
+
+    actingAs($ada)->get($link)->assertRedirect(route('verification.notice'));
+    actingAs($ada)->post($link)->assertRedirect(route('verification.notice'));
+
+    expect(app(TeamRepository::class)->isMember($team, $ada))->toBeFalse();
+});
+
+it('shows another account none of the invitation details', function () {
+    [$team, $owner] = invitingTeam();
+
+    app(TeamInvitationService::class)->invite($owner, $team, 'ada@example.com', null);
+
+    actingAs(User::factory()->create(['email' => 'grace@example.com']))->get(teamInvitationLink('ada@example.com'))->assertInertia(fn (AssertableInertia $page) => $page
+        ->component(headlessPage('Teams/Invitation'), false)
+        ->where('team', null)
+        ->where('email', null)
+        ->where('acceptUrl', null));
+});
+
+it('ignores a role in the invitation without the roles feature', function () {
+    [$team, $owner] = invitingTeam();
+
+    actingAs($owner)->post(route('headless.teams.invitations.store', $team->id), ['email' => 'ada@example.com', 'role' => 5])->assertRedirect();
+
+    expect(TeamInvitation::query()->value('role_id'))->toBeNull();
+});
+
 it('refuses a link for another email', function () {
     [$team, $owner] = invitingTeam();
     $grace = User::factory()->create(['email' => 'grace@example.com']);

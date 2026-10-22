@@ -7,26 +7,28 @@ import BaseCard from '@headless/components/ui/BaseCard.vue';
 import { useTrans } from '@headless/i18n';
 import AppLayout from '@headless/layouts/AppLayout.vue';
 
-const props = defineProps<{ team: { name: string }; email: string; acceptUrl: string }>();
+// Another account than the invited one gets nulls.
+const props = defineProps<{ team: { name: string } | null; email: string | null; acceptUrl: string | null }>();
 
 const t = useTrans();
 const page = usePage();
 const accepting = ref(false);
 const error = computed(() => page.props.errors.invitation);
 
-function accept(): void {
-    router.post(props.acceptUrl, {}, { onStart: () => (accepting.value = true), onFinish: () => (accepting.value = false) });
+function accept(acceptUrl: string): void {
+    router.post(acceptUrl, {}, { onStart: () => (accepting.value = true), onFinish: () => (accepting.value = false) });
 }
 </script>
 
 <template>
     <AppLayout :title="t('teams.invitation.title')">
         <BaseCard class="max-w-xl">
-            <div class="space-y-4">
+            <div v-if="props.team && props.acceptUrl" class="space-y-4">
                 <BaseAlert v-if="error" variant="error">{{ error }}</BaseAlert>
-                <p class="text-sm text-ink-700">{{ t('teams.invitation.description', { team: team.name, email }) }}</p>
-                <BaseButton data-test="accept-invitation" :loading="accepting" @click="accept">{{ t('teams.invitation.accept') }}</BaseButton>
+                <p class="text-sm text-ink-700">{{ t('teams.invitation.description', { team: props.team.name, email: props.email ?? '' }) }}</p>
+                <BaseButton data-test="accept-invitation" :loading="accepting" @click="accept(props.acceptUrl)">{{ t('teams.invitation.accept') }}</BaseButton>
             </div>
+            <BaseAlert v-else data-test="invitation-other-account" variant="error">{{ t('teams.invitation.other_account') }}</BaseAlert>
         </BaseCard>
     </AppLayout>
 </template>

@@ -4,6 +4,7 @@ namespace Ssdev\Headless\Features\Teams;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Foundation\Auth\User;
 
 /**
  * @property int $id
@@ -22,5 +23,10 @@ final class TeamInvitation extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function isFor(User $user): bool
+    {
+        return mb_strtolower((string) $user->getAttribute('email')) === $this->email;
     }
 }

@@ -79,6 +79,7 @@ return [
         'description' => 'You were invited to join :team as :email.',
         'accept' => 'Join the team',
         'joined' => 'You joined :team.',
+        'other_account' => 'This invitation was sent to another email address. Sign in with that address to join the team.',
     ],
 
     'errors' => [
