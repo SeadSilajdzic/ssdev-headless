@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 use Ssdev\Headless\Features\Teams\Notifications\TeamInvitationNotification;
 use Ssdev\Headless\Features\Teams\Team;
@@ -123,4 +124,14 @@ it('throttles team invitations', function () {
     }
 
     actingAs($owner)->post(route('headless.teams.invitations.store', $team->id), ['email' => 'user3@example.com'])->assertTooManyRequests();
+});
+
+it('offers no team roles without the roles feature', function () {
+    [$team, $owner] = teamPageFixture();
+
+    actingAs($owner)->get(route('headless.teams.show', $team->id))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('roles', [])
+        ->where('memberRolesUrls', []));
+
+    expect(Route::has('headless.teams.members.roles.update'))->toBeFalse();
 });

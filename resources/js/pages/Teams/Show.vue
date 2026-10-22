@@ -24,6 +24,9 @@ const props = defineProps<{
     ownerUrl: string;
     invitationsUrl: string;
     removeMemberUrls: Record<number, string>;
+    roles: { id: number; name: string }[];
+    memberRoles: Record<number, number[]>;
+    memberRolesUrls: Record<number, string>;
 }>();
 
 const t = useTrans();
@@ -67,11 +70,19 @@ function remove(url: string, close: () => void): void {
             </BaseCard>
 
             <BaseCard :title="t('teams.members.title')" :description="t('teams.members.description')">
-                <TeamMembers :members="members" :is-owner="isOwner" :owner-url="ownerUrl" :remove-member-urls="removeMemberUrls" />
+                <TeamMembers
+                    :members="members"
+                    :is-owner="isOwner"
+                    :owner-url="ownerUrl"
+                    :remove-member-urls="removeMemberUrls"
+                    :roles="roles"
+                    :member-roles="memberRoles"
+                    :member-roles-urls="memberRolesUrls"
+                />
             </BaseCard>
 
             <BaseCard v-if="isOwner" :title="t('teams.invitations.title')" :description="t('teams.invitations.description')">
-                <TeamInvitations :invitations="invitations" :invitations-url="invitationsUrl" />
+                <TeamInvitations :invitations="invitations" :invitations-url="invitationsUrl" :roles="roles" />
             </BaseCard>
 
             <div class="flex justify-end">

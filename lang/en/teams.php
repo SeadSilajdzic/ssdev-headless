@@ -37,6 +37,10 @@ return [
         'make_owner' => 'Make owner',
         'transfer_title' => 'Hand the team over?',
         'transfer_description' => 'The new owner manages the team. You stay a member.',
+        'roles' => 'Roles in this team',
+        'no_roles' => 'No roles',
+        'save_roles' => 'Save roles',
+        'roles_saved' => 'Roles saved.',
     ],
 
     'invitations' => [

@@ -5,6 +5,7 @@ import BaseAvatar from '@headless/components/ui/BaseAvatar.vue';
 import BaseBadge from '@headless/components/ui/BaseBadge.vue';
 import BaseButton from '@headless/components/ui/BaseButton.vue';
 import ConfirmDialog from '@headless/components/ui/ConfirmDialog.vue';
+import TeamMemberRoles from '@headless/components/teams/TeamMemberRoles.vue';
 import { useTrans } from '@headless/i18n';
 
 export interface TeamMember {
@@ -15,7 +16,19 @@ export interface TeamMember {
     is_owner: boolean;
 }
 
-const props = defineProps<{ members: TeamMember[]; isOwner: boolean; ownerUrl: string; removeMemberUrls: Record<number, string> }>();
+const props = withDefaults(
+    defineProps<{
+        members: TeamMember[];
+        isOwner: boolean;
+        ownerUrl: string;
+        removeMemberUrls: Record<number, string>;
+        // Only with the roles feature.
+        roles?: { id: number; name: string }[];
+        memberRoles?: Record<number, number[]>;
+        memberRolesUrls?: Record<number, string>;
+    }>(),
+    { roles: () => [], memberRoles: () => ({}), memberRolesUrls: () => ({}) },
+);
 
 const t = useTrans();
 const handingOver = ref<TeamMember | null>(null);
@@ -58,6 +71,13 @@ function handOver(): void {
                 <BaseButton variant="ghost" size="sm" data-test="make-owner" @click="handingOver = member">{{ t('teams.members.make_owner') }}</BaseButton>
                 <BaseButton variant="ghost" size="sm" data-test="remove-member" @click="remove(member)">{{ t('teams.members.remove') }}</BaseButton>
             </template>
+            <TeamMemberRoles
+                v-if="roles.length"
+                :member-id="member.id"
+                :roles="roles"
+                :assigned="memberRoles[member.id] ?? []"
+                :url="memberRolesUrls[member.id]"
+            />
         </li>
     </ul>
 

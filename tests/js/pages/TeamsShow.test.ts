@@ -23,6 +23,9 @@ function mountTeam(isOwner: boolean) {
             ownerUrl: '/teams/1/owner',
             invitationsUrl: '/teams/1/invitations',
             removeMemberUrls: { 2: '/teams/1/members/2' },
+            roles: [],
+            memberRoles: {},
+            memberRolesUrls: {},
         },
         global: { stubs: { AppLayout: { template: '<div><slot /></div>' }, ConfirmDialog: true } },
     });

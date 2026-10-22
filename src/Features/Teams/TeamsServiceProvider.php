@@ -7,6 +7,8 @@ use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
+use Ssdev\Headless\Features\Feature;
+use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Features\Teams\Listeners\CreatePersonalTeam;
 use Ssdev\Headless\Routing\PackageRoutes;
 
@@ -27,7 +29,7 @@ final class TeamsServiceProvider extends ServiceProvider
         $this->app->booting(fn () => $this->app->make(TeamPermissionGate::class)->register());
     }
 
-    public function boot(Dispatcher $events, Gate $gate, TeamInvitationRateLimit $rateLimit): void
+    public function boot(Dispatcher $events, Gate $gate, TeamInvitationRateLimit $rateLimit, FeatureRegistry $features): void
     {
         $events->listen(Registered::class, CreatePersonalTeam::class);
         $gate->policy(Team::class, TeamPolicy::class);
@@ -36,5 +38,9 @@ final class TeamsServiceProvider extends ServiceProvider
         Inertia::share('teams', fn () => $this->app->make(TeamSwitcherProps::class)->for(request()->user()));
 
         PackageRoutes::web(__DIR__.'/../../../routes/teams.php');
+
+        if ($features->isEnabled(Feature::Roles->value)) {
+            PackageRoutes::web(__DIR__.'/../../../routes/team-roles.php');
+        }
     }
 }
