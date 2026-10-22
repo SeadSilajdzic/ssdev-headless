@@ -16,6 +16,7 @@ use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Api\ApiRoutes;
 use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Features\FeatureRegistry;
+use Ssdev\Headless\Features\Tenancy\Tenant;
 use Ssdev\Headless\Features\TwoFactor\TwoFactorService;
 use Ssdev\Headless\Installation\InstallContext;
 use Ssdev\Headless\Installation\ProjectFiles;
@@ -28,6 +29,7 @@ use Ssdev\Headless\Tests\Support\RolesTestCase;
 use Ssdev\Headless\Tests\Support\TeamsRolesTestCase;
 use Ssdev\Headless\Tests\Support\TeamsTestCase;
 use Ssdev\Headless\Tests\Support\TeamsUsersTestCase;
+use Ssdev\Headless\Tests\Support\TenancyTestCase;
 use Ssdev\Headless\Tests\Support\TwoFactorTestCase;
 use Ssdev\Headless\Tests\Support\UsersRolesTestCase;
 use Ssdev\Headless\Tests\Support\UsersTestCase;
@@ -54,6 +56,8 @@ uses(TeamsTestCase::class, RefreshDatabase::class)->in('Features/Teams');
 uses(TeamsRolesTestCase::class, RefreshDatabase::class)->in('Features/TeamsRoles');
 
 uses(TeamsUsersTestCase::class, RefreshDatabase::class)->in('Features/TeamsUsers');
+
+uses(TenancyTestCase::class, RefreshDatabase::class)->in('Features/Tenancy');
 
 function headlessPage(string $name): string
 {
@@ -217,6 +221,14 @@ function makeRole(string $name, array $permissions, ?User $member = null): Role
     $member?->assignRole($role);
 
     return $role;
+}
+
+/**
+ * @param  array<string, mixed>  $attributes
+ */
+function makeTenant(string $subdomain, array $attributes = []): Tenant
+{
+    return Tenant::query()->forceCreate(['name' => ucfirst($subdomain), 'subdomain' => $subdomain, ...$attributes]);
 }
 
 function failsOn(string $field): Closure

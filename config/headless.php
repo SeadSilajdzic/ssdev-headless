@@ -36,6 +36,17 @@ return [
         'invitation_expire_minutes' => 10080,
     ],
 
+    'tenancy' => [
+        // Tenants live on subdomains of this domain, e.g. acme.example.com for example.com.
+        'base_domain' => 'localhost',
+        // The platform's own domain, where central accounts sign in; often the base domain itself.
+        'central_domain' => 'localhost',
+        // Lets people sign up inside a tenant; otherwise they join through invitations.
+        'registration' => false,
+        // Directory on every disk under which each tenant's files are kept apart.
+        'storage_directory' => 'tenants',
+    ],
+
     'registration' => [
         'enabled' => true,
     ],

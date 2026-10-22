@@ -8,4 +8,5 @@ enum Feature: string
     case Roles = 'roles';
     case Users = 'users';
     case Teams = 'teams';
+    case Tenancy = 'tenancy';
 }
