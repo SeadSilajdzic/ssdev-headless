@@ -23,6 +23,9 @@ abstract class TestCase extends Orchestra
 
     protected function setUp(): void
     {
+        // Parallel processes rewriting one provider manifest at once fail on Windows, so each process gets its own.
+        $_SERVER['APP_SERVICES_CACHE'] = 'bootstrap/cache/services-'.(getenv('TEST_TOKEN') ?: 'serial').'.php';
+
         parent::setUp();
 
         $this->withoutVite();
