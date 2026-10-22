@@ -7,6 +7,7 @@ use Workbench\App\Models\User;
 
 use function Pest\Laravel\assertAuthenticatedAs;
 use function Pest\Laravel\assertGuest;
+use function Pest\Laravel\freezeTime;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 use function Pest\Laravel\withSession;
@@ -79,6 +80,8 @@ it('rejects a wrong code', function () {
 });
 
 it('throttles code attempts', function () {
+    // Frozen, so the wait in the message is a full minute even when the attempts cross a second.
+    freezeTime();
     startChallenge(enabledTwoFactorUser());
 
     foreach (range(1, 5) as $attempt) {

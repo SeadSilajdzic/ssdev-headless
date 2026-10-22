@@ -8,6 +8,7 @@ use Workbench\App\Models\User;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\delete;
+use function Pest\Laravel\freezeTime;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 
@@ -72,6 +73,8 @@ it('turns two-factor authentication off', function () {
 });
 
 it('throttles code confirmation', function () {
+    // Frozen, so the wait in the message is a full minute even when the attempts cross a second.
+    freezeTime();
     confirmedPassword(enabledTwoFactorUser(confirmed: false));
 
     foreach (range(1, 5) as $attempt) {
