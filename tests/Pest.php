@@ -17,6 +17,8 @@ use Ssdev\Headless\Api\ApiRoutes;
 use Ssdev\Headless\Features\FeatureModule;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Features\Tenancy\Tenant;
+use Ssdev\Headless\Features\Tenancy\TenantPermission;
+use Ssdev\Headless\Features\Tenancy\TenantService;
 use Ssdev\Headless\Features\TwoFactor\TwoFactorService;
 use Ssdev\Headless\Installation\InstallContext;
 use Ssdev\Headless\Installation\ProjectFiles;
@@ -243,6 +245,29 @@ function tenantUser(Tenant $tenant, array $attributes = []): TenantUser
 function tenantUrl(Tenant $tenant, string $path = ''): string
 {
     return 'http://'.$tenant->subdomain.'.localhost/'.ltrim($path, '/');
+}
+
+function centralAdmin(TenantPermission ...$permissions): TenantUser
+{
+    app(PermissionSynchronizer::class)->sync();
+
+    $admin = TenantUser::factory()->create();
+    $admin->givePermissionTo(array_map(fn (TenantPermission $permission) => $permission->value, $permissions));
+
+    return $admin;
+}
+
+function tenantsManager(): TenantUser
+{
+    return centralAdmin(TenantPermission::View, TenantPermission::Manage);
+}
+
+/**
+ * A tenant created as the panel creates it, with an owner who has not accepted the invitation yet.
+ */
+function ownedTenant(string $subdomain): Tenant
+{
+    return app(TenantService::class)->create(TenantUser::factory()->create(), ucfirst($subdomain), $subdomain, "owner@{$subdomain}.test");
 }
 
 function failsOn(string $field): Closure

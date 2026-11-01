@@ -61,8 +61,8 @@ final class TenancyModule implements FeatureModule
         return [TenantPermission::class];
     }
 
-    public function apiContractTest(): ?string
+    public function apiContractTest(): string
     {
-        return null;
+        return 'HeadlessTenancyApiContractTest.php';
     }
 }

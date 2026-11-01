@@ -1,0 +1,40 @@
+{
+    "data": [
+        {
+            "id": "integer",
+            "name": "string",
+            "subdomain": "string",
+            "url": "string",
+            "status": "string",
+            "suspended_at": "null",
+            "created_at": "string",
+            "owner": {
+                "email": "string",
+                "accepted": "boolean"
+            }
+        }
+    ],
+    "links": {
+        "first": "string",
+        "last": "string",
+        "prev": "null",
+        "next": "null"
+    },
+    "meta": {
+        "current_page": "integer",
+        "from": "integer",
+        "last_page": "integer",
+        "links": [
+            {
+                "url": "null",
+                "label": "string",
+                "page": "null",
+                "active": "boolean"
+            }
+        ],
+        "path": "string",
+        "per_page": "integer",
+        "to": "integer",
+        "total": "integer"
+    }
+}

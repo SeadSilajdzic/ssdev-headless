@@ -80,6 +80,7 @@ final class TenancyServiceProvider extends ServiceProvider
 
         PackageRoutes::web(__DIR__.'/../../../routes/tenant-owner.php');
         PackageRoutes::web(__DIR__.'/../../../routes/tenants.php');
+        PackageRoutes::api(__DIR__.'/../../../routes/tenants-api.php');
 
         $navigation->add(new NavigationItem(
             'tenants',

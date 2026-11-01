@@ -1,0 +1,73 @@
+<?php
+
+namespace Tests\Feature;
+
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use Laravel\Sanctum\Sanctum;
+use Ssdev\ApiContracts\Testing\InteractsWithApiContract;
+use Ssdev\Headless\Account\AdminAccess;
+use Ssdev\Headless\Features\Tenancy\Tenant;
+use Ssdev\Headless\Features\Tenancy\TenantService;
+use Ssdev\Headless\Permissions\PermissionSynchronizer;
+use Tests\TestCase;
+
+/**
+ * Snapshots of the ssdev/laravel-headless tenants API as this application serves it.
+ * After an intentional change: API_CONTRACT_UPDATE=1 php artisan test tests/Feature/HeadlessTenancyApiContractTest.php
+ */
+class HeadlessTenancyApiContractTest extends TestCase
+{
+    use InteractsWithApiContract;
+    use RefreshDatabase;
+
+    public function test_tenants_list_matches_contract(): void
+    {
+        $admin = $this->createAdmin();
+        Sanctum::actingAs($admin, ['*']);
+        $this->createTenant($admin);
+
+        $response = $this->getJson($this->url('tenants'));
+
+        $response->assertOk();
+        $this->assertMatchesApiContract('headless_tenancy_GET_tenants', $response->json());
+    }
+
+    public function test_tenant_matches_contract(): void
+    {
+        $admin = $this->createAdmin();
+        Sanctum::actingAs($admin, ['*']);
+        $tenant = $this->createTenant($admin);
+
+        $response = $this->getJson($this->url('tenants/'.$tenant->getKey()));
+
+        $response->assertOk();
+        $this->assertMatchesApiContract('headless_tenancy_GET_tenants_show', $response->json());
+    }
+
+    private function createAdmin(): Authenticatable
+    {
+        $model = config('auth.providers.users.model');
+        $admin = $model::factory()->create();
+
+        app(PermissionSynchronizer::class)->sync();
+        app(AdminAccess::class)->grant($admin);
+
+        return $admin;
+    }
+
+    private function createTenant(Authenticatable $admin): Tenant
+    {
+        // Creating a tenant mails its owner an invitation.
+        Notification::fake();
+
+        return app(TenantService::class)->create($admin, 'Contract', 'contract-test', 'owner@contract.test');
+    }
+
+    // The tenants API answers only on the central domain.
+    private function url(string $path): string
+    {
+        return 'http://'.config('headless.tenancy.central_domain').'/'.trim(config('headless.api.prefix'), '/').'/'.$path;
+    }
+}

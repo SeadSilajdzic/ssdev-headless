@@ -1,0 +1,15 @@
+{
+    "data": {
+        "id": "integer",
+        "name": "string",
+        "subdomain": "string",
+        "url": "string",
+        "status": "string",
+        "suspended_at": "string",
+        "created_at": "string",
+        "owner": {
+            "email": "string",
+            "accepted": "boolean"
+        }
+    }
+}

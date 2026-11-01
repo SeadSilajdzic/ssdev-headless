@@ -4,6 +4,7 @@ use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Process;
 use Ssdev\Headless\Features\Roles\RolesModule;
 use Ssdev\Headless\Features\Teams\TeamsModule;
+use Ssdev\Headless\Features\Tenancy\TenancyModule;
 use Ssdev\Headless\Features\TwoFactor\TwoFactorModule;
 use Ssdev\Headless\Features\Users\UsersModule;
 use Ssdev\Headless\Installation\Steps\InstallApiContracts;
@@ -98,4 +99,14 @@ it('writes the teams contract test when teams are selected', function () {
 
     expect($files->get('tests/Feature/HeadlessTeamsApiContractTest.php'))->toContain('headless_teams_GET_teams')
         ->toContain('headless_teams_GET_teams_show');
+});
+
+it('writes the tenancy contract test when tenancy is selected', function () {
+    Process::fake();
+    $files = fixtureProject();
+
+    app(InstallApiContracts::class)->handle(installContext($files, [new TenancyModule]));
+
+    expect($files->get('tests/Feature/HeadlessTenancyApiContractTest.php'))->toContain('headless_tenancy_GET_tenants')
+        ->toContain('headless_tenancy_GET_tenants_show');
 });

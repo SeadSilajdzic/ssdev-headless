@@ -10,7 +10,6 @@ use Ssdev\Headless\Features\Tenancy\TenantPermission;
 use Ssdev\Headless\Features\Tenancy\TenantService;
 use Ssdev\Headless\Permissions\PermissionSynchronizer;
 use Ssdev\Headless\Support\Flash;
-use Workbench\App\Models\TenantUser;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\get;
@@ -20,26 +19,6 @@ beforeEach(function () {
     confirmPassword();
     Notification::fake();
 });
-
-function centralAdmin(TenantPermission ...$permissions): TenantUser
-{
-    app(PermissionSynchronizer::class)->sync();
-
-    $admin = TenantUser::factory()->create();
-    $admin->givePermissionTo(array_map(fn (TenantPermission $permission) => $permission->value, $permissions));
-
-    return $admin;
-}
-
-function tenantsManager(): TenantUser
-{
-    return centralAdmin(TenantPermission::View, TenantPermission::Manage);
-}
-
-function ownedTenant(string $subdomain): Tenant
-{
-    return app(TenantService::class)->create(TenantUser::factory()->create(), ucfirst($subdomain), $subdomain, "owner@{$subdomain}.test");
-}
 
 it('lists tenants to central admins with tenants.view', function () {
     $viewer = centralAdmin(TenantPermission::View);
