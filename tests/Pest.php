@@ -31,6 +31,7 @@ use Ssdev\Headless\Tests\Support\RolesTestCase;
 use Ssdev\Headless\Tests\Support\TeamsRolesTestCase;
 use Ssdev\Headless\Tests\Support\TeamsTestCase;
 use Ssdev\Headless\Tests\Support\TeamsUsersTestCase;
+use Ssdev\Headless\Tests\Support\TenancyTeamsTestCase;
 use Ssdev\Headless\Tests\Support\TenancyTestCase;
 use Ssdev\Headless\Tests\Support\TwoFactorTestCase;
 use Ssdev\Headless\Tests\Support\UsersRolesTestCase;
@@ -61,6 +62,8 @@ uses(TeamsRolesTestCase::class, RefreshDatabase::class)->in('Features/TeamsRoles
 uses(TeamsUsersTestCase::class, RefreshDatabase::class)->in('Features/TeamsUsers');
 
 uses(TenancyTestCase::class, RefreshDatabase::class)->in('Features/Tenancy');
+
+uses(TenancyTeamsTestCase::class, RefreshDatabase::class)->in('Features/TenancyTeams');
 
 function headlessPage(string $name): string
 {

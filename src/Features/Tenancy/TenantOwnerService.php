@@ -5,13 +5,16 @@ namespace Ssdev\Headless\Features\Tenancy;
 use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Contracts\Auth\PasswordBroker;
 use Illuminate\Contracts\Auth\PasswordBrokerFactory;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Contracts\Notifications\Dispatcher as Notifications;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\PermissionRegistrar;
 use Ssdev\Headless\Account\UserRepository;
 use Ssdev\Headless\Features\Tenancy\Notifications\TenantOwnerInvitation;
+use Ssdev\Headless\Permissions\GlobalAssignments;
 use Ssdev\Headless\Permissions\PermissionRegistry;
 use Ssdev\Headless\Permissions\PermissionSynchronizer;
 
@@ -30,6 +33,9 @@ final class TenantOwnerService
         private PermissionSynchronizer $synchronizer,
         private PasswordBrokerFactory $brokers,
         private Notifications $notifications,
+        private GlobalAssignments $assignments,
+        private PermissionRegistrar $registrar,
+        private Repository $config,
     ) {}
 
     public function createOwner(Tenant $tenant, string $email): User
@@ -46,8 +52,9 @@ final class TenantOwnerService
             ]);
 
             // Directly rather than through a role: until roles are kept per tenant, a role would be shared with the central level.
-            if (method_exists($owner, 'givePermissionTo') && $this->tenantPermissions() !== []) {
-                $owner->givePermissionTo($this->tenantPermissions());
+            // Global, so with teams on the grant never lands in the current team of the admin creating the tenant.
+            if (method_exists($owner, 'permissions') && $this->tenantPermissions() !== []) {
+                $owner->permissions()->attach($this->tenantPermissionKeys(), $this->assignments->pivot());
             }
 
             return $owner;
@@ -128,6 +135,20 @@ final class TenantOwnerService
     private function tenantPermissions(): array
     {
         return array_values(array_diff($this->permissions->names(), TenantPermission::names()));
+    }
+
+    /**
+     * @return list<int|string>
+     */
+    private function tenantPermissionKeys(): array
+    {
+        $permissionClass = $this->registrar->getPermissionClass();
+
+        return $permissionClass::query()
+            ->where('guard_name', $this->config->get('auth.defaults.guard'))
+            ->whereIn('name', $this->tenantPermissions())
+            ->pluck((new $permissionClass)->getKeyName())
+            ->all();
     }
 
     private function broker(): PasswordBroker
