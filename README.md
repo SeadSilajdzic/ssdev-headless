@@ -278,15 +278,50 @@ Over the API (`auth:sanctum`):
 
 Select it in `headless:install` or add it later with `php artisan headless:add tenancy --migrate`. It installs `spatie/laravel-multitenancy`, adds a `tenants` table and a `tenant_id` column to `users`, and adds `BelongsToTenant` to `app/Models/User.php`.
 
-Every tenant lives on a subdomain of `tenancy.base_domain`, such as `acme.example.com`, and `tenancy.central_domain` is the platform's own domain; set both in `config/headless.php`. Any other host, an IP address included, answers 404, except the paths in `tenancy.any_host_paths` (`up`, for health checks), which run on the central level. Leave `SESSION_DOMAIN` empty, so a session cookie stays on its own subdomain. Create a tenant with `Tenant::query()->forceCreate(['name' => 'Acme', 'subdomain' => 'acme'])` (`Ssdev\Headless\Features\Tenancy\Tenant`).
+Every tenant lives on a subdomain of `tenancy.base_domain`, such as `acme.example.com`, and `tenancy.central_domain` is the platform's own domain; set both in `config/headless.php`. Any other host, an IP address included, answers 404, except the paths in `tenancy.any_host_paths` (`up`, for health checks), which run on the central level. Leave `SESSION_DOMAIN` empty, so a session cookie stays on its own subdomain.
 
 - An account belongs to one tenant: the same email in another tenant is a separate account with its own password, sessions, API tokens and reset links. `tenant_id` 0 is the central level, so accounts that existed before become central accounts.
 - `tenant_id` never comes from a request. `BelongsToTenant` limits every query to the current tenant and fills new rows from it, and saving a model never moves it to another tenant. A mass `update()` skips model events, so never pass `tenant_id` to one. Use it on your own models with an indexed `unsignedBigInteger('tenant_id')->default(0)` column.
 - Kept apart per tenant: queries, sessions, API tokens, password reset links, the default cache store, rate limits, avatars (under `tenants/{id}/`) and queued jobs, which run in the tenant that dispatched them. Use `Ssdev\Headless\Support\Isolation` for your own files (`path()`) and keys (`key()`).
 - Run code for one tenant with `$tenant->execute(fn () => SendReport::dispatch())`; jobs dispatched there run in that tenant.
 - Sign-up inside a tenant is off; turn it on with `tenancy.registration`.
-- A tenant with `suspended_at` set shows a suspension page, its API answers 403 and nobody can sign in.
+- A suspended tenant shows a suspension page, its API answers 403 and nobody can sign in.
 - User management, roles and teams do not work inside tenants yet.
+
+### Tenants panel
+
+Platform admins manage tenants on the central domain under **Administration → Tenants**. Sign-up on the central domain is closed: central accounts come from `php artisan headless:create-admin`, who gets every permission including `tenants.*`, and from user management invitations. The panel and its API answer 404 on a tenant's host, and `tenants.*` never count inside a tenant, even when given to an account there.
+
+| Permission | Lets you |
+|---|---|
+| `tenants.view` | see the list and the details of a tenant |
+| `tenants.manage` | create, rename, suspend, resume and delete tenants, and send the owner's invitation again |
+
+- **Creating** takes a name, a subdomain and the owner's email. The subdomain is 3 to 63 lowercase letters, digits and hyphens, not starting or ending with a hyphen and not one of `tenancy.reserved_subdomains` (`www`, `admin`, `api`…). It never changes afterwards; only the name does.
+- **The owner** is the tenant's first account. It holds every permission of the tenant except `tenants.*`, so it manages everyone else. It gets an invitation to choose a name and a password on the tenant's subdomain; the link works once, only for that email, and expires after `tenancy.owner_invitation_expire_minutes` (a week). Sending it again replaces the old link, at most `rate_limits.owner_invitations` times a minute.
+- **Suspending** closes the tenant's site and API until it is resumed.
+- **Deleting** is permanent and needs the subdomain typed again. It removes the tenant's accounts with their API tokens, sessions, role assignments and reset links, and the tenant's directory (`tenants/{id}/`) on the avatars disk. Delete your own rows on `TenantDeleting`, which runs inside the tenant and the deletion's transaction, so a model with `BelongsToTenant` sees only that tenant's rows:
+
+```php
+use Illuminate\Support\Facades\Event;
+use Ssdev\Headless\Features\Tenancy\Events\TenantDeleting;
+
+Event::listen(TenantDeleting::class, fn () => Project::query()->delete());
+```
+
+Over the API on the central domain (`auth:sanctum`, same permissions):
+
+| Method | Path | |
+|---|---|---|
+| GET | `tenants` | tenants; `search`, `status` (`active`, `suspended`), `sort` (`name`, `subdomain`, `created_at`), `direction`, `per_page` |
+| POST | `tenants` | create (`name`, `subdomain`, `owner_email`) |
+| GET | `tenants/{tenant}` | one tenant, with its URL and owner |
+| PUT | `tenants/{tenant}` | rename (`name`) |
+| DELETE | `tenants/{tenant}` | delete, sending `subdomain` to confirm |
+| POST, DELETE | `tenants/{tenant}/suspension` | suspend, resume |
+| POST | `tenants/{tenant}/owner-invitation` | send the owner's invitation again |
+
+`Ssdev\Headless\Features\Tenancy\Events\TenantCreated`, `TenantSuspended` and `TenantResumed` carry the tenant and the admin who acted; `TenantDeleted` carries the former tenant's id and subdomain and the admin.
 
 ## Session map
 

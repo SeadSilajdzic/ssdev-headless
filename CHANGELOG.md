@@ -16,6 +16,7 @@ All notable changes to this project are documented in this file. The format foll
 - Teams (`teams`): create teams and switch between them, invite people with signed links, hand teams over, team roles with a global context for application-wide permissions (`GlobalPermission`), personal teams on registration, and the same over the API.
 - Multi-tenancy (`tenancy`) on `spatie/laravel-multitenancy`: tenants on subdomains, one database with `tenant_id` and the `BelongsToTenant` scope, accounts, sessions, API tokens, reset links, cache, rate limits, files and queued jobs kept apart per tenant, closed sign-up inside tenants, and suspended tenants.
 - `Ssdev\Headless\Support\Isolation` for keeping files and keys apart.
+- Tenants panel on the central domain (`tenants.view`, `tenants.manage`): create tenants on a checked subdomain with an owner who sets up their account through an invitation, rename, suspend and resume, delete for good after typing the subdomain again (`TenantDeleting` lets the application delete its own rows), the same over the API (`tenants`), and `TenantCreated`, `TenantSuspended`, `TenantResumed` and `TenantDeleted` events.
 - Session map on the security page: a world map with a point for every browser session, log out from the map, and the city next to each session. Locations come from an `IpLocator` you configure, with a built-in `MaxMindLocator` for a local GeoLite2 City database; off by default.
 
 ### Changed
@@ -25,6 +26,7 @@ All notable changes to this project are documented in this file. The format foll
 - Searches ignore case and treat `%` and `_` as text on SQLite, MySQL and PostgreSQL alike.
 - `headless:install` keeps installed features when it runs again and preselects them.
 - `ApiTokenAuthenticator::issue()` is split into `authenticate()` and `issueToken()`.
+- With tenancy on, sign-up on the central domain is closed; central accounts come from `headless:create-admin` and user management invitations.
 
 ## [0.3.1] - 2026-10-21
 
