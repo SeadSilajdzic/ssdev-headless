@@ -8,6 +8,8 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Validation\ValidationException;
 use Ssdev\Headless\Features\Tenancy\Events\TenantCreated;
+use Ssdev\Headless\Features\Tenancy\Events\TenantResumed;
+use Ssdev\Headless\Features\Tenancy\Events\TenantSuspended;
 
 final class TenantService
 {
@@ -40,5 +42,26 @@ final class TenantService
     public function rename(Tenant $tenant, string $name): void
     {
         $tenant->forceFill(['name' => $name])->save();
+    }
+
+    public function suspend(User $actor, Tenant $tenant): void
+    {
+        // Conditional, so a repeated or parallel call keeps the first time and records one suspension.
+        $suspended = Tenant::query()->whereKey($tenant->getKey())->whereNull('suspended_at')->update(['suspended_at' => now()]);
+        $tenant->refresh();
+
+        if ($suspended > 0) {
+            $this->events->dispatch(new TenantSuspended($tenant, $actor));
+        }
+    }
+
+    public function resume(User $actor, Tenant $tenant): void
+    {
+        $resumed = Tenant::query()->whereKey($tenant->getKey())->whereNotNull('suspended_at')->update(['suspended_at' => null]);
+        $tenant->refresh();
+
+        if ($resumed > 0) {
+            $this->events->dispatch(new TenantResumed($tenant, $actor));
+        }
     }
 }
