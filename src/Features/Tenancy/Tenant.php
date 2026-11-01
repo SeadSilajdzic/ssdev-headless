@@ -2,6 +2,8 @@
 
 namespace Ssdev\Headless\Features\Tenancy;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Carbon;
 use Spatie\Multitenancy\Models\Tenant as SpatieTenant;
@@ -12,6 +14,8 @@ use Spatie\Multitenancy\Models\Tenant as SpatieTenant;
  * @property string $subdomain
  * @property int|null $owner_id
  * @property Carbon|null $suspended_at
+ * @property Carbon|null $created_at
+ * @property-read User|null $owner
  */
 final class Tenant extends SpatieTenant
 {
@@ -22,6 +26,19 @@ final class Tenant extends SpatieTenant
     public function isSuspended(): bool
     {
         return $this->suspended_at !== null;
+    }
+
+    /**
+     * Read past the tenant scope, since the panel lists owners from the central level.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function owner(): BelongsTo
+    {
+        /** @var class-string<User> $model */
+        $model = config('auth.providers.users.model');
+
+        return $this->belongsTo($model, 'owner_id')->withoutGlobalScope(TenantScope::class);
     }
 
     public function execute(callable $callable): mixed

@@ -10,12 +10,16 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Multitenancy\Tasks\PrefixCacheTask;
 use Ssdev\Headless\Features\Tenancy\Auth\TenantPasswordBrokerManager;
+use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureCentralLevel;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureSessionMatchesTenant;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureTenantIsActive;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\IdentifyTenant;
 use Ssdev\Headless\Features\Tenancy\Queue\KeepQueuedJobsInTheirTenantAction;
 use Ssdev\Headless\Features\Tenancy\Tasks\ForceTenantRootUrl;
 use Ssdev\Headless\Features\Tenancy\Tasks\SwitchTenantRegistration;
+use Ssdev\Headless\Navigation\NavigationGroup;
+use Ssdev\Headless\Navigation\NavigationItem;
+use Ssdev\Headless\Navigation\NavigationRegistry;
 use Ssdev\Headless\Routing\PackageRoutes;
 use Ssdev\Headless\Support\Isolation;
 
@@ -57,8 +61,10 @@ final class TenancyServiceProvider extends ServiceProvider
         $this->app->extend('auth.password', fn (PasswordBrokerManager $manager, Application $app) => new TenantPasswordBrokerManager($app));
     }
 
-    public function boot(HttpKernel $kernel): void
+    public function boot(HttpKernel $kernel, OwnerInvitationRateLimit $rateLimit, NavigationRegistry $navigation): void
     {
+        $rateLimit->register();
+
         // Global, so the application's own routes run in the tenant too; after TrustProxies, so a proxied host counts.
         if ($kernel instanceof Kernel) {
             $kernel->pushMiddleware(IdentifyTenant::class);
@@ -68,8 +74,20 @@ final class TenancyServiceProvider extends ServiceProvider
             // Right after the session starts, so routes that authenticate never see a sign-in from another tenant or a suspended one.
             $kernel->addToMiddlewarePriorityAfter(StartSession::class, EnsureSessionMatchesTenant::class);
             $kernel->addToMiddlewarePriorityAfter(EnsureSessionMatchesTenant::class, EnsureTenantIsActive::class);
+            // Before authentication, so the central panel answers 404 on a tenant's host instead of asking for a sign-in.
+            $kernel->addToMiddlewarePriorityAfter(EnsureTenantIsActive::class, EnsureCentralLevel::class);
         }
 
         PackageRoutes::web(__DIR__.'/../../../routes/tenant-owner.php');
+        PackageRoutes::web(__DIR__.'/../../../routes/tenants.php');
+
+        $navigation->add(new NavigationItem(
+            'tenants',
+            'headless::navigation.tenants',
+            'headless.tenants.index',
+            'building-2',
+            NavigationGroup::Administration,
+            permission: TenantPermission::View->value,
+        ));
     }
 }

@@ -18,7 +18,7 @@ final class TenantRepository
      */
     public function paginate(array $criteria, int $perPage = self::DEFAULT_PER_PAGE): LengthAwarePaginator
     {
-        $query = Tenant::query();
+        $query = Tenant::query()->with('owner');
         $sorted = false;
 
         foreach ($criteria as $criterion) {

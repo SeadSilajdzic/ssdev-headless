@@ -19,6 +19,7 @@ defineProps<{
     cancelLabel?: string;
     destructive?: boolean;
     loading?: boolean;
+    confirmDisabled?: boolean;
 }>();
 
 const emit = defineEmits<{ confirm: [] }>();
@@ -39,11 +40,14 @@ const t = useTrans();
                 </div>
                 <AlertDialogTitle class="font-display text-xl font-bold">{{ title }}</AlertDialogTitle>
                 <AlertDialogDescription class="mt-2 text-sm text-ink-500">{{ description }}</AlertDialogDescription>
+                <div v-if="$slots.default" class="mt-4">
+                    <slot />
+                </div>
                 <div class="mt-6 flex justify-end gap-2">
                     <AlertDialogCancel as-child>
                         <BaseButton variant="ghost">{{ cancelLabel ?? t('common.actions.cancel') }}</BaseButton>
                     </AlertDialogCancel>
-                    <BaseButton :variant="destructive ? 'destructive' : 'primary'" :loading="loading" @click="emit('confirm')">
+                    <BaseButton :variant="destructive ? 'destructive' : 'primary'" :loading="loading" :disabled="confirmDisabled" @click="emit('confirm')">
                         {{ confirmLabel }}
                     </BaseButton>
                 </div>

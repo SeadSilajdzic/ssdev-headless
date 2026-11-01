@@ -76,6 +76,7 @@ return [
         'two_factor' => 5,
         'invitations' => 10,
         'team_invitations' => 10,
+        'owner_invitations' => 10,
     ],
 
     'session_locations' => [

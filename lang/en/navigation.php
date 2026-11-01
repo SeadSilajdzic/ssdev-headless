@@ -15,5 +15,6 @@ return [
     'api_tokens' => 'API tokens',
     'roles' => 'Roles',
     'users' => 'Users',
+    'tenants' => 'Tenants',
 
 ];

@@ -30,6 +30,11 @@ final class TenantHosts
         return $subdomain === '' || str_contains($subdomain, '.') ? null : $subdomain;
     }
 
+    public function baseDomain(): string
+    {
+        return $this->setting('base_domain');
+    }
+
     public function rootUrlFor(Tenant $tenant): string
     {
         $appUrl = (string) $this->config->get('app.url');
