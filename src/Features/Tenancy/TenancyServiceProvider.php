@@ -10,6 +10,9 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Multitenancy\Tasks\PrefixCacheTask;
 use Spatie\Permission\Models\Role;
+use Ssdev\Headless\Features\Feature;
+use Ssdev\Headless\Features\FeatureRegistry;
+use Ssdev\Headless\Features\Teams\Team;
 use Ssdev\Headless\Features\Tenancy\Auth\TenantPasswordBrokerManager;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureCentralLevel;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureSessionMatchesTenant;
@@ -68,7 +71,7 @@ final class TenancyServiceProvider extends ServiceProvider
         $this->app->extend('auth.password', fn (PasswordBrokerManager $manager, Application $app) => new TenantPasswordBrokerManager($app));
     }
 
-    public function boot(HttpKernel $kernel, OwnerInvitationRateLimit $rateLimit, NavigationRegistry $navigation): void
+    public function boot(HttpKernel $kernel, OwnerInvitationRateLimit $rateLimit, NavigationRegistry $navigation, FeatureRegistry $features): void
     {
         $rateLimit->register();
 
@@ -83,6 +86,11 @@ final class TenancyServiceProvider extends ServiceProvider
             $kernel->addToMiddlewarePriorityAfter(EnsureSessionMatchesTenant::class, EnsureTenantIsActive::class);
             // Before authentication, so the central panel answers 404 on a tenant's host instead of asking for a sign-in.
             $kernel->addToMiddlewarePriorityAfter(EnsureTenantIsActive::class, EnsureCentralLevel::class);
+        }
+
+        // Team is the teams module's model, so it gets the tenant scope here rather than through BelongsToTenant.
+        if ($features->isEnabled(Feature::Teams->value)) {
+            TenantModels::scope(Team::class);
         }
 
         PackageRoutes::web(__DIR__.'/../../../routes/tenant-owner.php');

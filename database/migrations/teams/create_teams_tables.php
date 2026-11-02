@@ -10,6 +10,8 @@ return new class extends Migration
     {
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
+            // With multi-tenancy the team belongs to a tenant; without it every team stays 0, the central level.
+            $table->unsignedBigInteger('tenant_id')->default(0)->index();
             $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
             $table->string('name');
             $table->boolean('personal')->default(false);
