@@ -26,6 +26,7 @@ use Ssdev\Headless\Permissions\HeadlessPermission;
 use Ssdev\Headless\Permissions\PermissionRegistry;
 use Ssdev\Headless\Permissions\PermissionSynchronizer;
 use Ssdev\Headless\Tests\Fixtures\Permissions\FakePermission;
+use Ssdev\Headless\Tests\Support\AllFeaturesTestCase;
 use Ssdev\Headless\Tests\Support\FixtureProject;
 use Ssdev\Headless\Tests\Support\RolesTestCase;
 use Ssdev\Headless\Tests\Support\TeamsRolesTestCase;
@@ -33,6 +34,7 @@ use Ssdev\Headless\Tests\Support\TeamsTestCase;
 use Ssdev\Headless\Tests\Support\TeamsUsersTestCase;
 use Ssdev\Headless\Tests\Support\TenancyRolesTestCase;
 use Ssdev\Headless\Tests\Support\TenancyTeamsTestCase;
+use Ssdev\Headless\Tests\Support\TenancyTeamsUsersTestCase;
 use Ssdev\Headless\Tests\Support\TenancyTestCase;
 use Ssdev\Headless\Tests\Support\TwoFactorTestCase;
 use Ssdev\Headless\Tests\Support\UsersRolesTestCase;
@@ -67,6 +69,10 @@ uses(TenancyTestCase::class, RefreshDatabase::class)->in('Features/Tenancy');
 uses(TenancyTeamsTestCase::class, RefreshDatabase::class)->in('Features/TenancyTeams');
 
 uses(TenancyRolesTestCase::class, RefreshDatabase::class)->in('Features/TenancyRoles');
+
+uses(TenancyTeamsUsersTestCase::class, RefreshDatabase::class)->in('Features/TenancyTeamsUsers');
+
+uses(AllFeaturesTestCase::class, RefreshDatabase::class)->in('Features/AllFeatures');
 
 function headlessPage(string $name): string
 {
