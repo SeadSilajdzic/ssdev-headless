@@ -6,6 +6,7 @@ use Composer\InstalledVersions;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Event;
 use Inertia\ServiceProvider as InertiaServiceProvider;
 use Laravel\Fortify\FortifyServiceProvider;
@@ -19,12 +20,22 @@ use Workbench\App\Models\User;
 
 abstract class TestCase extends Orchestra
 {
-    use WithLaravelMigrations;
+    use WithLaravelMigrations {
+        setUpWithLaravelMigrations as loadLaravelMigrationsOnSetUp;
+    }
+
+    private static ?string $migratedTestCase = null;
 
     protected function setUp(): void
     {
         // Parallel processes rewriting one provider manifest at once fail on Windows, so each process gets its own.
         $_SERVER['APP_SERVICES_CACHE'] = 'bootstrap/cache/services-'.(getenv('TEST_TOKEN') ?: 'serial').'.php';
+
+        // MySQL and PostgreSQL are migrated once per process, but each feature's test case loads other migrations.
+        if (self::$migratedTestCase !== get_parent_class($this)) {
+            RefreshDatabaseState::$migrated = false;
+            self::$migratedTestCase = get_parent_class($this) ?: null;
+        }
 
         parent::setUp();
 
@@ -34,6 +45,24 @@ abstract class TestCase extends Orchestra
 
         // Laravel applications register this listener themselves; the Testbench skeleton does not.
         Event::listen(Registered::class, SendEmailVerificationNotification::class);
+    }
+
+    /**
+     * Once a persistent database holds this test case's schema, Testbench would migrate nothing and roll every
+     * migration back after the test, which MySQL refuses while foreign keys point between the tables.
+     */
+    protected function loadMigrationsFrom(array|string $paths): void
+    {
+        if (! RefreshDatabaseState::$migrated) {
+            parent::loadMigrationsFrom($paths);
+        }
+    }
+
+    protected function setUpWithLaravelMigrations(): void
+    {
+        if (! RefreshDatabaseState::$migrated) {
+            $this->loadLaravelMigrationsOnSetUp();
+        }
     }
 
     protected function getPackageProviders($app): array
@@ -53,7 +82,8 @@ abstract class TestCase extends Orchestra
 
     protected function defineEnvironment($app): void
     {
-        $app['config']->set('database.default', 'testing');
+        // SQLite in memory unless DB_CONNECTION names another, as the CI matrix does for MySQL and PostgreSQL.
+        $app['config']->set('database.default', getenv('DB_CONNECTION') ?: 'testing');
         $app['config']->set('auth.providers.users.model', User::class);
         $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('a', 32)));
     }

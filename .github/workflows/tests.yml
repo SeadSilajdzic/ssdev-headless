@@ -12,18 +12,36 @@ jobs:
       matrix:
         php: ['8.3', '8.4']
         laravel: ['12.*', '13.*']
+        database: ['sqlite', 'mysql']
         include:
           - laravel: '12.*'
             testbench: '10.*'
           - laravel: '13.*'
             testbench: '11.*'
-    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }} / ${{ matrix.database }}
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: headless_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h 127.0.0.1" --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      # Empty for SQLite, so the tests keep their in-memory database.
+      DB_CONNECTION: ${{ matrix.database != 'sqlite' && matrix.database || '' }}
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: headless_test
+      DB_USERNAME: root
+      DB_PASSWORD: password
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: pdo_sqlite, fileinfo, gd
+          extensions: pdo_sqlite, pdo_mysql, fileinfo, gd
           coverage: none
       - run: composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-update --no-interaction
       - run: composer update --prefer-dist --no-interaction
