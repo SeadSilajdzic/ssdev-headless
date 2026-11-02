@@ -3,6 +3,7 @@
 namespace Ssdev\Headless\Features\Teams;
 
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Contracts\Notifications\Dispatcher as Notifications;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Foundation\Auth\User;
@@ -26,6 +27,7 @@ final class TeamInvitationService
         private ConnectionInterface $database,
         private Notifications $notifications,
         private Repository $config,
+        private Hasher $hasher,
     ) {}
 
     /**
@@ -86,6 +88,30 @@ final class TeamInvitationService
             $user->forceFill(['current_team_id' => $team->getKey()])->save();
 
             return $team;
+        });
+    }
+
+    /**
+     * For an address without an account: the mailed link proves the address, so the new account starts verified.
+     */
+    public function createAccount(int|string $invitationId, string $name, #[\SensitiveParameter] string $password): User
+    {
+        return $this->database->transaction(function () use ($invitationId, $name, $password): User {
+            $invitation = TeamInvitation::query()->lockForUpdate()->findOrFail($invitationId);
+
+            if ($this->users->emailTaken($invitation->email)) {
+                throw ValidationException::withMessages(['email' => __('headless::teams.errors.account_exists')]);
+            }
+
+            $account = $this->users->create([
+                'name' => $name,
+                'email' => $invitation->email,
+                'password' => $this->hasher->make($password),
+                'email_verified_at' => now(),
+            ]);
+            $this->accept($account, $invitation->getKey());
+
+            return $account;
         });
     }
 

@@ -136,8 +136,9 @@ it('accepts once', function () {
     expect($team->members()->count())->toBe(2);
 });
 
-it('sends guests to sign in first', function () {
+it('sends guests with an account to sign in first', function () {
     [$team, $owner] = invitingTeam();
+    User::factory()->create(['email' => 'ada@example.com']);
     app(TeamInvitationService::class)->invite($owner, $team, 'ada@example.com', null);
 
     get(teamInvitationLink('ada@example.com'))->assertRedirect(route('login'));

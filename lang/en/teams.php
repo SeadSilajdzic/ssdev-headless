@@ -82,7 +82,15 @@ return [
         'other_account' => 'This invitation was sent to another email address. Sign in with that address to join the team.',
     ],
 
+    'invitation_account' => [
+        'title' => 'Join :team',
+        'subtitle' => 'Create your account to join the team.',
+        'name' => 'Your name',
+        'submit' => 'Create account and join',
+    ],
+
     'errors' => [
+        'account_exists' => 'An account with this email already exists. Sign in to accept the invitation.',
         'not_a_member' => 'This person is not a member of the team.',
         'owner_cannot_leave' => 'The owner cannot leave the team. Hand it over to another member first.',
         'cannot_remove_owner' => 'The owner cannot be removed from the team.',

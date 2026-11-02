@@ -10,14 +10,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class RequireVerifiedEmail
 {
+    // For pages guests may open too: only a signed-in account has to be verified.
+    public const SIGNED_IN = 'signed-in';
+
     public function __construct(
         private Repository $config,
         private EnsureEmailIsVerified $verified,
     ) {}
 
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?string $who = null): Response
     {
-        if (! $this->config->get('headless.email_verification')) {
+        if (! $this->config->get('headless.email_verification') || ($who === self::SIGNED_IN && $request->user() === null)) {
             return $next($request);
         }
 

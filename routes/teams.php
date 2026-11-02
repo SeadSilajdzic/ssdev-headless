@@ -1,18 +1,28 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Ssdev\Headless\Auth\RateLimits;
 use Ssdev\Headless\Features\Teams\Http\Controllers\AcceptTeamInvitationController;
 use Ssdev\Headless\Features\Teams\Http\Controllers\CurrentTeamController;
 use Ssdev\Headless\Features\Teams\Http\Controllers\TeamController;
+use Ssdev\Headless\Features\Teams\Http\Controllers\TeamInvitationAccountController;
 use Ssdev\Headless\Features\Teams\Http\Controllers\TeamInvitationController;
 use Ssdev\Headless\Features\Teams\Http\Controllers\TeamMemberController;
 use Ssdev\Headless\Features\Teams\Http\Controllers\TeamOwnerController;
 use Ssdev\Headless\Features\Teams\TeamInvitationRateLimit;
 use Ssdev\Headless\Http\Middleware\RequireVerifiedEmail;
 
-Route::middleware(['auth', RequireVerifiedEmail::class, 'signed'])->prefix('team-invitations')->group(function () {
-    Route::get('{invitation}', [AcceptTeamInvitationController::class, 'show'])->whereNumber('invitation')->name('headless.team-invitations.show');
-    Route::post('{invitation}', [AcceptTeamInvitationController::class, 'store'])->whereNumber('invitation')->name('headless.team-invitations.store');
+// Guests open the link too: one with an account signs in first, one without creates it, as the mailed link proves the address.
+Route::middleware('signed')->prefix('team-invitations')->whereNumber('invitation')->group(function () {
+    Route::get('{invitation}', [AcceptTeamInvitationController::class, 'show'])
+        ->middleware(RequireVerifiedEmail::class.':'.RequireVerifiedEmail::SIGNED_IN)
+        ->name('headless.team-invitations.show');
+    Route::post('{invitation}', [AcceptTeamInvitationController::class, 'store'])
+        ->middleware(['auth', RequireVerifiedEmail::class])
+        ->name('headless.team-invitations.store');
+    Route::post('{invitation}/account', [TeamInvitationAccountController::class, 'store'])
+        ->middleware(['guest', 'throttle:'.RateLimits::REGISTRATION])
+        ->name('headless.team-invitations.account');
 });
 
 Route::middleware(['auth', RequireVerifiedEmail::class])->group(function () {
