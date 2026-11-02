@@ -4,6 +4,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Ssdev\Headless\Features\Tenancy\Tenant;
 use Ssdev\Headless\Support\Isolation;
 
@@ -54,4 +55,12 @@ it('leaves central paths and keys unchanged', function () {
 
     expect([$isolation->path('avatars'), $isolation->key('login|ip')])->toBe(['avatars', 'login|ip'])
         ->and($acme->execute(fn () => [$isolation->path('avatars'), $isolation->key('login|ip')]))->toBe(["tenants/{$acme->id}/avatars", "tenant:{$acme->id}|login|ip"]);
+});
+
+it('keeps a root URL the application forced itself once a tenant is left', function () {
+    URL::forceRootUrl('http://app.example.com');
+    $acme = makeTenant('acme');
+
+    expect($acme->execute(fn () => url('reports')))->toBe('http://acme.localhost/reports')
+        ->and(url('reports'))->toBe('http://app.example.com/reports');
 });
