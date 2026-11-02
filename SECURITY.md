@@ -18,7 +18,6 @@ Every item of the project's security checklist, with how the package handles it.
 |---|---|
 | Covered | Implemented by the package and, where possible, proven by a test |
 | Partial | The package handles its part; the rest depends on the application or a later release |
-| Planned (Plan N) | Arrives with a feature that is not released yet: 10 features inside tenants |
 | Application responsibility | Belongs to the application, server or infrastructure, not to the package |
 | Not applicable | The package has no such functionality in v1 |
 
@@ -95,7 +94,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Type Confusion / Type Juggling Protection | Covered | `hash_equals()` for fingerprints and session hashes, strict comparisons |
 | Open Redirect Protection | Covered | `Feature/Auth/LoginTest › ignores a protocol-relative intended url after login`, `Feature/Auth/PasswordConfirmationTest › ignores an external intended url after confirming` |
 | Host Header Injection Protection | Partial | Redirects are checked against `app.url`, not the Host header; configure `TrustHosts` in the application |
-| Multi-Tenant Data Isolation | Partial | One database with `tenant_id`; `BelongsToTenant` scopes reads, updates and deletes and fills new rows from the current tenant (`Features/Tenancy/TenantScopeTest`); accounts, sessions, tokens and reset links stay in their tenant (`Features/Tenancy/AccountIsolationTest`, `Features/Tenancy/PasswordResetIsolationTest`); user management, roles and teams inside tenants arrive with Plan 10 |
+| Multi-Tenant Data Isolation | Partial | One database with `tenant_id`; `BelongsToTenant` scopes reads, updates and deletes and fills new rows from the current tenant (`Features/Tenancy/TenantScopeTest`); accounts, sessions, tokens and reset links stay in their tenant (`Features/Tenancy/AccountIsolationTest`, `Features/Tenancy/PasswordResetIsolationTest`); roles, teams and the permission cache are kept per tenant (`Features/TenancyRoles/TenantRolesTest`, `Features/TenancyTeams/TenantTeamsTest`); the application's own models need `BelongsToTenant` |
 | Cache Isolation | Covered | The default cache store is prefixed per tenant (`Features/Tenancy/IsolationTest › keeps cache entries apart per tenant`) |
 | Cache Key Security | Covered | Rate limiter keys include email, IP or user id, and the tenant (`Features/Tenancy/IsolationTest › counts sign-in attempts per tenant`) |
 | Sensitive Data Protection | Covered | Hidden attributes, explicit resources, `#[\SensitiveParameter]` on password arguments |
@@ -113,7 +112,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Validate dynamic column/filter fields | Covered | One criteria class per filter, validated by `ListUsersRequest`; searches escape `%` and `_` (`Features/Users/UserRepositoryTest › treats wildcards in a search as text`) |
 | Prevent unauthorized resource access | Covered | Account endpoints are scoped to the signed-in user |
 | Enforce ownership checks | Covered | `Feature/Settings/BrowserSessionsTest › returns not found for another user session` |
-| Enforce tenant boundaries | Partial | The tenant comes from the host only; unknown hosts answer 404 (`Features/Tenancy/HostIdentificationTest`); a given `tenant_id` is ignored and rows cannot move (`Features/Tenancy/TenantScopeTest › fills the tenant from the context and ignores a given tenant_id`, `› refuses moving a row to another tenant`); features inside tenants arrive with Plan 10 |
+| Enforce tenant boundaries | Partial | The tenant comes from the host only; unknown hosts answer 404 (`Features/Tenancy/HostIdentificationTest`); a given `tenant_id` is ignored and rows cannot move (`Features/Tenancy/TenantScopeTest › fills the tenant from the context and ignores a given tenant_id`, `› refuses moving a row to another tenant`); users, roles and teams of another tenant or the central level answer 404 or a validation error (`Features/TenancyRoles/TenantFeaturesTest`, `Features/TenancyTeams/TenantTeamsTest › answers 404 for another tenant's team`) |
 | Prevent N+1 queries | Covered | Core pages run a fixed number of queries |
 | Use transactions for atomic operations | Covered | See Database Transactions |
 | Use lockForUpdate() where required | Covered | Email confirmation |
@@ -262,7 +261,7 @@ Tests are named `file › test`, relative to `tests/`.
 
 ### Multi-tenancy
 
-**Partial** — `tenant_id` never comes from a request; `BelongsToTenant` scopes reads, updates and deletes; queued jobs run in the tenant that dispatched them (`Features/Tenancy/QueueIsolationTest`); files go under `tenants/{id}/` (`Features/Tenancy/IsolationTest › stores avatars under the tenant's directory`); a suspended tenant answers 403 (`Features/Tenancy/SuspensionTest`); the central panel and its API answer 404 on a tenant's host (`Features/Tenancy/TenantPagesTest › hides the pages on tenant hosts`, `Features/Tenancy/TenantsApiTest › answers 404 on a tenant host`); deleting a tenant removes its accounts, tokens, sessions and files and leaves other tenants and central accounts alone (`Features/Tenancy/TenantLifecycleTest`). User management, roles and teams inside tenants arrive with Plan 10.
+**Partial** — `tenant_id` never comes from a request; `BelongsToTenant` scopes reads, updates and deletes; queued jobs run in the tenant that dispatched them (`Features/Tenancy/QueueIsolationTest`); files go under `tenants/{id}/` (`Features/Tenancy/IsolationTest › stores avatars under the tenant's directory`); a suspended tenant answers 403 (`Features/Tenancy/SuspensionTest`); the central panel and its API answer 404 on a tenant's host (`Features/Tenancy/TenantPagesTest › hides the pages on tenant hosts`, `Features/Tenancy/TenantsApiTest › answers 404 on a tenant host`); deleting a tenant removes its accounts, tokens, sessions and files and leaves other tenants and central accounts alone (`Features/Tenancy/TenantLifecycleTest`); user management, roles and teams work inside each tenant and separately on the central level, and Spatie's permission cache is kept per tenant, also within one process (`Features/TenancyRoles/TenantRolesTest › checks permissions against the current tenant's roles in one process`). The application's own models need `BelongsToTenant`.
 
 ### Logging & error handling
 
@@ -333,7 +332,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Test every protected endpoint without using the frontend | Covered | Feature tests call the HTTP endpoints directly |
 | Test changing resource IDs manually | Covered | `Feature/Settings/BrowserSessionsTest › returns not found for another user session` |
 | Test accessing another user's resources | Covered | Same test |
-| Test accessing another tenant's resources | Partial | `Features/Tenancy/AccountIsolationTest`, `Features/Tenancy/TenantScopeTest`, `Features/Tenancy/QueueIsolationTest`; features inside tenants arrive with Plan 10 |
+| Test accessing another tenant's resources | Partial | `Features/Tenancy/AccountIsolationTest`, `Features/Tenancy/TenantScopeTest`, `Features/Tenancy/QueueIsolationTest`, `Features/TenancyRoles/TenantFeaturesTest`, `Features/TenancyTeams/TenantTeamsTest` |
 | Test normal user access to admin endpoints | Covered | `Features/Roles/RolePagesTest › forbids the roles pages without roles.view`, `Features/Roles/RolesApiTest › forbids roles without roles.view` |
 | Test manipulating hidden/disabled fields | Covered | `Feature/Settings/ProfileTest › requires the current password to change the email` |
 | Test modifying privileged fields | Covered | Admins change only the name and email; blocking, invitations and roles have their own permissions (`Features/Users/UserPagesTest › forbids each change without its permission`) |

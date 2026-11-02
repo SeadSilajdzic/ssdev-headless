@@ -247,7 +247,7 @@ Select it in `headless:install` or add it later with `php artisan headless:add t
 - Anyone can create teams and switch between them with the switcher under the logo. The current team is the user's `current_team_id`; scope your own data to it.
 - The owner renames and deletes the team, invites people by email, removes members and hands the team over to another member. The owner cannot leave without handing it over, and an account that owns a team with other members cannot be deleted until it does.
 - Only the owner sees the members' email addresses; other members see names, and their own address.
-- An invitation is a signed link that expires after `teams.invitation_expire_minutes` (a week), works once and only for the address it was sent to, once that address is verified; another account that opens it sees neither the team nor the address. Inviting the same address again refreshes the invitation. Invitations are limited by `rate_limits.team_invitations` per minute.
+- An invitation is a signed link that expires after `teams.invitation_expire_minutes` (a week), works once and only for the address it was sent to, once that address is verified; another account that opens it sees neither the team nor the address. Someone without an account creates one from the link, even with sign-up closed, and inside a tenant the account belongs to that tenant; someone with an account signs in first. Inviting the same address again refreshes the invitation. Invitations are limited by `rate_limits.team_invitations` per minute.
 - With `teams.personal_team` on, every new account gets a team of its own.
 
 With roles on, permissions follow Spatie's teams mode with a global context:
@@ -286,7 +286,7 @@ Every tenant lives on a subdomain of `tenancy.base_domain`, such as `acme.exampl
 - Run code for one tenant with `$tenant->execute(fn () => SendReport::dispatch())`; jobs dispatched there run in that tenant.
 - Sign-up inside a tenant is off; turn it on with `tenancy.registration`.
 - A suspended tenant shows a suspension page, its API answers 403 and nobody can sign in.
-- User management, roles and teams do not work inside tenants yet.
+- User management, roles and teams work inside every tenant and, separately, on the central level: a tenant's admins see and manage only its accounts, roles and teams. Each tenant defines its own roles; the package sets `permission.models.role` to `Ssdev\Headless\Features\Tenancy\TenantRole` and keeps Spatie's permission cache per tenant. With a role model of your own, add `BelongsToTenant` to it. Teams belong to the tenant they were created in.
 
 ### Tenants panel
 
@@ -298,9 +298,9 @@ Platform admins manage tenants on the central domain under **Administration → 
 | `tenants.manage` | create, rename, suspend, resume and delete tenants, and send the owner's invitation again |
 
 - **Creating** takes a name, a subdomain and the owner's email. The subdomain is 3 to 63 lowercase letters, digits and hyphens, not starting or ending with a hyphen and not one of `tenancy.reserved_subdomains` (`www`, `admin`, `api`…). It never changes afterwards; only the name does.
-- **The owner** is the tenant's first account. It holds every permission of the tenant except `tenants.*`, so it manages everyone else. It gets an invitation to choose a name and a password on the tenant's subdomain; the link works once, only for that email, and expires after `tenancy.owner_invitation_expire_minutes` (a week). Sending it again replaces the old link, at most `rate_limits.owner_invitations` times a minute.
+- **The owner** is the tenant's first account. It holds every permission of the tenant except `tenants.*`, through the tenant's `Administrator` role when roles are on, so it manages everyone else. It gets an invitation to choose a name and a password on the tenant's subdomain; the link works once, only for that email, and expires after `tenancy.owner_invitation_expire_minutes` (a week). Sending it again replaces the old link, at most `rate_limits.owner_invitations` times a minute.
 - **Suspending** closes the tenant's site and API until it is resumed.
-- **Deleting** is permanent and needs the subdomain typed again. It removes the tenant's accounts with their API tokens, sessions, role assignments and reset links, and the tenant's directory (`tenants/{id}/`) on the avatars disk, the default disk and the disks listed in `tenancy.disks`. Delete your own rows on `TenantDeleting`, which runs inside the tenant and the deletion's transaction, so a model with `BelongsToTenant` sees only that tenant's rows:
+- **Deleting** is permanent and needs the subdomain typed again. It removes the tenant's accounts with their API tokens, sessions, role assignments and reset links, its roles and teams, and the tenant's directory (`tenants/{id}/`) on the avatars disk, the default disk and the disks listed in `tenancy.disks`. Delete your own rows on `TenantDeleting`, which runs inside the tenant and the deletion's transaction, so a model with `BelongsToTenant` sees only that tenant's rows:
 
 ```php
 use Illuminate\Support\Facades\Event;
