@@ -11,7 +11,7 @@ use Workbench\App\Models\TenantUser;
 
 use function Pest\Laravel\actingAs;
 
-it('gives the owner global permissions, not in the creating admin\'s team', function () {
+it('gives the owner a global role, not one in the creating admin\'s team', function () {
     Notification::fake();
     $admin = TenantUser::factory()->create();
     app(TeamService::class)->create($admin, 'Platform');
@@ -21,7 +21,7 @@ it('gives the owner global permissions, not in the creating admin\'s team', func
     $owner = app(TenantOwnerService::class)->owner($tenant) ?? throw new LogicException('No owner.');
 
     expect($admin->fresh()?->getAttribute('current_team_id'))->not->toBeNull()
-        ->and(DB::table('model_has_permissions')->where('model_id', $owner->getKey())->distinct()->pluck('team_id')->all())->toBe([TeamContext::GLOBAL])
+        ->and(DB::table('model_has_roles')->where('model_id', $owner->getKey())->distinct()->pluck('team_id')->all())->toBe([TeamContext::GLOBAL])
         ->and($tenant->execute(function () use ($owner): bool {
             actingAs($owner);
 
