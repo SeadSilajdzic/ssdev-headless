@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Contracts\Notifications\Dispatcher as Notifications;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Ssdev\Headless\Notifications\AccountCreatedNotification;
 use Ssdev\Headless\Notifications\RegistrationAttemptedNotification;
@@ -18,6 +19,7 @@ final class RegistrationService
         private Hasher $hasher,
         private Dispatcher $events,
         private Notifications $notifications,
+        private ConnectionInterface $database,
     ) {}
 
     /**
@@ -34,9 +36,9 @@ final class RegistrationService
             return;
         }
 
-        // One insert guarded by the unique email index; inside a transaction PostgreSQL would reject the follow-up read.
         try {
-            $user = $this->users->create(['name' => $data->name, 'email' => $data->email, 'password' => $password]);
+            // The savepoint keeps an outer PostgreSQL transaction usable when a parallel request took the email first.
+            $user = $this->database->transaction(fn () => $this->users->create(['name' => $data->name, 'email' => $data->email, 'password' => $password]));
         } catch (UniqueConstraintViolationException) {
             $this->notifyExistingAccount($data->email);
 

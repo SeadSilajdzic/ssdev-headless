@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -76,8 +77,15 @@ it('responds identically when the email is already registered', function () {
 });
 
 it('treats a duplicate insert race as an existing account', function () {
-    User::creating(function (User $user) {
-        DB::table('users')->insert(['name' => 'Racer', 'email' => $user->email, 'password' => 'x', 'created_at' => now(), 'updated_at' => now()]);
+    $raced = false;
+    // The parallel request inserts between this request's check for the email and its own insert.
+    DB::listen(function (QueryExecuted $query) use (&$raced) {
+        if ($raced || ! str_starts_with($query->sql, 'select') || ! in_array('ada@example.com', $query->bindings, true)) {
+            return;
+        }
+
+        $raced = true;
+        DB::table('users')->insert(['name' => 'Racer', 'email' => 'ada@example.com', 'password' => 'x', 'created_at' => now(), 'updated_at' => now()]);
     });
 
     submitRegistration()->assertRedirect(route('login'))->assertSessionHas('status', __('headless::auth.registration.check_inbox'));

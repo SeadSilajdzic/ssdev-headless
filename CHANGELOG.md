@@ -30,6 +30,10 @@ All notable changes to this project are documented in this file. The format foll
 - `ApiTokenAuthenticator::issue()` is split into `authenticate()` and `issueToken()`.
 - With tenancy on, sign-up on the central domain is closed; central accounts come from `headless:create-admin` and user management invitations.
 
+### Fixed
+
+- Two sign-ups with the same email at once no longer break an application's own surrounding database transaction on PostgreSQL.
+
 ## [0.3.1] - 2026-10-21
 
 ### Fixed
