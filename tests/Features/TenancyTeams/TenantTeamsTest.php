@@ -1,9 +1,11 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Ssdev\Headless\Features\Teams\Team;
 use Ssdev\Headless\Features\Teams\TeamInvitationService;
 use Ssdev\Headless\Features\Teams\TeamService;
+use Ssdev\Headless\Features\Tenancy\TenantDeletionService;
 use Workbench\App\Models\TenantUser;
 
 use function Pest\Laravel\getJson;
@@ -48,4 +50,15 @@ it('refuses a team invitation link on another tenant\'s host', function () {
     postJson(tenantUrl($globex, "api/v1/team-invitations/{$invitation->id}/accept"), $signature)->assertForbidden();
 
     expect($acme->execute(fn () => $acmeTeam->members()->count()))->toBe(1);
+});
+
+it('deletes the tenant\'s teams with the tenant', function () {
+    $acme = makeTenant('acme');
+    $central = app(TeamService::class)->create(TenantUser::factory()->create(), 'Platform');
+    $acmeOwner = tenantUser($acme);
+    $acme->execute(fn () => app(TeamService::class)->create($acmeOwner, 'Acme team'));
+
+    app(TenantDeletionService::class)->delete(TenantUser::factory()->create(), $acme);
+
+    expect(DB::table('teams')->pluck('id')->all())->toBe([$central->id]);
 });

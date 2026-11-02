@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
@@ -10,6 +11,7 @@ use Ssdev\Headless\Features\Roles\RolePermission;
 use Ssdev\Headless\Features\Roles\RoleRepository;
 use Ssdev\Headless\Features\Roles\RoleService;
 use Ssdev\Headless\Features\Tenancy\Tenant;
+use Ssdev\Headless\Features\Tenancy\TenantDeletionService;
 use Ssdev\Headless\Permissions\PermissionSynchronizer;
 use Ssdev\Headless\Tests\Fixtures\Permissions\FakePermission;
 use Workbench\App\Models\TenantUser;
@@ -102,4 +104,17 @@ it('keeps the tenant in the roles unique index, also when teams arrive after ten
 
     (require $migrations.'/teams/add_teams_to_permission_tables.php')->up();
     expect(rolesUniqueColumns())->toBe(['tenant_id', 'team_id', 'name', 'guard_name']);
+});
+
+it('deletes the tenant\'s roles with the tenant', function () {
+    $acme = makeTenant('acme');
+    $globex = makeTenant('globex');
+    levelRole('Editor', [FakePermission::ReportsView->value]);
+    $acme->execute(fn () => tenantUser($acme)->assignRole(levelRole('Editor', [FakePermission::ReportsView->value])));
+    $globex->execute(fn () => levelRole('Editor'));
+
+    app(TenantDeletionService::class)->delete(TenantUser::factory()->create(), $acme);
+
+    expect(DB::table('roles')->pluck('tenant_id')->map(fn ($tenant) => (int) $tenant)->all())->toEqualCanonicalizing([0, $globex->id])
+        ->and(DB::table('role_has_permissions')->count())->toBe(1);
 });

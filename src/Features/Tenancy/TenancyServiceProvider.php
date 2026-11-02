@@ -3,6 +3,7 @@
 namespace Ssdev\Headless\Features\Tenancy;
 
 use Illuminate\Auth\Passwords\PasswordBrokerManager;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Foundation\Http\Kernel;
@@ -14,10 +15,12 @@ use Ssdev\Headless\Features\Feature;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Features\Teams\Team;
 use Ssdev\Headless\Features\Tenancy\Auth\TenantPasswordBrokerManager;
+use Ssdev\Headless\Features\Tenancy\Events\TenantDeleting;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureCentralLevel;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureSessionMatchesTenant;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureTenantIsActive;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\IdentifyTenant;
+use Ssdev\Headless\Features\Tenancy\Listeners\DeleteTenantTeams;
 use Ssdev\Headless\Features\Tenancy\Queue\KeepQueuedJobsInTheirTenantAction;
 use Ssdev\Headless\Features\Tenancy\Tasks\ForceTenantRootUrl;
 use Ssdev\Headless\Features\Tenancy\Tasks\SwitchPermissionCache;
@@ -71,7 +74,7 @@ final class TenancyServiceProvider extends ServiceProvider
         $this->app->extend('auth.password', fn (PasswordBrokerManager $manager, Application $app) => new TenantPasswordBrokerManager($app));
     }
 
-    public function boot(HttpKernel $kernel, OwnerInvitationRateLimit $rateLimit, NavigationRegistry $navigation, FeatureRegistry $features): void
+    public function boot(HttpKernel $kernel, OwnerInvitationRateLimit $rateLimit, NavigationRegistry $navigation, FeatureRegistry $features, Dispatcher $events): void
     {
         $rateLimit->register();
 
@@ -91,6 +94,7 @@ final class TenancyServiceProvider extends ServiceProvider
         // Team is the teams module's model, so it gets the tenant scope here rather than through BelongsToTenant.
         if ($features->isEnabled(Feature::Teams->value)) {
             TenantModels::scope(Team::class);
+            $events->listen(TenantDeleting::class, DeleteTenantTeams::class);
         }
 
         PackageRoutes::web(__DIR__.'/../../../routes/tenant-owner.php');

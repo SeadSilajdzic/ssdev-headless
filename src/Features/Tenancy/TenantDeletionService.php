@@ -7,7 +7,9 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Filesystem\Factory;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
+use Spatie\Permission\PermissionRegistrar;
 use Ssdev\Headless\Account\PersonalAccessTokenService;
 use Ssdev\Headless\Account\SessionRepository;
 use Ssdev\Headless\Features\Tenancy\Events\TenantDeleted;
@@ -26,6 +28,7 @@ final class TenantDeletionService
         private Factory $storage,
         private Repository $config,
         private Dispatcher $events,
+        private PermissionRegistrar $registrar,
     ) {}
 
     public function delete(User $actor, Tenant $tenant): void
@@ -38,6 +41,7 @@ final class TenantDeletionService
             $tenant->execute(function (Tenant $tenant): void {
                 $this->events->dispatch(new TenantDeleting($tenant));
                 $this->deleteAccounts($tenant);
+                $this->deleteRoles($tenant);
             });
 
             $this->deleteBrokerTokens($tenant);
@@ -60,6 +64,15 @@ final class TenantDeletionService
             // A force delete also detaches the account's roles and permissions.
             $account->forceDelete();
         }
+    }
+
+    private function deleteRoles(Tenant $tenant): void
+    {
+        $roleClass = $this->registrar->getRoleClass();
+
+        // An explicit tenant, so an application's own role model without the scope still loses only this tenant's roles.
+        // One by one, as Spatie detaches a role's permissions and members when the model is deleted.
+        $roleClass::query()->withoutGlobalScopes()->where(TenantContext::COLUMN, $tenant->getKey())->each(fn (Model $role) => $role->delete());
     }
 
     /**
