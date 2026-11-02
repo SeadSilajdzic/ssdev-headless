@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Ssdev\Headless\Features\Tenancy\Events\TenantDeleted;
 use Ssdev\Headless\Features\Tenancy\Events\TenantDeleting;
 use Ssdev\Headless\Features\Tenancy\Events\TenantResumed;
@@ -109,7 +110,7 @@ it('leaves other tenants and central accounts alone', function () {
     expect(DB::table('users')->pluck('id')->all())->toEqualCanonicalizing([$globexAccount->id, $central->id])
         ->and(DB::table('personal_access_tokens')->pluck('tokenable_id')->all())->toEqualCanonicalizing([$globexAccount->id, $central->id])
         ->and(DB::table('sessions')->pluck('user_id')->all())->toEqualCanonicalizing([$globexAccount->id, $central->id])
-        ->and(DB::table('password_reset_tokens')->pluck('email')->all())->toEqualCanonicalizing(["{$globex->id}|ada@example.com", 'admin@example.com'])
+        ->and(DB::table('password_reset_tokens')->pluck('email')->map(fn (string $key) => Str::before($key, '|'))->all())->toEqualCanonicalizing([(string) $globex->id, 'admin@example.com'])
         ->and(Storage::disk('public')->allFiles())->toEqualCanonicalizing(["tenants/{$globex->id}/avatars/ada@example.com.png", 'avatars/admin@example.com.png'])
         ->and($globex->fresh())->not->toBeNull();
 });

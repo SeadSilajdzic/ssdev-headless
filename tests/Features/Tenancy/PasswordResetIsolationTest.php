@@ -60,3 +60,17 @@ it('keeps central reset tokens keyed by the plain email', function () {
 
     expect(DB::table('password_reset_tokens')->pluck('email')->all())->toBe(['central@example.com']);
 });
+
+it('never accepts a central account\'s reset token for a tenant account', function () {
+    $acme = makeTenant('acme');
+    $ada = tenantUser($acme, ['email' => 'ada@example.com']);
+    // A central email shaped like a tenant's token key.
+    $central = TenantUser::factory()->create(['email' => "{$acme->id}|ada@example.com"]);
+
+    post('http://localhost/forgot-password', ['email' => $central->email]);
+    $centralToken = mailedResetToken($central);
+
+    post(tenantUrl($acme, 'reset-password'), ['token' => $centralToken, 'email' => 'ada@example.com', 'password' => 'N3w-password!', 'password_confirmation' => 'N3w-password!'])
+        ->assertSessionHasErrors('email');
+    expect(Hash::check('password', storedPassword($ada)))->toBeTrue();
+});

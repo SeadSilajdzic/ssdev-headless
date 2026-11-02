@@ -10,6 +10,8 @@ use Ssdev\Headless\Features\Tenancy\TenantContext;
  */
 final class TenantResetIdentity implements CanResetPassword
 {
+    private const EMAIL_HASH = 'sha256';
+
     public function __construct(
         private CanResetPassword $user,
         private int $tenantKey,
@@ -19,7 +21,8 @@ final class TenantResetIdentity implements CanResetPassword
     {
         $email = (string) $this->user->getEmailForPasswordReset();
 
-        return $this->tenantKey === TenantContext::CENTRAL ? $email : $this->tenantKey.'|'.$email;
+        // A tenant's key carries a hash, never an "@", so no central account's plain email can match it.
+        return $this->tenantKey === TenantContext::CENTRAL ? $email : $this->tenantKey.'|'.hash(self::EMAIL_HASH, $email);
     }
 
     public function sendPasswordResetNotification($token): void
