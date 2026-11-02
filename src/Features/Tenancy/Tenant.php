@@ -2,7 +2,8 @@
 
 namespace Ssdev\Headless\Features\Tenancy;
 
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Carbon;
@@ -31,14 +32,21 @@ final class Tenant extends SpatieTenant
     /**
      * Read past the tenant scope, since the panel lists owners from the central level.
      *
-     * @return BelongsTo<User, $this>
+     * @return HasOne<User, $this>
      */
-    public function owner(): BelongsTo
+    public function owner(): HasOne
     {
         /** @var class-string<User> $model */
         $model = config('auth.providers.users.model');
+        $account = new $model;
 
-        return $this->belongsTo($model, 'owner_id')->withoutGlobalScope(TenantScope::class);
+        // One of the tenant's own accounts: owner_id has no foreign key, so it alone could name any account.
+        return $this->hasOne($model, TenantContext::COLUMN)
+            ->withoutGlobalScope(TenantScope::class)
+            ->whereIn($account->getQualifiedKeyName(), fn (Builder $owners) => $owners
+                ->select('owner_id')
+                ->from($this->getTable())
+                ->whereColumn($this->getQualifiedKeyName(), $account->qualifyColumn(TenantContext::COLUMN)));
     }
 
     public function execute(callable $callable): mixed
