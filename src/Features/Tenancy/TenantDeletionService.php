@@ -44,8 +44,10 @@ final class TenantDeletionService
             $tenant->delete();
         });
 
-        // Removed only after the commit, so a failed deletion never leaves accounts without their photos.
-        $this->storage->disk((string) $this->config->get('headless.avatars.disk'))->deleteDirectory($tenantDirectory);
+        // Removed only after the commit, so a failed deletion never leaves accounts without their files.
+        foreach ($this->disks() as $disk) {
+            $this->storage->disk($disk)->deleteDirectory($tenantDirectory);
+        }
 
         $this->events->dispatch(new TenantDeleted($tenantId, $subdomain, $actor));
     }
@@ -73,7 +75,19 @@ final class TenantDeletionService
     }
 
     /**
-     * Brokers keep a tenant's tokens under "<tenant>|<email>" (TenantResetIdentity).
+     * @return list<string>
+     */
+    private function disks(): array
+    {
+        return array_values(array_unique([
+            (string) $this->config->get('headless.avatars.disk'),
+            (string) $this->config->get('filesystems.default'),
+            ...(array) $this->config->get('headless.tenancy.disks', []),
+        ]));
+    }
+
+    /**
+     * Brokers keep a tenant's tokens under keys that start with "<tenant>|" (TenantResetIdentity).
      */
     private function deleteBrokerTokens(Tenant $tenant): void
     {

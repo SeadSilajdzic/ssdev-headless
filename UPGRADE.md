@@ -32,7 +32,7 @@ Multi-tenancy is optional as well. Add it with `php artisan headless:add tenancy
 - With teams on, deleting an account that owns a team with other members is refused until the team is handed over.
 - The roles and users pages ask for the password before they open, like the API tokens page.
 - If your code calls `Ssdev\Headless\Account\ApiTokenAuthenticator::issue()`, call `authenticate()` and then `issueToken()` instead.
-- New config keys: `two_factor`, `users`, `teams`, `tenancy` (with `tenancy.reserved_subdomains` and `tenancy.owner_invitation_expire_minutes`), `rate_limits.two_factor`, `rate_limits.invitations`, `rate_limits.team_invitations` and `rate_limits.owner_invitations`. A published `config/headless.php` picks up their defaults; add them only to change them.
+- New config keys: `two_factor`, `users`, `teams`, `tenancy` (with `tenancy.reserved_subdomains`, `tenancy.owner_invitation_expire_minutes` and `tenancy.disks`), `rate_limits.two_factor`, `rate_limits.invitations`, `rate_limits.team_invitations` and `rate_limits.owner_invitations`. A published `config/headless.php` picks up their defaults; add them only to change them.
 
 ## Upgrading to 0.3 from 0.2
 

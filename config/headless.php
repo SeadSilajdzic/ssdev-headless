@@ -45,6 +45,8 @@ return [
         'registration' => false,
         // Directory on every disk under which each tenant's files are kept apart.
         'storage_directory' => 'tenants',
+        // Disks whose tenant directory is deleted with the tenant, besides the avatars disk and the default disk.
+        'disks' => [],
         // Paths answered on any host, on the central level: health checks often call the server by its IP address.
         'any_host_paths' => ['up'],
         // Minutes an owner's invitation link stays valid.

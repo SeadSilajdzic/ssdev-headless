@@ -300,7 +300,7 @@ Platform admins manage tenants on the central domain under **Administration → 
 - **Creating** takes a name, a subdomain and the owner's email. The subdomain is 3 to 63 lowercase letters, digits and hyphens, not starting or ending with a hyphen and not one of `tenancy.reserved_subdomains` (`www`, `admin`, `api`…). It never changes afterwards; only the name does.
 - **The owner** is the tenant's first account. It holds every permission of the tenant except `tenants.*`, so it manages everyone else. It gets an invitation to choose a name and a password on the tenant's subdomain; the link works once, only for that email, and expires after `tenancy.owner_invitation_expire_minutes` (a week). Sending it again replaces the old link, at most `rate_limits.owner_invitations` times a minute.
 - **Suspending** closes the tenant's site and API until it is resumed.
-- **Deleting** is permanent and needs the subdomain typed again. It removes the tenant's accounts with their API tokens, sessions, role assignments and reset links, and the tenant's directory (`tenants/{id}/`) on the avatars disk. Delete your own rows on `TenantDeleting`, which runs inside the tenant and the deletion's transaction, so a model with `BelongsToTenant` sees only that tenant's rows:
+- **Deleting** is permanent and needs the subdomain typed again. It removes the tenant's accounts with their API tokens, sessions, role assignments and reset links, and the tenant's directory (`tenants/{id}/`) on the avatars disk, the default disk and the disks listed in `tenancy.disks`. Delete your own rows on `TenantDeleting`, which runs inside the tenant and the deletion's transaction, so a model with `BelongsToTenant` sees only that tenant's rows:
 
 ```php
 use Illuminate\Support\Facades\Event;

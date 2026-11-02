@@ -147,3 +147,22 @@ it('stops a deleted tenant\'s token and session working', function () {
     Auth::forgetGuards();
     $this->withToken($token)->getJson(tenantUrl($newAcme, 'api/v1/me'))->assertUnauthorized();
 });
+
+it('deletes the tenant\'s directory on the avatars disk, the default disk and the listed disks', function () {
+    config(['headless.tenancy.disks' => ['media']]);
+    Storage::fake('local');
+    Storage::fake('media');
+    $acme = makeTenant('acme');
+    $globex = makeTenant('globex');
+
+    foreach (['public', 'local', 'media'] as $disk) {
+        Storage::disk($disk)->put("tenants/{$acme->id}/report.pdf", 'acme');
+        Storage::disk($disk)->put("tenants/{$globex->id}/report.pdf", 'globex');
+    }
+
+    app(TenantDeletionService::class)->delete(TenantUser::factory()->create(), $acme);
+
+    foreach (['public', 'local', 'media'] as $disk) {
+        expect(Storage::disk($disk)->allFiles())->toBe(["tenants/{$globex->id}/report.pdf"]);
+    }
+});
