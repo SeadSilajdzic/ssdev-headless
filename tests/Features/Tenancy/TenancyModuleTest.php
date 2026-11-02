@@ -2,6 +2,7 @@
 
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Ssdev\Headless\Features\Feature;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Features\Tenancy\TenancyModule;
@@ -39,4 +40,13 @@ it('allows an email once per tenant', function () {
 
 it('keeps accounts central by default', function () {
     expect(TenantUser::factory()->create()->fresh()->tenant_id)->toBe(TenantContext::CENTRAL);
+});
+
+it('refuses to roll the users migration back while an email is used in two tenants', function () {
+    tenantUser(makeTenant('acme'), ['email' => 'ada@example.com']);
+    tenantUser(makeTenant('globex'), ['email' => 'ada@example.com']);
+    $migration = require dirname(__DIR__, 3).'/database/migrations/tenancy/add_tenant_to_users_table.php';
+
+    expect(fn () => $migration->down())->toThrow(RuntimeException::class, 'more than one tenant')
+        ->and(Schema::hasColumn('users', 'tenant_id'))->toBeTrue();
 });
