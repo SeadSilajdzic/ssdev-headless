@@ -124,3 +124,8 @@ it('refuses resending once the owner accepted', function () {
 
     expect(fn () => app(TenantOwnerService::class)->resend($tenant))->toThrow(failsOn('owner'));
 });
+
+it('answers 404 on the central domain', function () {
+    get('http://localhost/owner-invitation/abc?email=owner@acme.test')->assertNotFound();
+    post('http://localhost/owner-invitation', ownerForm('http://localhost/owner-invitation/abc', 'owner@acme.test'))->assertNotFound();
+});
