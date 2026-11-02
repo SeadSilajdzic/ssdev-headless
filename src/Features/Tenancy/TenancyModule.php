@@ -15,6 +15,8 @@ final class TenancyModule implements FeatureModule
 
     public const OWNER_TOKENS_TABLE = 'tenant_owner_tokens';
 
+    public const ROLES_MIGRATION = 'add_tenant_to_roles_table';
+
     public function key(): string
     {
         return Feature::Tenancy->value;
@@ -48,6 +50,7 @@ final class TenancyModule implements FeatureModule
             self::TENANTS_MIGRATION => $directory.self::TENANTS_MIGRATION.'.php',
             self::USERS_MIGRATION => $directory.self::USERS_MIGRATION.'.php',
             self::OWNER_TOKENS_MIGRATION => $directory.self::OWNER_TOKENS_MIGRATION.'.php',
+            self::ROLES_MIGRATION => $directory.self::ROLES_MIGRATION.'.php',
         ];
     }
 

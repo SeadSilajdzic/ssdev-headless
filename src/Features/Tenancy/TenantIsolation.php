@@ -23,6 +23,11 @@ final class TenantIsolation implements Isolation
     {
         $tenant = TenantContext::currentKey();
 
-        return $tenant === TenantContext::CENTRAL ? $key : 'tenant:'.$tenant.'|'.$key;
+        return $tenant === TenantContext::CENTRAL ? $key : self::tenantKey($tenant, $key);
+    }
+
+    public static function tenantKey(int $tenant, string $key): string
+    {
+        return 'tenant:'.$tenant.'|'.$key;
     }
 }

@@ -2,8 +2,9 @@
 
 namespace Ssdev\Headless\Features\Roles\Http\Requests;
 
+use Closure;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Ssdev\Headless\Features\Roles\RoleData;
 use Ssdev\Headless\Features\Roles\RoleGuard;
 
@@ -23,14 +24,17 @@ final class SaveRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique((string) config('permission.table_names.roles'), 'name')
-                    ->where('guard_name', app(RoleGuard::class)->name())
-                    ->ignore($this->route('role')),
-            ],
+            'name' => ['bail', 'required', 'string', 'max:100', function (string $attribute, mixed $value, Closure $fail): void {
+                // Through the role model, so its scopes apply: with tenancy a name is taken only within the tenant.
+                $taken = app(RoleGuard::class)->roles()
+                    ->where('name', $value)
+                    ->when($this->route('role') !== null, fn (Builder $roles) => $roles->whereKeyNot($this->route('role')))
+                    ->exists();
+
+                if ($taken) {
+                    $fail(__('validation.unique', ['attribute' => $attribute]));
+                }
+            }],
             'permissions' => ['present', 'array'],
             'permissions.*' => ['string', 'distinct'],
         ];

@@ -9,6 +9,7 @@ use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Multitenancy\Tasks\PrefixCacheTask;
+use Spatie\Permission\Models\Role;
 use Ssdev\Headless\Features\Tenancy\Auth\TenantPasswordBrokerManager;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureCentralLevel;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureSessionMatchesTenant;
@@ -16,6 +17,7 @@ use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureTenantIsActive;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\IdentifyTenant;
 use Ssdev\Headless\Features\Tenancy\Queue\KeepQueuedJobsInTheirTenantAction;
 use Ssdev\Headless\Features\Tenancy\Tasks\ForceTenantRootUrl;
+use Ssdev\Headless\Features\Tenancy\Tasks\SwitchPermissionCache;
 use Ssdev\Headless\Features\Tenancy\Tasks\SwitchTenantRegistration;
 use Ssdev\Headless\Navigation\NavigationGroup;
 use Ssdev\Headless\Navigation\NavigationItem;
@@ -45,12 +47,17 @@ final class TenancyServiceProvider extends ServiceProvider
             // IdentifyTenant finds the tenant, so Spatie's own lookup while booting stays off.
             'multitenancy.tenant_finder' => null,
             // The rate limiter keeps the cache store it started with, so its keys are kept apart through TenantIsolation instead.
-            'multitenancy.switch_tenant_tasks' => [PrefixCacheTask::class, ForceTenantRootUrl::class, SwitchTenantRegistration::class],
+            'multitenancy.switch_tenant_tasks' => [PrefixCacheTask::class, SwitchPermissionCache::class, ForceTenantRootUrl::class, SwitchTenantRegistration::class],
             'multitenancy.queues_are_tenant_aware_by_default' => true,
             'multitenancy.actions.make_queue_tenant_aware_action' => KeepQueuedJobsInTheirTenantAction::class,
             // The central level has its own administrators; SwitchTenantRegistration opens sign-up per tenant.
             'headless.registration.enabled' => false,
         ]);
+
+        // An application's own role model is left alone; it adds BelongsToTenant itself.
+        if ($config->get('permission.models.role') === Role::class) {
+            $config->set('permission.models.role', TenantRole::class);
+        }
 
         // On booting, so it follows the token ability gate and precedes Spatie's, which registers while booting.
         $this->app->booting(fn () => $this->app->make(TenantPermissionGate::class)->register());

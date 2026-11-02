@@ -23,11 +23,19 @@ return new class extends Migration
         $morphKey = $columns['model_morph_key'];
 
         if (! Schema::hasColumn($tables['roles'], $team)) {
-            Schema::table($tables['roles'], function (Blueprint $table) use ($team) {
+            // Tenancy may have rebuilt the index before this runs, so it is found by its columns rather than its name.
+            $unique = collect(Schema::getIndexes($tables['roles']))->first(fn (array $index) => $index['unique'] && ! $index['primary'] && in_array('name', $index['columns'], true));
+            $columns = array_values(array_filter([Schema::hasColumn($tables['roles'], 'tenant_id') ? 'tenant_id' : null, $team, 'name', 'guard_name']));
+
+            Schema::table($tables['roles'], function (Blueprint $table) use ($team, $unique, $columns) {
                 $table->unsignedBigInteger($team)->nullable()->after('id');
                 $table->index($team, 'roles_team_foreign_key_index');
-                $table->dropUnique('roles_name_guard_name_unique');
-                $table->unique([$team, 'name', 'guard_name']);
+
+                if ($unique !== null) {
+                    $table->dropUnique($unique['name']);
+                }
+
+                $table->unique($columns);
             });
         }
 

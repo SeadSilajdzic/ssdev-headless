@@ -14,8 +14,8 @@ it('registers tenancy as a selectable feature', function () {
 
     expect(app(FeatureRegistry::class)->isEnabled(Feature::Tenancy->value))->toBeTrue()
         ->and($module->composerPackages())->toBe(['spatie/laravel-multitenancy' => '^4.2'])
-        ->and(array_keys($module->migrations()))->toBe([TenancyModule::TENANTS_MIGRATION, TenancyModule::USERS_MIGRATION, TenancyModule::OWNER_TOKENS_MIGRATION])
-        ->and(array_filter($module->migrations(), 'is_file'))->toHaveCount(3);
+        ->and(array_keys($module->migrations()))->toBe([TenancyModule::TENANTS_MIGRATION, TenancyModule::USERS_MIGRATION, TenancyModule::OWNER_TOKENS_MIGRATION, TenancyModule::ROLES_MIGRATION])
+        ->and(array_filter($module->migrations(), 'is_file'))->toHaveCount(4);
 });
 
 it('makes a tenant current', function () {
