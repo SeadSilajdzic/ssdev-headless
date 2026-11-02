@@ -21,10 +21,11 @@ npm run typecheck
 npm test
 ```
 
-The tests use SQLite in memory. CI also runs them on MySQL; to do that locally, point them at an empty database:
+The tests use SQLite in memory. CI also runs them on MySQL and PostgreSQL; to do that locally, point them at an empty database:
 
 ```bash
 DB_CONNECTION=mysql DB_HOST=127.0.0.1 DB_DATABASE=headless_test DB_USERNAME=root DB_PASSWORD= vendor/bin/pest
+DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_DATABASE=headless_test DB_USERNAME=postgres DB_PASSWORD=secret vendor/bin/pest
 ```
 
 ## Guidelines

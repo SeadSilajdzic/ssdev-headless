@@ -12,7 +12,7 @@ jobs:
       matrix:
         php: ['8.3', '8.4']
         laravel: ['12.*', '13.*']
-        database: ['sqlite', 'mysql']
+        database: ['sqlite', 'mysql', 'pgsql']
         include:
           - laravel: '12.*'
             testbench: '10.*'
@@ -28,20 +28,28 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping -h 127.0.0.1" --health-interval=10s --health-timeout=5s --health-retries=10
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: headless_test
+        ports:
+          - 5432:5432
+        options: --health-cmd=pg_isready --health-interval=10s --health-timeout=5s --health-retries=10
     env:
       # Empty for SQLite, so the tests keep their in-memory database.
       DB_CONNECTION: ${{ matrix.database != 'sqlite' && matrix.database || '' }}
       DB_HOST: 127.0.0.1
-      DB_PORT: 3306
+      DB_PORT: ${{ matrix.database == 'pgsql' && 5432 || 3306 }}
       DB_DATABASE: headless_test
-      DB_USERNAME: root
+      DB_USERNAME: ${{ matrix.database == 'pgsql' && 'postgres' || 'root' }}
       DB_PASSWORD: password
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: pdo_sqlite, pdo_mysql, fileinfo, gd
+          extensions: pdo_sqlite, pdo_mysql, pdo_pgsql, fileinfo, gd
           coverage: none
       - run: composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-update --no-interaction
       - run: composer update --prefer-dist --no-interaction
