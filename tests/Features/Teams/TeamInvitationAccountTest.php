@@ -23,3 +23,13 @@ it('creates the account from an invitation on a single-level app', function () {
     expect($grace->hasVerifiedEmail())->toBeTrue()
         ->and($team->members()->whereKey($grace->id)->exists())->toBeTrue();
 });
+
+it('sends a deactivated account\'s address to sign in instead of the account form', function () {
+    Notification::fake();
+    $owner = User::factory()->create();
+    $team = app(TeamService::class)->create($owner, 'Research');
+    User::factory()->create(['email' => 'grace@example.com'])->delete();
+    $link = app(TeamInvitationService::class)->link(app(TeamInvitationService::class)->invite($owner, $team, 'grace@example.com', null));
+
+    get($link)->assertRedirect(route('login'));
+});

@@ -21,8 +21,8 @@ final class AcceptTeamInvitationController
         $team = $pending->team ?? abort(404);
 
         if ($request->user() === null) {
-            // The address has an account: it signs in and comes back here.
-            if ($users->findByEmail($pending->email) !== null) {
+            // The address has an account, deactivated ones included: it signs in and comes back here.
+            if ($users->emailTaken($pending->email)) {
                 return redirect()->guest(route('login'));
             }
 
