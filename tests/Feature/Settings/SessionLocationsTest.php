@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia;
 use Ssdev\Headless\Tests\Fixtures\Location\FakeIpLocator;
 use Workbench\App\Models\User;
@@ -88,7 +89,9 @@ it('remembers locations in a cache that refuses objects', function () {
     insertSession('in-sarajevo', $user, '203.0.113.7');
 
     actingAs($user)->get(route('headless.security.edit'))->assertOk();
-    get(route('headless.security.edit'))->assertInertia(fn (AssertableInertia $page) => $page->where('sessions.0.location.city', 'Sarajevo'));
+    // The signed-in session has no location and can sort either side of this one.
+    get(route('headless.security.edit'))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('sessions', fn (Collection $sessions) => $sessions->firstWhere('location.city', 'Sarajevo') !== null));
 
     expect(FakeIpLocator::$calls)->toBe(1);
 });
