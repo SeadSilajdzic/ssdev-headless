@@ -10,6 +10,18 @@ php artisan migrate
 
 `headless:upgrade` publishes the migrations a new version added and leaves the ones you already have alone. Anything else that needs your attention is listed below, per version.
 
+## Upgrading to 0.5 from 0.4
+
+```bash
+composer require ssdev/laravel-headless:^0.5
+php artisan headless:install
+npm run build
+```
+
+Multi-tenancy is optional. Add it with `php artisan headless:add tenancy --migrate`, set `tenancy.base_domain` and `tenancy.central_domain` in `config/headless.php`, and run `npm run build`. The migrations add `tenant_id` to `users`, `roles` and `teams` and make emails and role names unique per tenant; existing accounts, roles and teams become central ones (`tenant_id` 0). With a role model of your own in `permission.models.role`, add `Ssdev\Headless\Features\Tenancy\BelongsToTenant` to it. Sign-up on the central domain is closed with tenancy on; create central admins with `php artisan headless:create-admin`, or give existing ones the new `tenants.view` and `tenants.manage` with `php artisan headless:permissions:grant admin@example.com --all`. Create tenants on the tenants panel or through the `tenants` API.
+
+- New config keys: `tenancy` (with `tenancy.reserved_subdomains`, `tenancy.owner_invitation_expire_minutes` and `tenancy.disks`) and `rate_limits.owner_invitations`. A published `config/headless.php` picks up their defaults; add them only to change them.
+
 ## Upgrading to 0.4 from 0.3
 
 ```bash
@@ -26,13 +38,11 @@ User management is optional as well. Add it with `php artisan headless:add users
 
 Teams are optional too. Add them with `php artisan headless:add teams --migrate` and run `npm run build`. The migration adds a `team_id` column to Spatie's permission tables and keeps every existing assignment global. Scope your own data to the user's `current_team_id`, and implement `Ssdev\Headless\Permissions\GlobalPermission` on permission enums that must never be given inside a team.
 
-Multi-tenancy is optional as well. Add it with `php artisan headless:add tenancy --migrate`, set `tenancy.base_domain` and `tenancy.central_domain` in `config/headless.php`, and run `npm run build`. The migrations add `tenant_id` to `users` and `roles` and make emails and role names unique per tenant; existing accounts and roles become central ones (`tenant_id` 0). With a role model of your own in `permission.models.role`, add `Ssdev\Headless\Features\Tenancy\BelongsToTenant` to it. Sign-up on the central domain is closed with tenancy on; create central admins with `php artisan headless:create-admin`, or give existing ones the new `tenants.view` and `tenants.manage` with `php artisan headless:permissions:grant admin@example.com --all`. Create tenants on the tenants panel or through the `tenants` API.
-
 - Deleting your own account now removes it for good even if your `User` model already used `SoftDeletes`.
 - With teams on, deleting an account that owns a team with other members is refused until the team is handed over.
 - The roles and users pages ask for the password before they open, like the API tokens page.
 - If your code calls `Ssdev\Headless\Account\ApiTokenAuthenticator::issue()`, call `authenticate()` and then `issueToken()` instead.
-- New config keys: `two_factor`, `users`, `teams`, `tenancy` (with `tenancy.reserved_subdomains`, `tenancy.owner_invitation_expire_minutes` and `tenancy.disks`), `rate_limits.two_factor`, `rate_limits.invitations`, `rate_limits.team_invitations` and `rate_limits.owner_invitations`. A published `config/headless.php` picks up their defaults; add them only to change them.
+- New config keys: `two_factor`, `users`, `teams`, `rate_limits.two_factor`, `rate_limits.invitations` and `rate_limits.team_invitations`. A published `config/headless.php` picks up their defaults; add them only to change them.
 
 ## Upgrading to 0.3 from 0.2
 

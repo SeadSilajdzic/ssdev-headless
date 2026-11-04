@@ -6,6 +6,24 @@ All notable changes to this project are documented in this file. The format foll
 
 ### Added
 
+- Multi-tenancy (`tenancy`) on `spatie/laravel-multitenancy`: tenants on subdomains, one database with `tenant_id` and the `BelongsToTenant` scope, accounts, sessions, API tokens, reset links, cache, rate limits, files and queued jobs kept apart per tenant, closed sign-up inside tenants, and suspended tenants.
+- `Ssdev\Headless\Support\Isolation` for keeping files and keys apart.
+- Tenants panel on the central domain (`tenants.view`, `tenants.manage`): create tenants on a checked subdomain with an owner who sets up their account through an invitation, rename, suspend and resume, delete for good after typing the subdomain again (`TenantDeleting` lets the application delete its own rows), the same over the API (`tenants`), and `TenantCreated`, `TenantSuspended`, `TenantResumed` and `TenantDeleted` events.
+- User management, roles and teams inside tenants, separate from the central level: roles and teams per tenant (`TenantRole`), Spatie's permission cache per tenant, and the tenant owner in the tenant's `Administrator` role when roles are on.
+- A team invitation lets someone without an account create one from the link, also with sign-up closed.
+
+### Changed
+
+- With tenancy on, sign-up on the central domain is closed; central accounts come from `headless:create-admin` and user management invitations.
+
+### Fixed
+
+- Two sign-ups with the same email at once no longer break an application's own surrounding database transaction on PostgreSQL.
+
+## [0.4.0] - 2026-11-04
+
+### Added
+
 - Two-factor authentication, the first selectable feature (`two-factor`): setup with a QR code and a confirmation code, recovery codes shown once, a sign-in challenge on the web and over the API (`auth/two-factor-challenge`), management through `me/two-factor`, and an optional requirement for everyone or for users with given permissions.
 - `headless:add` command that adds a feature to an installed project.
 - Features declare their migrations, `User` model traits and API contract tests; `headless:install`, `headless:add` and `headless:upgrade` publish them.
@@ -14,11 +32,6 @@ All notable changes to this project are documented in this file. The format foll
 - User management (`users`): a users list with search, filters and sorting; invitations that let people choose their own password; changing the name and email; blocking that ends every session and token; password reset links; signing someone out everywhere; soft deletes; roles on the user page; the same over the API (`users`); `UserInvited`, `UserBlocked`, `UserUnblocked` and `UserDeleted` events.
 - The roles and users pages ask for the password first.
 - Teams (`teams`): create teams and switch between them, invite people with signed links, hand teams over, team roles with a global context for application-wide permissions (`GlobalPermission`), personal teams on registration, and the same over the API.
-- Multi-tenancy (`tenancy`) on `spatie/laravel-multitenancy`: tenants on subdomains, one database with `tenant_id` and the `BelongsToTenant` scope, accounts, sessions, API tokens, reset links, cache, rate limits, files and queued jobs kept apart per tenant, closed sign-up inside tenants, and suspended tenants.
-- `Ssdev\Headless\Support\Isolation` for keeping files and keys apart.
-- Tenants panel on the central domain (`tenants.view`, `tenants.manage`): create tenants on a checked subdomain with an owner who sets up their account through an invitation, rename, suspend and resume, delete for good after typing the subdomain again (`TenantDeleting` lets the application delete its own rows), the same over the API (`tenants`), and `TenantCreated`, `TenantSuspended`, `TenantResumed` and `TenantDeleted` events.
-- User management, roles and teams inside tenants, separate from the central level: roles and teams per tenant (`TenantRole`), Spatie's permission cache per tenant, and the tenant owner in the tenant's `Administrator` role when roles are on.
-- A team invitation lets someone without an account create one from the link, also with sign-up closed.
 - Session map on the security page: a world map with a point for every browser session, log out from the map, and the city next to each session. Locations come from an `IpLocator` you configure, with a built-in `MaxMindLocator` for a local GeoLite2 City database; off by default.
 
 ### Changed
@@ -28,11 +41,6 @@ All notable changes to this project are documented in this file. The format foll
 - Searches ignore case and treat `%` and `_` as text on SQLite, MySQL and PostgreSQL alike.
 - `headless:install` keeps installed features when it runs again and preselects them.
 - `ApiTokenAuthenticator::issue()` is split into `authenticate()` and `issueToken()`.
-- With tenancy on, sign-up on the central domain is closed; central accounts come from `headless:create-admin` and user management invitations.
-
-### Fixed
-
-- Two sign-ups with the same email at once no longer break an application's own surrounding database transaction on PostgreSQL.
 
 ## [0.3.1] - 2026-10-21
 
@@ -97,7 +105,8 @@ All notable changes to this project are documented in this file. The format foll
 - App, auth and settings layouts, dashboard page and error pages for 403, 404, 419, 429, 500 and 503.
 - Shared Inertia props: authenticated user, navigation, enabled features, translations and flash messages.
 
-[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.1.1...v0.2.0
