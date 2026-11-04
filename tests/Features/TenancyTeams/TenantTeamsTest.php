@@ -1,7 +1,9 @@
 <?php
 
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Schema;
 use Ssdev\Headless\Features\Teams\Team;
 use Ssdev\Headless\Features\Teams\TeamInvitationService;
 use Ssdev\Headless\Features\Teams\TeamService;
@@ -24,6 +26,24 @@ it('keeps teams apart per tenant and from the central level', function () {
     expect($tenants())->toBe([0])
         ->and($acme->execute($tenants))->toBe([$acme->id])
         ->and($globex->execute($tenants))->toBe([$globex->id]);
+});
+
+it('adds the tenant to a teams table from before it had one and keeps its teams central', function () {
+    $owner = TenantUser::factory()->create();
+    $team = app(TeamService::class)->create($owner, 'Platform');
+    Schema::table('teams', function (Blueprint $table) {
+        $table->dropIndex(['tenant_id']);
+        $table->dropColumn('tenant_id');
+    });
+    $migration = require dirname(__DIR__, 3).'/database/migrations/tenancy/add_tenant_to_teams_table.php';
+
+    $migration->up();
+    $migration->up();
+
+    expect(Team::query()->pluck('id')->all())->toBe([$team->id]);
+
+    // MySQL commits on a schema change, so the surrounding test transaction cannot take these rows back.
+    DB::table('users')->where('id', $owner->id)->delete();
 });
 
 it('answers 404 for another tenant\'s team', function () {

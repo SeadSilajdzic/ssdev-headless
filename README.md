@@ -276,7 +276,7 @@ Over the API (`auth:sanctum`):
 
 ## Multi-tenancy
 
-Select it in `headless:install` or add it later with `php artisan headless:add tenancy --migrate`. It installs `spatie/laravel-multitenancy`, adds a `tenants` table and a `tenant_id` column to `users`, and adds `BelongsToTenant` to `app/Models/User.php`.
+Select it in `headless:install` or add it later with `php artisan headless:add tenancy --migrate`. It installs `spatie/laravel-multitenancy`, adds a `tenants` table and a `tenant_id` column to `users` (and to `roles` and `teams` when you use them), and adds `BelongsToTenant` to `app/Models/User.php`.
 
 Every tenant lives on a subdomain of `tenancy.base_domain`, such as `acme.example.com`, and `tenancy.central_domain` is the platform's own domain; set both in `config/headless.php`. Any other host, an IP address included, answers 404, except the paths in `tenancy.any_host_paths` (`up`, for health checks), which run on the central level. Leave `SESSION_DOMAIN` empty, so a session cookie stays on its own subdomain.
 
