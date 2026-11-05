@@ -2,6 +2,7 @@
 
 namespace Ssdev\Headless\Http\Controllers\Settings;
 
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Request;
 use Inertia\Response;
 use Ssdev\Headless\Account\BrowserSessionService;
@@ -14,7 +15,7 @@ use Ssdev\Headless\Http\Resources\BrowserSessionResource;
 
 final class SecurityController
 {
-    public function edit(Request $request, BrowserSessionService $browserSessions, SessionRepository $sessions, FeatureRegistry $features, TwoFactorService $twoFactor): Response
+    public function edit(Request $request, BrowserSessionService $browserSessions, SessionRepository $sessions, FeatureRegistry $features, Container $container): Response
     {
         $props = [
             'sessionsSupported' => $sessions->supportsBrowserSessions(),
@@ -24,7 +25,7 @@ final class SecurityController
 
         if ($features->isEnabled(Feature::TwoFactor->value)) {
             $props['twoFactor'] = [
-                'status' => $twoFactor->status($request->user())->value,
+                'status' => $container->make(TwoFactorService::class)->status($request->user())->value,
                 'manageUrl' => route('headless.two-factor.edit'),
             ];
         }

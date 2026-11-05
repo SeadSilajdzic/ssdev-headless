@@ -71,6 +71,16 @@ it('issues a token for a recovery code and replaces it', function () {
     expect($user->fresh()->recoveryCodes())->not->toContain($code);
 });
 
+it('reports a used recovery code once', function () {
+    $user = enabledTwoFactorUser();
+    $challenge = challengeToken($user);
+    Event::fake([RecoveryCodeReplaced::class]);
+
+    answerChallenge($challenge, ['recovery_code' => $user->recoveryCodes()[0]])->assertCreated();
+
+    Event::assertDispatchedTimes(RecoveryCodeReplaced::class, 1);
+});
+
 it('rejects a wrong code', function () {
     Event::fake([TwoFactorAuthenticationFailed::class]);
     $user = enabledTwoFactorUser();

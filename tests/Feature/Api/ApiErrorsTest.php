@@ -76,3 +76,10 @@ it('answers oversized requests with json even without an accept header', functio
 it('answers unknown api routes with 404 for every method', function () {
     post('/api/v1/nope')->assertNotFound()->assertExactJson(['message' => __('headless::api.errors.404')]);
 });
+
+it('answers a wrong method on an existing route with 405', function () {
+    call('PATCH', '/api/v1/auth/token')
+        ->assertStatus(405)
+        ->assertHeader('Allow', 'POST, DELETE')
+        ->assertExactJson(['message' => __('headless::api.errors.405')]);
+});

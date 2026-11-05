@@ -21,6 +21,11 @@ final class SafeRedirect
 
     private function isInternal(string $url): bool
     {
+        // Browsers strip control characters, which would turn "/\t/evil.test" into "//evil.test".
+        if (preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {
+            return false;
+        }
+
         if (str_starts_with($url, '/')) {
             return ! str_starts_with($url, '//') && ! str_starts_with($url, '/\\');
         }

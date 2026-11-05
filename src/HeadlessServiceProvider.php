@@ -2,7 +2,6 @@
 
 namespace Ssdev\Headless;
 
-use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\ServiceProvider;
 use Ssdev\Headless\Account\AdminAccess;
@@ -80,7 +79,6 @@ class HeadlessServiceProvider extends ServiceProvider
     {
         $fortify->boot();
         $rateLimits->register();
-        RedirectIfAuthenticated::redirectUsing(fn () => route('headless.dashboard'));
 
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'headless');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'headless');

@@ -32,6 +32,12 @@ it('keeps json responses for api requests', function () {
     getJson('/missing-page')->assertNotFound()->assertJsonStructure(['message']);
 });
 
+it('keeps json responses under a custom api prefix', function () {
+    config(['headless.api.prefix' => 'rest']);
+
+    get('/rest/missing')->assertNotFound()->assertExactJson(['message' => __('headless::api.errors.404')]);
+});
+
 it('leaves debug error pages untouched', function () {
     config(['app.debug' => true]);
 

@@ -66,6 +66,15 @@ it('replaces a recovery code once it is used', function () {
     Event::assertDispatched(RecoveryCodeReplaced::class);
 });
 
+it('accepts a recovery code once, also from a copy of the user read before it was used', function () {
+    $user = enabledTwoFactorUser();
+    $code = $user->recoveryCodes()[0];
+    $parallel = $user->fresh();
+
+    expect(app(TwoFactorService::class)->useRecoveryCode($user, $code))->toBeTrue()
+        ->and(app(TwoFactorService::class)->useRecoveryCode($parallel, $code))->toBeFalse();
+});
+
 it('refuses to enable twice', function () {
     app(TwoFactorService::class)->enable(enabledTwoFactorUser());
 })->throws(ValidationException::class);

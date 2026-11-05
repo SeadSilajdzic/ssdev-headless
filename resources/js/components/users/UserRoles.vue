@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import BaseBadge from '@headless/components/ui/BaseBadge.vue';
 import BaseButton from '@headless/components/ui/BaseButton.vue';
 import BaseCheckbox from '@headless/components/ui/BaseCheckbox.vue';
@@ -17,11 +17,20 @@ const props = defineProps<{ roles: UserRoleChoice[]; rolesUrl: string; canManage
 
 const t = useTrans();
 const saving = ref(false);
-const selected = ref<number[]>(props.roles.filter((role) => role.assigned && role.manageable).map((role) => role.id));
+const selected = ref<number[]>(assignedManageable());
+
+watch(
+    () => props.roles,
+    () => (selected.value = assignedManageable()),
+);
 
 const editable = computed(() => (props.canManage ? props.roles.filter((role) => role.manageable) : []));
 // Roles the actor cannot change are sent back as they are, so saving never removes them.
 const fixed = computed(() => props.roles.filter((role) => role.assigned && !(props.canManage && role.manageable)));
+
+function assignedManageable(): number[] {
+    return props.roles.filter((role) => role.assigned && role.manageable).map((role) => role.id);
+}
 
 function toggle(id: number, checked: boolean): void {
     selected.value = checked ? [...selected.value, id] : selected.value.filter((roleId) => roleId !== id);
@@ -30,7 +39,11 @@ function toggle(id: number, checked: boolean): void {
 function save(): void {
     router.put(
         props.rolesUrl,
-        { roles: [...selected.value, ...fixed.value.map((role) => role.id)] },
+        {
+            roles: [...selected.value, ...fixed.value.map((role) => role.id)],
+            // Lets the server refuse the save when someone else changed the roles after this page opened.
+            known_roles: props.roles.filter((role) => role.assigned).map((role) => role.id),
+        },
         {
             preserveScroll: true,
             onStart: () => (saving.value = true),

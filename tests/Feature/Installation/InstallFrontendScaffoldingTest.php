@@ -3,6 +3,14 @@
 use Ssdev\Headless\Installation\Steps\InstallFrontendScaffolding;
 use Ssdev\Headless\Installation\StepStatus;
 
+it('turns off the font fallbacks that need an optional package', function () {
+    $files = fixtureProject();
+
+    app(InstallFrontendScaffolding::class)->handle(installContext($files, overwrite: true));
+
+    expect(substr_count($files->get('vite.config.ts'), 'optimizedFallbacks: false'))->toBe(2);
+});
+
 it('replaces the default frontend entry points when overwriting is allowed', function () {
     $files = fixtureProject();
 

@@ -13,6 +13,8 @@ final class SessionLocations
 {
     private const CACHE_PREFIX = 'headless.session-location.';
 
+    private const IPV4_MAPPED_PREFIX = "\0\0\0\0\0\0\0\0\0\0\xff\xff";
+
     private ?IpLocator $locator = null;
 
     // A broken locator (e.g. a missing database) is asked once per request, not once per session.
@@ -24,14 +26,18 @@ final class SessionLocations
         private Container $container,
     ) {}
 
-    /**
-     * Local and private addresses have no location, and a failing locator means an unknown location, never a broken page.
-     */
+    // Local and private addresses have no location; a failing locator means an unknown location, never a broken page.
     public function locate(?string $ipAddress): ?IpLocation
     {
         $locator = $this->locator();
 
-        if ($locator === null || $this->locatorFailed || $ipAddress === null || ! $this->isPublic($ipAddress)) {
+        if ($locator === null || $this->locatorFailed || $ipAddress === null) {
+            return null;
+        }
+
+        $ipAddress = $this->withoutIpv6Mapping($ipAddress);
+
+        if (! $this->isPublic($ipAddress)) {
             return null;
         }
 
@@ -52,8 +58,7 @@ final class SessionLocations
     }
 
     /**
-     * A plain list, because applications may forbid objects in the cache (cache.serializable_classes);
-     * false marks an address the locator does not know, so it is not asked again until the entry expires.
+     * Plain values, as applications may forbid objects in the cache; false remembers an address the locator does not know.
      *
      * @return array{?string, ?string, float, float}|false
      */
@@ -81,6 +86,16 @@ final class SessionLocations
         }
 
         return $this->locator;
+    }
+
+    // On a dual-stack server an IPv4 client arrives as ::ffff:a.b.c.d, which PHP counts as reserved.
+    private function withoutIpv6Mapping(string $ipAddress): string
+    {
+        $packed = filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false ? false : inet_pton($ipAddress);
+
+        return $packed !== false && str_starts_with($packed, self::IPV4_MAPPED_PREFIX)
+            ? (string) inet_ntop(substr($packed, strlen(self::IPV4_MAPPED_PREFIX)))
+            : $ipAddress;
     }
 
     private function isPublic(string $ipAddress): bool

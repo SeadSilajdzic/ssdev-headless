@@ -63,6 +63,16 @@ it('returns not found for another user session', function () {
     expect(DB::table('sessions')->where('id', 'theirs')->exists())->toBeTrue();
 });
 
+it('returns not found for the current session', function () {
+    $user = User::factory()->create();
+    $current = str_repeat('a', 40);
+    insertSession($current, $user);
+
+    actingAs($user)->withCookie(config('session.cookie'), $current)->delete(route('headless.sessions.destroy', publicSessionId($current)))->assertNotFound();
+
+    expect(DB::table('sessions')->where('id', $current)->exists())->toBeTrue();
+});
+
 it('logs out other sessions after confirming the password', function () {
     $user = User::factory()->create();
     insertSession('other-1', $user);

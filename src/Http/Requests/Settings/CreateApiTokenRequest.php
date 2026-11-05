@@ -18,12 +18,12 @@ class CreateApiTokenRequest extends FormRequest
      *
      * @return array<string, mixed>
      */
-    public function rules(): array
+    public function rules(PersonalAccessTokenService $tokens): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
             'abilities' => ['present', 'array'],
-            'abilities.*' => ['string', 'distinct', Rule::in(app(PersonalAccessTokenService::class)->grantableAbilities($this->user()))],
+            'abilities.*' => ['string', 'distinct', Rule::in($tokens->grantableAbilities($this->user()))],
         ];
     }
 }

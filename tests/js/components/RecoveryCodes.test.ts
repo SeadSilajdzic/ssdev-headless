@@ -28,13 +28,17 @@ it('downloads the codes as recovery-codes.txt', async () => {
     URL.createObjectURL = vi.fn(() => 'blob:codes');
     URL.revokeObjectURL = vi.fn();
     let downloaded = '';
+    let attached = false;
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
         downloaded = this.download;
+        attached = this.isConnected;
     });
 
     const wrapper = mount(RecoveryCodes, { props: { codes } });
     await wrapper.find('[data-test="download-codes"]').trigger('click');
 
     expect(downloaded).toBe('recovery-codes.txt');
+    expect(attached).toBe(true);
+    expect(document.querySelector('a[download]')).toBeNull();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:codes');
 });

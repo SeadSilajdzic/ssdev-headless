@@ -2,6 +2,7 @@
 
 namespace Ssdev\Headless\Features\TwoFactor;
 
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
@@ -12,6 +13,7 @@ use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use LogicException;
+use Ssdev\Headless\Account\UserRepository;
 
 final class TwoFactorService
 {
@@ -21,6 +23,8 @@ final class TwoFactorService
         private GenerateNewRecoveryCodes $recoveryCodesAction,
         private DisableTwoFactorAuthentication $disableAction,
         private TwoFactorAuthenticationProvider $provider,
+        private UserRepository $users,
+        private ConnectionInterface $database,
     ) {}
 
     /**
@@ -105,19 +109,24 @@ final class TwoFactorService
 
     public function useRecoveryCode(User $user, #[\SensitiveParameter] string $code): bool
     {
-        if ($this->status($user) !== TwoFactorStatus::Enabled || ! method_exists($user, 'replaceRecoveryCode')) {
-            return false;
-        }
+        return $this->database->transaction(function () use ($user, $code): bool {
+            // Read again under a lock, so two parallel challenges cannot both use one code.
+            $current = $this->users->findForUpdate($user->getKey());
 
-        foreach ($this->recoveryCodes($user) as $recoveryCode) {
-            if (hash_equals($recoveryCode, $code)) {
-                $user->replaceRecoveryCode($recoveryCode);
-
-                return true;
+            if ($current === null || $this->status($current) !== TwoFactorStatus::Enabled || ! method_exists($current, 'replaceRecoveryCode')) {
+                return false;
             }
-        }
 
-        return false;
+            foreach ($this->recoveryCodes($current) as $recoveryCode) {
+                if (hash_equals($recoveryCode, $code)) {
+                    $current->replaceRecoveryCode($recoveryCode);
+
+                    return true;
+                }
+            }
+
+            return false;
+        });
     }
 
     private function pendingSetup(User $user): TwoFactorSetup

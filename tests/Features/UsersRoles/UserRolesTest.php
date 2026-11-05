@@ -64,6 +64,32 @@ it('changes nothing when one of the roles cannot be managed', function () {
     expect($user->fresh()->hasRole('Viewer'))->toBeFalse();
 });
 
+it('refuses to save over roles that changed after the page opened', function () {
+    $actor = userRolesManager(['reports.view']);
+    $user = User::factory()->create();
+    makeRole('Editor', ['reports.view'], $user);
+    $viewer = makeRole('Viewer', ['reports.view']);
+
+    actingAs($actor)->put(route('headless.users.roles.update', $user->id), ['roles' => [$viewer->id], 'known_roles' => []])
+        ->assertSessionHasErrors(['role' => __('headless::roles.errors.roles_changed')]);
+
+    expect($user->fresh()->hasRole('Editor'))->toBeTrue()
+        ->and($user->fresh()->hasRole('Viewer'))->toBeFalse();
+});
+
+it('saves when the roles are still as the page showed them', function () {
+    $actor = userRolesManager(['reports.view']);
+    $user = User::factory()->create();
+    $editor = makeRole('Editor', ['reports.view'], $user);
+    $viewer = makeRole('Viewer', ['reports.view']);
+
+    actingAs($actor)->put(route('headless.users.roles.update', $user->id), ['roles' => [$viewer->id], 'known_roles' => [$editor->id]])
+        ->assertSessionHas(Flash::SUCCESS);
+
+    expect($user->fresh()->hasRole('Viewer'))->toBeTrue()
+        ->and($user->fresh()->hasRole('Editor'))->toBeFalse();
+});
+
 it('keeps the last member of the last managing role', function () {
     $actor = userRolesManager();
     $user = User::factory()->create();

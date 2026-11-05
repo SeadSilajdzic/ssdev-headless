@@ -25,7 +25,7 @@ final class UserRoleController
     public function update(SyncUserRolesRequest $request, string $user, UserRoleService $roles): AnonymousResourceCollection
     {
         $managed = $this->users->findOrFail($user);
-        $roles->sync($request->user(), $managed, $request->roleIds());
+        $roles->sync($request->user(), $managed, $request->roleIds(), $request->knownRoleIds());
 
         return UserRoleResource::collection($this->roles->assignedTo($managed));
     }

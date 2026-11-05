@@ -236,7 +236,7 @@ Over the API (`auth:sanctum`, same permissions):
 | POST | `users/{user}/invitation` | send the invitation again |
 | POST | `users/{user}/password-reset` | send a password reset link |
 | DELETE | `users/{user}/sessions` | sign out everywhere |
-| GET, PUT | `users/{user}/roles` | the user's roles; set them with `roles` (role ids). Only with roles on |
+| GET, PUT | `users/{user}/roles` | the user's roles; set them with `roles` (role ids), and send `known_roles` (the ids you last read) to get a 422 instead of overwriting someone else's change. Only with roles on |
 
 `Ssdev\Headless\Features\Users\Events\UserInvited`, `UserBlocked`, `UserUnblocked` and `UserDeleted` carry the user and the admin who acted.
 

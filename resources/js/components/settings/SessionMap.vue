@@ -22,6 +22,10 @@ function toggle(place: MapPlace, open: boolean): void {
     selected.value = open ? place.sessions[0].id : null;
 }
 
+function placeName(place: MapPlace): string {
+    return place.label || t('settings.sessions.unknown_location');
+}
+
 function position(place: MapPlace): Record<string, string> {
     return { left: `${(place.x / MAP_WIDTH) * 100}%`, top: `${(place.y / MAP_HEIGHT) * 100}%` };
 }
@@ -41,14 +45,14 @@ function position(place: MapPlace): Record<string, string> {
                     :data-current="place.hasCurrent ? 'true' : 'false'"
                     :aria-label="
                         t(place.sessions.length === 1 ? 'settings.sessions.place_session' : 'settings.sessions.place_sessions', {
-                            place: place.label,
+                            place: placeName(place),
                             count: place.sessions.length,
                         })
                     "
                     class="absolute grid h-6 w-6 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full focus-visible:ring-2 focus-visible:ring-mint-500 focus-visible:outline-none"
                     :style="position(place)"
                 >
-                    <span v-if="place.hasCurrent" class="absolute inset-0.5 animate-ping rounded-full bg-mint-400 opacity-50" aria-hidden="true" />
+                    <span v-if="place.hasCurrent" class="absolute inset-0.5 animate-ping rounded-full bg-mint-400 opacity-50 motion-reduce:animate-none" aria-hidden="true" />
                     <span
                         class="relative grid min-h-3.5 min-w-3.5 place-items-center rounded-full border-2 border-white px-0.5 text-[9px] leading-none font-bold text-white shadow"
                         :class="[place.hasCurrent ? 'bg-mint-600' : 'bg-ink-700', openPlace === place.key ? 'scale-125' : '']"
@@ -66,7 +70,7 @@ function position(place: MapPlace): Record<string, string> {
                 class="z-30 w-64 rounded-xl border border-ink-100 bg-white p-3 shadow-pop"
                 data-test="map-popup"
             >
-                <p class="text-sm font-semibold text-ink-900">{{ place.label }}</p>
+                <p class="text-sm font-semibold text-ink-900">{{ placeName(place) }}</p>
                 <ul class="mt-1 divide-y divide-ink-100">
                     <li v-for="session in place.sessions" :key="session.id" class="flex items-center gap-3 py-2">
                         <div class="min-w-0 flex-1">

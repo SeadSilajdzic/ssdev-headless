@@ -31,6 +31,19 @@ it('marks the current device', () => {
     expect(current[0].attributes('aria-label')).toContain('Sarajevo');
 });
 
+it('calls a place without a city or country unknown', async () => {
+    const nameless = { ...sessions[0], location: { city: null, country: null, latitude: 43.85, longitude: 18.41 } };
+    const wrapper = mount(SessionMap, { props: { sessions: [nameless], selected: 'here' }, attachTo: document.body });
+    await nextTick();
+
+    expect(wrapper.get('[data-test="map-point"]').attributes('aria-label')).toContain('Unknown location');
+    expect(document.querySelector('[data-test="map-popup"] p')?.textContent).toBe('Unknown location');
+});
+
+it('stills the current device point for people who prefer less motion', () => {
+    expect(mountMap().get('[data-current="true"] .animate-ping').classes()).toContain('motion-reduce:animate-none');
+});
+
 it('selects a session when its point opens', async () => {
     const wrapper = mountMap();
 

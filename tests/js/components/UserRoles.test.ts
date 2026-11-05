@@ -17,7 +17,18 @@ it('lets managers tick only the roles they can manage and keeps the others', asy
 
     await wrapper.get('[data-test="save-roles"]').trigger('click');
 
-    expect(save).toHaveBeenCalledWith('/users/3/roles', { roles: [1, 2] }, expect.anything());
+    expect(save).toHaveBeenCalledWith('/users/3/roles', { roles: [1, 2], known_roles: [1, 2] }, expect.anything());
+    save.mockRestore();
+});
+
+it('follows the roles when the page sends new ones', async () => {
+    const save = vi.spyOn(router, 'put').mockImplementation(() => {});
+    const wrapper = mount(UserRoles, { props: { roles, rolesUrl: '/users/3/roles', canManage: true } });
+
+    await wrapper.setProps({ roles: [{ ...roles[0], assigned: false }, roles[1], { ...roles[2], assigned: true }] });
+    await wrapper.get('[data-test="save-roles"]').trigger('click');
+
+    expect(save).toHaveBeenCalledWith('/users/3/roles', { roles: [3, 2], known_roles: [2, 3] }, expect.anything());
     save.mockRestore();
 });
 

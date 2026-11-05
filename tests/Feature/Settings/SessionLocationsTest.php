@@ -36,6 +36,25 @@ it('leaves locations out while no locator is configured', function () {
     expect(FakeIpLocator::$calls)->toBe(0);
 });
 
+it('locates an IPv4 address written as IPv6', function () {
+    useFakeLocator();
+    $user = User::factory()->create();
+    insertSession('dual-stack', $user, '::ffff:203.0.113.7');
+
+    actingAs($user)->get(route('headless.security.edit'))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('sessions.0.location.city', 'Sarajevo'));
+});
+
+it('never looks up a private IPv4 address written as IPv6', function () {
+    useFakeLocator();
+    $user = User::factory()->create();
+    insertSession('dual-stack', $user, '::ffff:10.0.0.5');
+
+    actingAs($user)->get(route('headless.security.edit'))->assertInertia(fn (AssertableInertia $page) => $page->where('sessions.0.location', null));
+
+    expect(FakeIpLocator::$calls)->toBe(0);
+});
+
 it('never looks up local or private addresses', function () {
     useFakeLocator();
     $user = User::factory()->create();

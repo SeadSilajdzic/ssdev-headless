@@ -19,6 +19,8 @@ final class SyncUserRolesRequest extends FormRequest
         return [
             'roles' => ['present', 'array'],
             'roles.*' => ['integer', 'distinct'],
+            'known_roles' => ['sometimes', 'array'],
+            'known_roles.*' => ['integer'],
         ];
     }
 
@@ -28,5 +30,15 @@ final class SyncUserRolesRequest extends FormRequest
     public function roleIds(): array
     {
         return array_values(array_map('intval', $this->validated('roles')));
+    }
+
+    /**
+     * @return list<int>|null
+     */
+    public function knownRoleIds(): ?array
+    {
+        $known = $this->validated('known_roles');
+
+        return $known === null ? null : array_values(array_map('intval', $known));
     }
 }

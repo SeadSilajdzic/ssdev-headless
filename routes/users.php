@@ -10,9 +10,10 @@ use Ssdev\Headless\Features\Users\Http\Controllers\UserPasswordResetController;
 use Ssdev\Headless\Features\Users\Http\Controllers\UserSessionController;
 use Ssdev\Headless\Features\Users\InvitationRateLimit;
 use Ssdev\Headless\Features\Users\UserPermission;
+use Ssdev\Headless\Http\Middleware\RedirectSignedInToDashboard;
 use Ssdev\Headless\Http\Middleware\RequireVerifiedEmail;
 
-Route::middleware('guest')->group(function () {
+Route::middleware(RedirectSignedInToDashboard::class)->group(function () {
     Route::get('invitation/{token}', [AcceptInvitationController::class, 'show'])->name('headless.invitation.show');
     Route::post('invitation', [AcceptInvitationController::class, 'store'])
         ->middleware('throttle:'.RateLimits::PASSWORD_RESET)

@@ -25,7 +25,10 @@ function download(): void {
     const link = document.createElement('a');
     link.href = url;
     link.download = DOWNLOAD_NAME;
+    // Older Firefox follows a link only when it is in the document.
+    document.body.append(link);
     link.click();
+    link.remove();
     URL.revokeObjectURL(url);
 }
 </script>

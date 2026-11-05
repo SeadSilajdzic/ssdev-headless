@@ -60,6 +60,7 @@ return [
         'last_manager' => 'At least one role that manages roles must keep a member.',
         'unknown_user' => 'No one has an account with this email.',
         'unknown_role' => 'One of the roles does not exist.',
+        'roles_changed' => 'Someone else changed these roles. Check them and save again.',
     ],
 
 ];

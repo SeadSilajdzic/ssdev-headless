@@ -25,6 +25,21 @@ it('lists and syncs the roles of a user', function () {
         ->assertJsonPath('data', [['id' => $viewer->id, 'name' => 'Viewer']]);
 });
 
+it('refuses a sync when the roles changed after the client read them', function () {
+    $actor = roleManager(['reports.view']);
+    $actor->givePermissionTo('users.view');
+    apiAs($actor);
+    $user = User::factory()->create();
+    makeRole('Editor', ['reports.view'], $user);
+    $viewer = makeRole('Viewer', ['reports.view']);
+
+    putJson("/api/v1/users/{$user->getKey()}/roles", ['roles' => [$viewer->id], 'known_roles' => []])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['role' => __('headless::roles.errors.roles_changed')]);
+
+    expect($user->fresh()->hasRole('Editor'))->toBeTrue();
+});
+
 it('forbids changing roles without roles.manage', function () {
     apiAs(permittedUser('users.view', 'roles.view'));
 

@@ -2,17 +2,14 @@
 
 namespace Ssdev\Headless\Account;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
-use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Timebox;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\NewAccessToken;
-use LogicException;
 
 final class ApiTokenAuthenticator
 {
@@ -25,7 +22,6 @@ final class ApiTokenAuthenticator
         private UserRepository $users,
         private Hasher $hasher,
         private Dispatcher $events,
-        private Repository $config,
         private Timebox $timebox,
         private PersonalAccessTokenService $tokens,
     ) {}
@@ -56,28 +52,18 @@ final class ApiTokenAuthenticator
     }
 
     /**
+     * Trusts its caller, as Auth::login() does, so call it only after every sign-in check has passed.
      * Device tokens get "*": the token ability gate still limits them to the owner's permissions.
      */
     public function issueToken(User $user, string $deviceName): NewAccessToken
     {
-        if (! method_exists($user, 'createToken')) {
-            throw new LogicException('Add the Laravel\Sanctum\HasApiTokens trait to your User model.');
-        }
-
         $this->events->dispatch(new Login(self::GUARD, $user, false));
 
-        return $user->createToken($deviceName, ['*'], $this->expiresAt());
+        return $this->tokens->create($user, $deviceName, ['*']);
     }
 
     public function revokeCurrentToken(User $user): void
     {
         $this->tokens->currentToken($user)?->delete();
-    }
-
-    private function expiresAt(): ?CarbonImmutable
-    {
-        $minutes = $this->config->get('headless.api.token_expiration');
-
-        return $minutes === null ? null : CarbonImmutable::now()->addMinutes((int) $minutes);
     }
 }

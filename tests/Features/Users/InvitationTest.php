@@ -1,10 +1,12 @@
 <?php
 
+use Illuminate\Contracts\Notifications\Dispatcher as Notifications;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Testing\TestResponse;
+use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
 use Ssdev\Headless\Account\UserRepository;
 use Ssdev\Headless\Features\Users\Events\UserInvited;
@@ -67,6 +69,21 @@ it('invites a user who sets a password once', function () {
         ->and(UserStatus::of($user))->toBe(UserStatus::Active);
 
     acceptInvitation($token, 'ada@example.com', 'An0ther-password!')->assertSessionHasErrors('email');
+});
+
+it('leaves no account behind when the invitation cannot be sent', function () {
+    $admin = User::factory()->create();
+    $this->mock(Notifications::class)->shouldReceive('send')->andThrow(new RuntimeException('The mail server is down.'));
+
+    expect(fn () => app(UserInvitationService::class)->invite($admin, 'Ada Lovelace', 'ada@example.com'))->toThrow(RuntimeException::class);
+
+    expect(User::query()->where('email', 'ada@example.com')->exists())->toBeFalse();
+});
+
+it('answers a validation error when a parallel invitation took the email', function () {
+    User::factory()->create(['email' => 'ada@example.com']);
+
+    expect(fn () => invite('ada@example.com'))->toThrow(ValidationException::class);
 });
 
 it('mails a link to the invitation page that says when it expires', function () {

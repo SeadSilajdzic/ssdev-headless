@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added
+
+- `PUT users/{user}/roles` takes an optional `known_roles`, the role ids the client last read, and answers 422 when they no longer match. The user page sends it, so two managers saving at once cannot overwrite each other.
+
+### Changed
+
+- Only the package's own guest pages send signed-in users to its dashboard; the application's own `guest` routes keep Laravel's default redirect.
+- A wrong method on an existing API route answers 405 with an `Allow` header instead of 404.
+- The role filter on the users list is ignored without `roles.view`.
+- New installs turn off the font fallbacks in `vite.config.ts` that need the optional `fontaine` package, which removes the warning during builds.
+
+### Fixed
+
+- An intended URL with control characters no longer counts as internal after sign-in.
+- `headless:install` and `headless:add` edit a `User.php` with Windows line endings, and keep them.
+- A crafted request can no longer log out the current browser session through the single-session route.
+- A failed save no longer leaves the new avatar file behind.
+- With a custom API prefix, an error raised before the API middleware stays JSON on a request that does not ask for it.
+- Copying a new API token without HTTPS no longer raises an error; the token stays on screen.
+- A recovery code works once also when two challenges arrive at the same moment, on the web and over the API.
+- Downloading recovery codes works in older Firefox.
+- An invitation whose mail cannot be sent leaves no account behind, and two invitations for one email at the same moment answer a validation error instead of a server error.
+- On the session map, a location without a city or country reads "Unknown location", rows can be selected with the keyboard, the current-device pulse respects `prefers-reduced-motion`, and IPv4 addresses written as IPv6 (`::ffff:81.2.69.160`) get a location.
+
 ## [0.5.1] - 2026-11-05
 
 ### Fixed

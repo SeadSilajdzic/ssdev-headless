@@ -13,9 +13,10 @@ use Ssdev\Headless\Auth\RateLimits;
 use Ssdev\Headless\Http\Controllers\Auth\RegistrationController;
 use Ssdev\Headless\Http\Controllers\Auth\SendPasswordResetLinkController;
 use Ssdev\Headless\Http\Middleware\EnsureRegistrationIsEnabled;
+use Ssdev\Headless\Http\Middleware\RedirectSignedInToDashboard;
 use Ssdev\Headless\Http\Middleware\RejectHoneypotSubmissions;
 
-Route::middleware('guest')->group(function () {
+Route::middleware(RedirectSignedInToDashboard::class)->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store'])
         ->middleware(['throttle:'.RateLimits::LOGIN, RejectHoneypotSubmissions::class])

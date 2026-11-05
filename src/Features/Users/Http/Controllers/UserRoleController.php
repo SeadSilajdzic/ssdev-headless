@@ -12,7 +12,7 @@ final class UserRoleController
 {
     public function update(SyncUserRolesRequest $request, string $user, ManagedUserRepository $users, UserRoleService $roles): RedirectResponse
     {
-        $roles->sync($request->user(), $users->findOrFail($user), $request->roleIds());
+        $roles->sync($request->user(), $users->findOrFail($user), $request->roleIds(), $request->knownRoleIds());
 
         return back()->with(Flash::SUCCESS, __('headless::users.roles.saved'));
     }

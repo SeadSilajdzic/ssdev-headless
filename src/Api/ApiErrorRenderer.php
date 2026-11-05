@@ -38,7 +38,7 @@ final class ApiErrorRenderer
         return new JsonResponse(['message' => __("headless::api.errors.{$status}")], $status, $headers);
     }
 
-    private function isApiRequest(Request $request): bool
+    public function isApiRequest(Request $request): bool
     {
         $prefix = trim((string) $this->config->get('headless.api.prefix'), '/');
 

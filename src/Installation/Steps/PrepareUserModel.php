@@ -46,7 +46,9 @@ final class PrepareUserModel implements InstallStep
         }
 
         $original = $files->get(self::PATH);
-        $code = $this->addTraits($original, $traits);
+        // The patterns expect LF; a Windows checkout gets its CRLF back when the file is written.
+        $normalized = str_replace("\r\n", "\n", $original);
+        $code = $this->addTraits($normalized, $traits);
 
         if ($code !== null && $this->config->get('headless.email_verification')) {
             $code = $this->addMustVerifyEmail($code);
@@ -56,11 +58,11 @@ final class PrepareUserModel implements InstallStep
             return $this->manual($traits);
         }
 
-        if ($code === $original) {
+        if ($code === $normalized) {
             return StepResult::skipped(self::DESCRIPTION);
         }
 
-        $files->put(self::PATH, $code);
+        $files->put(self::PATH, $normalized === $original ? $code : str_replace("\n", "\r\n", $code));
 
         return StepResult::changed(self::DESCRIPTION);
     }

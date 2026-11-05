@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\UploadedFile;
 use RuntimeException;
 use Ssdev\Headless\Support\Isolation;
+use Throwable;
 
 final class AvatarService
 {
@@ -29,7 +30,13 @@ final class AvatarService
             throw new RuntimeException('The avatar could not be stored.');
         }
 
-        $user->forceFill(['avatar_path' => $path])->save();
+        try {
+            $user->forceFill(['avatar_path' => $path])->save();
+        } catch (Throwable $exception) {
+            $this->disk()->delete($path);
+
+            throw $exception;
+        }
 
         if (is_string($previous)) {
             $this->disk()->delete($previous);

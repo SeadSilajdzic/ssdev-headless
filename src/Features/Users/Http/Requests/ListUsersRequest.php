@@ -7,6 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Ssdev\Headless\Features\Feature;
 use Ssdev\Headless\Features\FeatureRegistry;
+use Ssdev\Headless\Features\Roles\RolePermission;
 use Ssdev\Headless\Features\Users\Criteria\FilterUsersByRegistrationDate;
 use Ssdev\Headless\Features\Users\Criteria\FilterUsersByRole;
 use Ssdev\Headless\Features\Users\Criteria\FilterUsersByStatus;
@@ -64,8 +65,8 @@ final class ListUsersRequest extends FormRequest
             $criteria[] = new FilterUsersByVerifiedEmail($filters['verified']);
         }
 
-        // Without the roles feature there is no role to pick, so a role in the query is ignored.
-        if ($filters['role'] !== null && app(FeatureRegistry::class)->isEnabled(Feature::Roles->value)) {
+        // Ignored without the roles feature, and without roles.view, as the result would tell who holds the role.
+        if ($filters['role'] !== null && app(FeatureRegistry::class)->isEnabled(Feature::Roles->value) && $this->user()->can(RolePermission::View->value)) {
             $criteria[] = new FilterUsersByRole($filters['role']);
         }
 

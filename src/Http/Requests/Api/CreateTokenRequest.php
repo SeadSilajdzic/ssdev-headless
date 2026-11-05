@@ -2,6 +2,7 @@
 
 namespace Ssdev\Headless\Http\Requests\Api;
 
+use Ssdev\Headless\Account\PersonalAccessTokenService;
 use Ssdev\Headless\Http\Requests\Settings\CreateApiTokenRequest;
 
 /**
@@ -12,10 +13,10 @@ class CreateTokenRequest extends CreateApiTokenRequest
     /**
      * @return array<string, mixed>
      */
-    public function rules(): array
+    public function rules(PersonalAccessTokenService $tokens): array
     {
         return [
-            ...parent::rules(),
+            ...parent::rules($tokens),
             'password' => ['required', 'string', 'current_password'],
         ];
     }

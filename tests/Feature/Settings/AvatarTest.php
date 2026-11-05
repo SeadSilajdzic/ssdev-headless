@@ -4,6 +4,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia;
+use Ssdev\Headless\Account\AvatarService;
 use Workbench\App\Models\User;
 
 use function Pest\Laravel\actingAs;
@@ -42,6 +43,15 @@ it('replaces the previous avatar file', function () {
 
     Storage::disk('public')->assertMissing($first);
     Storage::disk('public')->assertExists($user->fresh()->avatar_path);
+});
+
+it('deletes the new file when the avatar cannot be saved', function () {
+    $user = User::factory()->create();
+    User::saving(fn () => throw new RuntimeException('The database is down.'));
+
+    expect(fn () => app(AvatarService::class)->replace($user, UploadedFile::fake()->image('me.png', 100, 100)))->toThrow(RuntimeException::class);
+
+    expect(Storage::disk('public')->allFiles())->toBe([]);
 });
 
 it('removes the avatar', function () {

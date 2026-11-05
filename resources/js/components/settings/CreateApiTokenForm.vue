@@ -19,8 +19,12 @@ function submit(): void {
 }
 
 async function copy(): Promise<void> {
-    await navigator.clipboard.writeText(props.createdToken ?? '');
-    copied.value = true;
+    try {
+        await navigator.clipboard.writeText(props.createdToken ?? '');
+        copied.value = true;
+    } catch {
+        // The clipboard needs a secure origin; the token stays on screen to copy by hand.
+    }
 }
 </script>
 

@@ -12,7 +12,7 @@ final class BrowserSessionController
 {
     public function destroy(Request $request, string $session, BrowserSessionService $sessions): RedirectResponse
     {
-        abort_unless($sessions->logout($request->user(), $session), 404);
+        abort_unless($sessions->logout($request->user(), $session, $request->session()->getId()), 404);
 
         return back()->with(Flash::SUCCESS, __('headless::settings.sessions.logged_out'));
     }

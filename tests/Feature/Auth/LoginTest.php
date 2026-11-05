@@ -103,6 +103,14 @@ it('ignores a protocol-relative intended url after login', function () {
         ->assertRedirect(route('headless.dashboard'));
 });
 
+it('ignores an intended url with control characters after login', function () {
+    $user = User::factory()->create();
+
+    withSession(['url.intended' => "/\t/evil.test/steal"])
+        ->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirect(route('headless.dashboard'));
+});
+
 it('keeps an internal intended url after login', function () {
     $user = User::factory()->create();
 
@@ -119,6 +127,14 @@ it('logs out and invalidates the session', function () {
 
 it('redirects signed in users away from the login page', function () {
     actingAs(User::factory()->create())->get(route('login'))->assertRedirect(route('headless.dashboard'));
+});
+
+it('leaves the guest routes of the application to Laravel', function () {
+    Route::get('home', fn () => 'home')->name('home');
+    Route::get('enter-code', fn () => 'enter your code')->middleware(['web', 'guest']);
+    Route::getRoutes()->refreshNameLookups();
+
+    actingAs(User::factory()->create())->get('/enter-code')->assertRedirect(route('home'));
 });
 
 it('rejects an email sent as an array without a server error', function () {

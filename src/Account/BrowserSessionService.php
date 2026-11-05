@@ -38,8 +38,13 @@ final class BrowserSessionService
         })->values()->all();
     }
 
-    public function logout(User $user, string $publicId): bool
+    public function logout(User $user, string $publicId, string $currentSessionId): bool
     {
+        // Leaving this browser is the sign-out button's job, which also ends the session properly.
+        if (hash_equals($this->publicId($currentSessionId), $publicId)) {
+            return false;
+        }
+
         $session = $this->sessions->forUser($user)->first(fn (object $session) => hash_equals($this->publicId($session->id), $publicId));
 
         if ($session === null) {

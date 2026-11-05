@@ -1,8 +1,11 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Inertia\Testing\AssertableInertia;
+use Laravel\Fortify\Events\RecoveryCodeReplaced;
 use Laravel\Fortify\Events\TwoFactorAuthenticationFailed;
+use Laravel\Fortify\Fortify;
 use Workbench\App\Models\User;
 
 use function Pest\Laravel\assertAuthenticatedAs;
@@ -65,6 +68,32 @@ it('signs in with a recovery code once', function () {
         ->assertSessionHasErrors(['recovery_code' => __('headless::two_factor.errors.invalid_recovery_code')]);
 
     assertGuest();
+});
+
+it('refuses a recovery code that a parallel request has just used', function () {
+    $user = enabledTwoFactorUser();
+    $codes = $user->recoveryCodes();
+    startChallenge($user);
+
+    // The other request finishes right after this one has read the account.
+    User::retrieved(fn () => DB::table('users')->where('id', $user->id)->update([
+        'two_factor_recovery_codes' => Fortify::currentEncrypter()->encrypt(json_encode(array_slice($codes, 1))),
+    ]));
+
+    post(route('two-factor.login.store'), ['recovery_code' => $codes[0]])
+        ->assertSessionHasErrors(['recovery_code' => __('headless::two_factor.errors.invalid_recovery_code')]);
+
+    assertGuest();
+});
+
+it('reports a used recovery code once', function () {
+    $user = enabledTwoFactorUser();
+    startChallenge($user);
+    Event::fake([RecoveryCodeReplaced::class]);
+
+    post(route('two-factor.login.store'), ['recovery_code' => $user->recoveryCodes()[0]])->assertRedirect(route('headless.dashboard'));
+
+    Event::assertDispatchedTimes(RecoveryCodeReplaced::class, 1);
 });
 
 it('rejects a wrong code', function () {

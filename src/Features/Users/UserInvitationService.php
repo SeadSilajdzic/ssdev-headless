@@ -9,6 +9,8 @@ use Illuminate\Contracts\Auth\PasswordBrokerFactory;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Contracts\Notifications\Dispatcher as Notifications;
+use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -29,19 +31,33 @@ final class UserInvitationService
         private Hasher $hasher,
         private Notifications $notifications,
         private Dispatcher $events,
+        private ConnectionInterface $database,
     ) {}
 
     public function invite(User $actor, string $name, string $email): User
     {
-        $user = $this->users->create([
-            'name' => $name,
-            'email' => mb_strtolower(trim($email)),
-            // Nobody knows this password; the invitee chooses their own.
-            'password' => $this->hasher->make(Str::random(64)),
-            'invited_at' => now(),
-        ]);
+        // Nobody knows this password; the invitee chooses their own.
+        $password = $this->hasher->make(Str::random(64));
 
-        $this->send($user);
+        try {
+            // Together, so a mail that cannot go out leaves no account behind.
+            $user = $this->database->transaction(function () use ($name, $email, $password): User {
+                $user = $this->users->create([
+                    'name' => $name,
+                    'email' => mb_strtolower(trim($email)),
+                    'password' => $password,
+                    'invited_at' => now(),
+                ]);
+
+                $this->send($user);
+
+                return $user;
+            });
+        } catch (UniqueConstraintViolationException) {
+            // A parallel request took the email after this one's validation passed.
+            throw ValidationException::withMessages(['email' => __('validation.unique', ['attribute' => 'email'])]);
+        }
+
         $this->events->dispatch(new UserInvited($user, $actor));
 
         return $user;

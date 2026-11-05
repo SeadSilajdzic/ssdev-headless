@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Ssdev\Headless\Auth\RateLimits;
 use Ssdev\Headless\Http\Controllers\Api\AccountController;
+use Ssdev\Headless\Http\Controllers\Api\ApiFallbackController;
 use Ssdev\Headless\Http\Controllers\Api\ApiTokenController;
 use Ssdev\Headless\Http\Controllers\Api\AuthTokenController;
 use Ssdev\Headless\Http\Controllers\Api\AvatarController;
@@ -50,4 +51,4 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Route::fallback() only answers GET, so unknown POST/PUT/DELETE URLs would report 405 instead of 404.
-Route::any('{path}', fn () => abort(404))->where('path', '.*')->fallback()->name('headless.api.fallback');
+Route::any('{path}', ApiFallbackController::class)->where('path', '.*')->fallback()->name('headless.api.fallback');

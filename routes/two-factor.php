@@ -3,13 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\TwoFactorAuthenticatedSessionController;
 use Ssdev\Headless\Auth\RateLimits;
+use Ssdev\Headless\Features\TwoFactor\Http\Controllers\TwoFactorChallengeController;
 use Ssdev\Headless\Features\TwoFactor\Http\Controllers\TwoFactorSettingsController;
 use Ssdev\Headless\Features\TwoFactor\TwoFactorRateLimit;
+use Ssdev\Headless\Http\Middleware\RedirectSignedInToDashboard;
 
 // Fortify's login pipeline redirects to the route named two-factor.login.
-Route::middleware('guest')->group(function () {
+Route::middleware(RedirectSignedInToDashboard::class)->group(function () {
     Route::get('two-factor-challenge', [TwoFactorAuthenticatedSessionController::class, 'create'])->name('two-factor.login');
-    Route::post('two-factor-challenge', [TwoFactorAuthenticatedSessionController::class, 'store'])
+    Route::post('two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
         ->middleware('throttle:'.TwoFactorRateLimit::NAME)
         ->name('two-factor.login.store');
 });

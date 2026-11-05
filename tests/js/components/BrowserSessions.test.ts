@@ -56,6 +56,31 @@ it('highlights the row of the selected point', async () => {
     expect(wrapper.findAll('[data-test="session-row"]')[0].attributes('data-selected')).toBe('true');
 });
 
+it('calls a location without a city or country unknown', () => {
+    const row = mountSessions([{ ...sessions[0], location: { city: null, country: null, latitude: 43.85, longitude: 18.41 } }]).get('[data-test="session-row"]');
+
+    expect(row.text()).toContain('Unknown location');
+});
+
+it('selects a located row with a button the keyboard can reach', async () => {
+    const wrapper = mountSessions(located);
+    const select = wrapper.get('[data-test="select-session"]');
+
+    expect(select.element.tagName).toBe('BUTTON');
+    expect(select.attributes('aria-pressed')).toBe('false');
+
+    await select.trigger('click');
+
+    expect(select.attributes('aria-pressed')).toBe('true');
+    expect(wrapper.findAll('[data-test="session-row"]')[0].attributes('data-selected')).toBe('true');
+});
+
+it('offers no selection for a row without a location', () => {
+    const rows = mountSessions(located).findAll('[data-test="session-row"]');
+
+    expect(rows[1].find('[data-test="select-session"]').exists()).toBe(false);
+});
+
 it('keeps the map closed when a row is logged out', async () => {
     const berlin = { ...sessions[1], id: 'c', ip_address: '198.51.100.4', location: { city: 'Berlin', country: 'Germany', latitude: 52.52, longitude: 13.4 } };
     const logout = vi.spyOn(router, 'delete').mockImplementation(() => {});

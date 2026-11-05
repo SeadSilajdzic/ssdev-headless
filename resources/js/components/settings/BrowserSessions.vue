@@ -37,7 +37,7 @@ const form = useForm({ password: '' });
 const showsLocations = computed(() => props.sessions.some((session) => session.location !== null));
 
 function details(session: BrowserSessionItem): string {
-    const location = session.location ? placeLabel(session.location) : t('settings.sessions.unknown_location');
+    const location = (session.location && placeLabel(session.location)) || t('settings.sessions.unknown_location');
 
     return [showsLocations.value ? location : null, session.ip_address, session.last_active].filter(Boolean).join(' · ');
 }
@@ -80,13 +80,17 @@ function logoutOthers(): void {
                     class="h-8 w-8 shrink-0 text-ink-400"
                     aria-hidden="true"
                 />
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm font-semibold text-ink-900">
+                <component
+                    :is="session.location ? 'button' : 'div'"
+                    v-bind="session.location ? { type: 'button', 'data-test': 'select-session', 'aria-pressed': selected === session.id } : {}"
+                    class="min-w-0 flex-1 rounded-lg text-left focus-visible:ring-2 focus-visible:ring-mint-500 focus-visible:outline-none"
+                >
+                    <span class="block text-sm font-semibold text-ink-900">
                         {{ deviceLabel(session) || t('settings.sessions.unknown') }}
                         <BaseBadge v-if="session.is_current" class="ml-2">{{ t('settings.sessions.this_device') }}</BaseBadge>
-                    </p>
-                    <p class="text-xs text-ink-500">{{ details(session) }}</p>
-                </div>
+                    </span>
+                    <span class="block text-xs text-ink-500">{{ details(session) }}</span>
+                </component>
                 <BaseButton
                     v-if="!session.is_current"
                     variant="ghost"

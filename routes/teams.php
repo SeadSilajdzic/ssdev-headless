@@ -10,6 +10,7 @@ use Ssdev\Headless\Features\Teams\Http\Controllers\TeamInvitationController;
 use Ssdev\Headless\Features\Teams\Http\Controllers\TeamMemberController;
 use Ssdev\Headless\Features\Teams\Http\Controllers\TeamOwnerController;
 use Ssdev\Headless\Features\Teams\TeamInvitationRateLimit;
+use Ssdev\Headless\Http\Middleware\RedirectSignedInToDashboard;
 use Ssdev\Headless\Http\Middleware\RequireVerifiedEmail;
 
 // Guests open the link too: one with an account signs in first, one without creates it, as the mailed link proves the address.
@@ -21,7 +22,7 @@ Route::middleware('signed')->prefix('team-invitations')->whereNumber('invitation
         ->middleware(['auth', RequireVerifiedEmail::class])
         ->name('headless.team-invitations.store');
     Route::post('{invitation}/account', [TeamInvitationAccountController::class, 'store'])
-        ->middleware(['guest', 'throttle:'.RateLimits::REGISTRATION])
+        ->middleware([RedirectSignedInToDashboard::class, 'throttle:'.RateLimits::REGISTRATION])
         ->name('headless.team-invitations.account');
 });
 

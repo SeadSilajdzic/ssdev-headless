@@ -97,6 +97,22 @@ it('is idempotent', function () {
         ->and($files->get('app/Models/User.php'))->toBe($code);
 });
 
+it('edits a user model with Windows line endings and keeps them', function () {
+    $files = fixtureProject();
+    $files->put('app/Models/User.php', str_replace("\n", "\r\n", LARAVEL_12_USER));
+
+    expect(app(PrepareUserModel::class)->handle(installContext($files))->status)->toBe(StepStatus::Changed);
+
+    $code = $files->get('app/Models/User.php');
+    expect($code)->toContain("    use HasApiTokens, HasFactory, HasRoles, Notifiable;\r\n")
+        ->toContain("class User extends Authenticatable implements MustVerifyEmail\r\n")
+        ->and(preg_match('/(?<!\r)\n/', $code))->toBe(0);
+    expectValidPhp($code);
+
+    expect(app(PrepareUserModel::class)->handle(installContext($files))->status)->toBe(StepStatus::Skipped)
+        ->and($files->get('app/Models/User.php'))->toBe($code);
+});
+
 it('asks for manual changes when the user model is unrecognisable', function () {
     $files = fixtureProject();
     $files->put('app/Models/User.php', "<?php\n\nclass Member {}\n");
