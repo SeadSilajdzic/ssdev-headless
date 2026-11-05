@@ -22,7 +22,7 @@ final class RequireComposerPackages implements InstallStep
             return StepResult::skipped(self::DESCRIPTION);
         }
 
-        if (! $this->composer->requirePackages($packages)) {
+        if (! $this->composer->setWorkingPath($context->files->path(''))->requirePackages($packages)) {
             return StepResult::manual(self::DESCRIPTION, 'Run: composer require '.implode(' ', $packages));
         }
 

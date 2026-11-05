@@ -40,7 +40,7 @@ final class InstallApiContracts implements InstallStep
 
         // The core test exists once the contracts package is set up, so only a first install sets it up.
         if (isset($pending[self::TEST_DIRECTORY.'/'.self::CORE_TEST])) {
-            if (! InstalledVersions::isInstalled(self::PACKAGE_NAME) && ! $this->composer->requirePackages([self::PACKAGE], true)) {
+            if (! InstalledVersions::isInstalled(self::PACKAGE_NAME) && ! $this->composer->setWorkingPath($files->path(''))->requirePackages([self::PACKAGE], true)) {
                 return StepResult::manual(self::DESCRIPTION, 'Run: composer require --dev '.self::PACKAGE);
             }
 

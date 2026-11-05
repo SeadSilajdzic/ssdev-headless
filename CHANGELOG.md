@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Fixed
+
+- `headless:install` and `headless:add` run `composer require` in the project instead of in the directory the command started from.
+
 ## [0.5.0] - 2026-11-05
 
 ### Added
