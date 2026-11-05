@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-05
+
 ### Added
 
 - Multi-tenancy (`tenancy`) on `spatie/laravel-multitenancy`: tenants on subdomains, one database with `tenant_id` and the `BelongsToTenant` scope, accounts, sessions, API tokens, reset links, cache, rate limits, files and queued jobs kept apart per tenant, closed sign-up inside tenants, and suspended tenants.
@@ -105,7 +107,8 @@ All notable changes to this project are documented in this file. The format foll
 - App, auth and settings layouts, dashboard page and error pages for 403, 404, 419, 429, 500 and 503.
 - Shared Inertia props: authenticated user, navigation, enabled features, translations and flash messages.
 
-[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.2.0...v0.3.0
