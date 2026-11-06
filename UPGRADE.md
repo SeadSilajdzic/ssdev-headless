@@ -1,14 +1,28 @@
 # Upgrade Guide
 
-Within a minor version, upgrading is always the same three commands:
+Within a minor version, upgrading is always the same four commands:
 
 ```bash
 composer update ssdev/laravel-headless
 php artisan headless:upgrade
 php artisan migrate
+npm run build
 ```
 
 `headless:upgrade` publishes the migrations a new version added and leaves the ones you already have alone. Anything else that needs your attention is listed below, per version.
+
+## Upgrading to 1.0 from 0.5
+
+```bash
+composer require ssdev/laravel-headless:^1.0
+php artisan headless:upgrade
+npm run build
+```
+
+There are no new migrations or config keys, and nothing changes in the API. Two things can still reach you:
+
+- On the pages, changing a user and sending them a password reset link now count towards `rate_limits.invitations`, and creating a tenant towards `rate_limits.owner_invitations`. Both default to 10 a minute per user, and going over answers 429. Raise them in `config/headless.php` if your admins do more.
+- A copy of `BaseSelect.vue` in `resources/js/vendor/headless/` needs `defineOptions({ inheritAttrs: false })` and `v-bind="$attrs"` on `SelectTrigger`. Without them, the filters on the users and tenants pages have a visible label that is not tied to the select.
 
 ## Upgrading to 0.5 from 0.4
 

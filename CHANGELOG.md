@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-06
+
+The first stable release. From here on, breaking changes to the API, the config and the swappable classes wait for a major version.
+
 ### Changed
 
 - The package archive no longer contains the `phpstan/` directory, which only the package's own analysis uses.
@@ -150,7 +154,8 @@ All notable changes to this project are documented in this file. The format foll
 - App, auth and settings layouts, dashboard page and error pages for 403, 404, 419, 429, 500 and 503.
 - Shared Inertia props: authenticated user, navigation, enabled features, translations and flash messages.
 
-[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.2...v1.0.0
 [0.5.2]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.4.0...v0.5.0

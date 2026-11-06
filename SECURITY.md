@@ -8,7 +8,8 @@ Please report vulnerabilities privately through [GitHub Security Advisories](htt
 
 | Version | Supported |
 |---|---|
-| 0.x (latest minor) | Yes |
+| 1.x (latest minor) | Yes |
+| 0.x | No |
 
 ## Security matrix
 
@@ -294,7 +295,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Avoid abandoned packages | Covered | `lucide-vue-next` was replaced by `@lucide/vue` |
 | Avoid suspicious packages | Covered | |
 | Watch for typosquatting | Covered | |
-| Monitor dependency vulnerabilities | Partial | Composer audits on `composer update` and `composer require`; no automated alerts in the repository yet |
+| Monitor dependency vulnerabilities | Partial | Composer audits on `composer update` and `composer require`; the repository has Dependabot alerts but no `composer.lock`, so each application still audits the versions it resolves |
 | Do not modify unrelated dependencies | Covered | |
 | Never commit .env files | Covered | |
 | Never commit API keys | Covered | |
