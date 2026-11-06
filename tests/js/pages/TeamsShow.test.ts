@@ -4,7 +4,7 @@ import TeamsShow from '@headless/pages/Teams/Show.vue';
 
 enableAutoUnmount(afterEach);
 
-function mountTeam(isOwner: boolean) {
+function mountTeam(isOwner: boolean, roles: { id: number; name: string }[] = []) {
     // Inertia always shares validation errors; the test page leaves them out.
     usePage().props.errors = {};
 
@@ -23,7 +23,7 @@ function mountTeam(isOwner: boolean) {
             ownerUrl: '/teams/1/owner',
             invitationsUrl: '/teams/1/invitations',
             removeMemberUrls: { 2: '/teams/1/members/2' },
-            roles: [],
+            roles,
             memberRoles: {},
             memberRolesUrls: {},
         },
@@ -39,6 +39,13 @@ it('shows the owner the team controls', () => {
     expect(wrapper.find('[data-test="delete-team"]').exists()).toBe(true);
     expect(wrapper.findAll('[data-test="remove-member"]')).toHaveLength(1);
     expect(wrapper.find('[data-test="leave-team"]').exists()).toBe(false);
+});
+
+it('ties the role label of an invitation to its select', () => {
+    const form = mountTeam(true, [{ id: 1, name: 'Editor' }]).get('[data-test="invite-member"]');
+    const label = form.findAll('label').find((candidate) => candidate.text() === 'teams.fields.role');
+
+    expect(form.get('[role="combobox"]').attributes('id')).toBe(label?.attributes('for'));
 });
 
 it('lets a member only leave', () => {

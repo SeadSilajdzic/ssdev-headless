@@ -4,7 +4,7 @@ import UsersIndex from '@headless/pages/Users/Index.vue';
 
 enableAutoUnmount(afterEach);
 
-function mountIndex(can: { create: boolean; update: boolean }) {
+function mountIndex(can: { create: boolean; update: boolean }, roles: { id: number; name: string }[] = []) {
     return mount(UsersIndex, {
         props: {
             users: {
@@ -13,7 +13,7 @@ function mountIndex(can: { create: boolean; update: boolean }) {
             },
             filters: { search: null, status: null, verified: null, role: null, registered_from: null, registered_to: null, sort: null, direction: null },
             statuses: ['active', 'invited', 'blocked'],
-            roles: [],
+            roles,
             can,
             indexUrl: '/users',
             createUrl: '/users/create',
@@ -37,6 +37,16 @@ it('offers a view link and no invite button to viewers', () => {
 
     expect(wrapper.get('[data-test="open-user"]').text().toLowerCase()).toContain('view');
     expect(wrapper.find('[data-test="invite-user"]').exists()).toBe(false);
+});
+
+it('labels every filter on the page', () => {
+    const wrapper = mountIndex({ create: true, update: true }, [{ id: 1, name: 'Editor' }]);
+    const labels = wrapper.findAll('label');
+
+    expect(labels.map((label) => label.text())).toEqual(['search', 'status', 'verified', 'role', 'registered_from', 'registered_to'].map((filter) => `users.filters.${filter}`));
+    labels.forEach((label) => {
+        expect(wrapper.get(`[id="${label.attributes('for')}"]`).element.matches('input, [role="combobox"]')).toBe(true);
+    });
 });
 
 it('drops a pending search when the page is left', async () => {

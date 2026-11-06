@@ -11,6 +11,8 @@ All notable changes to this project are documented in this file. The format foll
 ### Fixed
 
 - On the pages, changing a user and sending them a password reset link count towards `rate_limits.invitations`, and creating a tenant towards `rate_limits.owner_invitations`. Each sends mail, and a new email on an invited user sent a new invitation past the limit.
+- Every filter on the users and tenants pages has a visible label, and their search fields get the full width they were meant to have, which no longer cuts off the placeholder.
+- `BaseSelect` passes `id` and `aria-*` attributes to its trigger. It lost them before, so screen readers had no name for the filters on the users and tenants pages, and the role select on a team invitation was not tied to its label or its error.
 
 ## [0.5.2] - 2026-11-06
 

@@ -25,6 +25,7 @@ return [
     ],
 
     'filters' => [
+        'search' => 'Search',
         'status' => 'Status',
         'verified' => 'Email',
         'verified_yes' => 'Verified',

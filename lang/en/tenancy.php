@@ -18,6 +18,7 @@ return [
     ],
 
     'filters' => [
+        'search' => 'Search',
         'status' => 'Status',
         'all' => 'All',
         'clear' => 'Clear filters',

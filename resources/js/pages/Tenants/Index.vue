@@ -10,6 +10,7 @@ import BasePagination from '@headless/components/ui/BasePagination.vue';
 import BaseSelect from '@headless/components/ui/BaseSelect.vue';
 import BaseTable, { type TableColumn, type TableSort } from '@headless/components/ui/BaseTable.vue';
 import EmptyState from '@headless/components/ui/EmptyState.vue';
+import FormField from '@headless/components/ui/FormField.vue';
 import { useTrans } from '@headless/i18n';
 import AppLayout from '@headless/layouts/AppLayout.vue';
 
@@ -107,13 +108,17 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
 
         <BaseCard :description="t('tenancy.description')">
             <div class="mb-4 grid gap-3 sm:grid-cols-3">
-                <BaseInput v-model="search" class="sm:col-span-2" type="search" :placeholder="t('tenancy.search')" :aria-label="t('tenancy.search')" />
-                <BaseSelect
-                    :model-value="filters.status ?? ALL"
-                    :options="statusOptions"
-                    :aria-label="t('tenancy.filters.status')"
-                    @update:model-value="(value) => visit({ status: value === ALL ? null : value, page: null })"
-                />
+                <FormField v-slot="{ id }" class="sm:col-span-2" :label="t('tenancy.filters.search')">
+                    <BaseInput :id="id" v-model="search" type="search" :placeholder="t('tenancy.search')" />
+                </FormField>
+                <FormField v-slot="{ id }" :label="t('tenancy.filters.status')">
+                    <BaseSelect
+                        :id="id"
+                        :model-value="filters.status ?? ALL"
+                        :options="statusOptions"
+                        @update:model-value="(value) => visit({ status: value === ALL ? null : value, page: null })"
+                    />
+                </FormField>
             </div>
             <div v-if="hasFilters" class="mb-4">
                 <BaseButton variant="ghost" size="sm" data-test="clear-filters" @click="clearFilters">{{ t('tenancy.filters.clear') }}</BaseButton>

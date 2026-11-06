@@ -43,8 +43,14 @@ function roleName(id: number | null): string {
             <FormField v-slot="{ id, describedBy, invalid }" class="min-w-0 flex-1" :label="t('teams.fields.email')" :error="form.errors.email">
                 <BaseInput :id="id" v-model="form.email" type="email" autocomplete="off" :invalid="invalid" :aria-describedby="describedBy" />
             </FormField>
-            <FormField v-if="roles.length" class="w-48" :label="t('teams.fields.role')" :error="form.errors.role">
-                <BaseSelect v-model="form.role" :options="[{ value: NO_ROLE, label: t('teams.invitations.no_role') }, ...roles.map((role) => ({ value: String(role.id), label: role.name }))]" />
+            <FormField v-if="roles.length" v-slot="{ id, describedBy, invalid }" class="w-48" :label="t('teams.fields.role')" :error="form.errors.role">
+                <BaseSelect
+                    :id="id"
+                    v-model="form.role"
+                    :options="[{ value: NO_ROLE, label: t('teams.invitations.no_role') }, ...roles.map((role) => ({ value: String(role.id), label: role.name }))]"
+                    :invalid="invalid"
+                    :aria-describedby="describedBy"
+                />
             </FormField>
             <BaseButton type="submit" :loading="form.processing">{{ t('teams.invitations.invite') }}</BaseButton>
         </form>

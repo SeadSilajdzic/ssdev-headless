@@ -43,6 +43,16 @@ it('links every row to its tenant', () => {
     expect(mountIndex(true).get('[data-test="open-tenant"]').attributes('href')).toBe('/tenants/7');
 });
 
+it('labels every filter on the page', () => {
+    const wrapper = mountIndex(true);
+    const labels = wrapper.findAll('label');
+
+    expect(labels.map((label) => label.text())).toEqual(['tenancy.filters.search', 'tenancy.filters.status']);
+    labels.forEach((label) => {
+        expect(wrapper.get(`[id="${label.attributes('for')}"]`).element.matches('input, [role="combobox"]')).toBe(true);
+    });
+});
+
 it('sends the search together with the current filters', async () => {
     vi.useFakeTimers();
     const visit = vi.spyOn(router, 'get').mockImplementation(() => {});

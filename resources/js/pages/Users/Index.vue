@@ -11,6 +11,7 @@ import BasePagination from '@headless/components/ui/BasePagination.vue';
 import BaseSelect from '@headless/components/ui/BaseSelect.vue';
 import BaseTable, { type TableColumn, type TableSort } from '@headless/components/ui/BaseTable.vue';
 import EmptyState from '@headless/components/ui/EmptyState.vue';
+import FormField from '@headless/components/ui/FormField.vue';
 import { useTrans } from '@headless/i18n';
 import AppLayout from '@headless/layouts/AppLayout.vue';
 
@@ -124,39 +125,35 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
         </template>
 
         <BaseCard :description="t('users.description')">
-            <div class="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                <BaseInput v-model="search" class="sm:col-span-2 lg:col-span-3 xl:col-span-2" type="search" :placeholder="t('users.search')" :aria-label="t('users.search')" />
-                <BaseSelect
-                    :model-value="filters.status ?? ALL"
-                    :options="statusOptions"
-                    :aria-label="t('users.filters.status')"
-                    @update:model-value="(value) => filterBy('status', value)"
-                />
-                <BaseSelect
-                    :model-value="filters.verified === null ? ALL : filters.verified ? VERIFIED : UNVERIFIED"
-                    :options="verifiedOptions"
-                    :aria-label="t('users.filters.verified')"
-                    @update:model-value="(value) => filterBy('verified', value)"
-                />
-                <BaseSelect
-                    v-if="roles.length"
-                    :model-value="filters.role === null ? ALL : String(filters.role)"
-                    :options="roleOptions"
-                    :aria-label="t('users.filters.role')"
-                    @update:model-value="(value) => filterBy('role', value)"
-                />
-                <BaseInput
-                    type="date"
-                    :model-value="filters.registered_from ?? ''"
-                    :aria-label="t('users.filters.registered_from')"
-                    @update:model-value="(value: string) => filterBy('registered_from', value || null)"
-                />
-                <BaseInput
-                    type="date"
-                    :model-value="filters.registered_to ?? ''"
-                    :aria-label="t('users.filters.registered_to')"
-                    @update:model-value="(value: string) => filterBy('registered_to', value || null)"
-                />
+            <div class="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                <FormField v-slot="{ id }" class="sm:col-span-2 lg:col-span-3 xl:col-span-5" :label="t('users.filters.search')">
+                    <BaseInput :id="id" v-model="search" type="search" :placeholder="t('users.search')" />
+                </FormField>
+                <FormField v-slot="{ id }" :label="t('users.filters.status')">
+                    <BaseSelect :id="id" :model-value="filters.status ?? ALL" :options="statusOptions" @update:model-value="(value) => filterBy('status', value)" />
+                </FormField>
+                <FormField v-slot="{ id }" :label="t('users.filters.verified')">
+                    <BaseSelect
+                        :id="id"
+                        :model-value="filters.verified === null ? ALL : filters.verified ? VERIFIED : UNVERIFIED"
+                        :options="verifiedOptions"
+                        @update:model-value="(value) => filterBy('verified', value)"
+                    />
+                </FormField>
+                <FormField v-if="roles.length" v-slot="{ id }" :label="t('users.filters.role')">
+                    <BaseSelect
+                        :id="id"
+                        :model-value="filters.role === null ? ALL : String(filters.role)"
+                        :options="roleOptions"
+                        @update:model-value="(value) => filterBy('role', value)"
+                    />
+                </FormField>
+                <FormField v-slot="{ id }" :label="t('users.filters.registered_from')">
+                    <BaseInput :id="id" type="date" :model-value="filters.registered_from ?? ''" @update:model-value="(value: string) => filterBy('registered_from', value || null)" />
+                </FormField>
+                <FormField v-slot="{ id }" :label="t('users.filters.registered_to')">
+                    <BaseInput :id="id" type="date" :model-value="filters.registered_to ?? ''" @update:model-value="(value: string) => filterBy('registered_to', value || null)" />
+                </FormField>
             </div>
             <div v-if="hasFilters" class="mb-4">
                 <BaseButton variant="ghost" size="sm" data-test="clear-filters" @click="clearFilters">{{ t('users.filters.clear') }}</BaseButton>

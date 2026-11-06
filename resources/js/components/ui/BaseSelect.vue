@@ -19,12 +19,15 @@ defineProps<{
     invalid?: boolean;
 }>();
 
+// SelectRoot drops attributes, and the id and aria-* from FormField belong on the trigger anyway.
+defineOptions({ inheritAttrs: false });
+
 const model = defineModel<string | null>({ default: null });
 </script>
 
 <template>
     <SelectRoot v-model="model">
-        <SelectTrigger :aria-invalid="invalid ? 'true' : undefined" :class="[inputClasses(invalid), 'flex items-center justify-between text-left']">
+        <SelectTrigger v-bind="$attrs" :aria-invalid="invalid ? 'true' : undefined" :class="[inputClasses(invalid), 'flex items-center justify-between text-left']">
             <SelectValue :placeholder="placeholder" />
             <ChevronDown class="h-4 w-4 text-ink-400" aria-hidden="true" />
         </SelectTrigger>
