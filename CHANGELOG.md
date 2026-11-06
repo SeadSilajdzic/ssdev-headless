@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-06
+
 ### Added
 
 - `PUT users/{user}/roles` takes an optional `known_roles`, the role ids the client last read, and answers 422 when they no longer match. The user page sends it, so two managers saving at once cannot overwrite each other.
@@ -138,7 +140,8 @@ All notable changes to this project are documented in this file. The format foll
 - App, auth and settings layouts, dashboard page and error pages for 403, 404, 419, 429, 500 and 503.
 - Shared Inertia props: authenticated user, navigation, enabled features, translations and flash messages.
 
-[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.3.1...v0.4.0
