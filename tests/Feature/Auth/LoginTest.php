@@ -111,6 +111,14 @@ it('ignores an intended url with control characters after login', function () {
         ->assertRedirect(route('headless.dashboard'));
 });
 
+it('ignores an intended url with a backslash after login', function (string $intended) {
+    $user = User::factory()->create();
+
+    withSession(['url.intended' => $intended])
+        ->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirect(route('headless.dashboard'));
+})->with(['https://evil.test\@localhost/steal', '/\evil.test/steal']);
+
 it('keeps an internal intended url after login', function () {
     $user = User::factory()->create();
 

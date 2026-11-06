@@ -10,7 +10,7 @@ final class TenantHosts
 
     public function isCentral(string $host): bool
     {
-        return strtolower($host) === $this->setting('central_domain');
+        return strtolower($host) === $this->centralDomain();
     }
 
     /**
@@ -35,13 +35,23 @@ final class TenantHosts
         return $this->setting('base_domain');
     }
 
+    public function centralDomain(): string
+    {
+        return $this->setting('central_domain');
+    }
+
+    public function hostOf(Tenant $tenant): string
+    {
+        return $tenant->subdomain.'.'.$this->setting('base_domain');
+    }
+
     public function rootUrlFor(Tenant $tenant): string
     {
         $appUrl = (string) $this->config->get('app.url');
         $scheme = parse_url($appUrl, PHP_URL_SCHEME) ?: 'https';
         $port = parse_url($appUrl, PHP_URL_PORT);
 
-        return $scheme.'://'.$tenant->subdomain.'.'.$this->setting('base_domain').($port === null ? '' : ':'.$port);
+        return $scheme.'://'.$this->hostOf($tenant).($port === null ? '' : ':'.$port);
     }
 
     private function setting(string $key): string

@@ -66,6 +66,19 @@ it('sends an invitee with an account to sign in', function () {
     get($link)->assertRedirect(tenantUrl($acme, 'login'));
 });
 
+it('brings an invitee back to the invitation after signing in', function () {
+    $acme = makeTenant('acme');
+    [, $link] = tenantTeamInvitation($acme, 'grace@example.com');
+    tenantUser($acme, ['email' => 'grace@example.com']);
+
+    get($link)->assertRedirect(tenantUrl($acme, 'login'));
+    post(tenantUrl($acme, 'login'), ['email' => 'grace@example.com', 'password' => 'password'])->assertRedirect($link);
+
+    get($link)->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->component(headlessPage('Teams/Invitation'), false)
+        ->where('team.name', 'Research'));
+});
+
 it('works once', function () {
     $acme = makeTenant('acme');
     [, $link] = tenantTeamInvitation($acme, 'grace@example.com');

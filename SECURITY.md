@@ -41,7 +41,7 @@ Tests are named `file › test`, relative to `tests/`.
 | CSRF token handling | Covered | Laravel CSRF protection in the `web` group; expired tokens redirect back with a message (`Feature/Exceptions/InertiaErrorRendererTest › redirects back with a flash message on expired pages`) |
 | Prevent accidental duplicate requests | Covered | Busy buttons; registration and email change are safe to repeat |
 | Frontend permission checks | Covered | `useCan()` (`js/composables/useCan.test.ts`); navigation hides items without permission (`Feature/Navigation/NavigationRegistryTest`) |
-| Safe redirect handling | Covered | `SafeRedirect`; `Feature/Auth/LoginTest › ignores an external intended url after login` |
+| Safe redirect handling | Covered | `SafeRedirect`; `Feature/Auth/LoginTest › ignores an external intended url after login`, `› ignores an intended url with a backslash after login`, `Features/Tenancy/IntendedUrlTest › refuses another tenant's host and the central domain inside a tenant` |
 | Avoid exposing internal routes/configuration | Covered | Pages receive only the URLs they need; no route list is shared |
 | Minimize sensitive data stored in client-side state | Covered | Nothing is written to browser storage; passwords leave the form state after submit |
 | Verify all Inertia props contain only required data | Covered | `Feature/Settings/ProfileTest › renders the profile page without sensitive data` |

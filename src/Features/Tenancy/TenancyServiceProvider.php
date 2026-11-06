@@ -11,10 +11,12 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Multitenancy\Tasks\PrefixCacheTask;
 use Spatie\Permission\Models\Role;
+use Ssdev\Headless\Auth\RedirectHost;
 use Ssdev\Headless\Features\Feature;
 use Ssdev\Headless\Features\FeatureRegistry;
 use Ssdev\Headless\Features\Teams\Team;
 use Ssdev\Headless\Features\Tenancy\Auth\TenantPasswordBrokerManager;
+use Ssdev\Headless\Features\Tenancy\Auth\TenantRedirectHost;
 use Ssdev\Headless\Features\Tenancy\Events\TenantDeleting;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureCentralLevel;
 use Ssdev\Headless\Features\Tenancy\Http\Middleware\EnsureSessionMatchesTenant;
@@ -69,6 +71,7 @@ final class TenancyServiceProvider extends ServiceProvider
         $this->app->booting(fn () => $this->app->make(TenantPermissionGate::class)->register());
 
         $this->app->bind(Isolation::class, TenantIsolation::class);
+        $this->app->bind(RedirectHost::class, TenantRedirectHost::class);
 
         // Extended rather than rebound: Laravel's provider is deferred and would replace a plain binding when it loads.
         $this->app->extend('auth.password', fn (PasswordBrokerManager $manager, Application $app) => new TenantPasswordBrokerManager($app));

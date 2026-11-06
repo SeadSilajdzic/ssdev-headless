@@ -17,7 +17,8 @@ All notable changes to this project are documented in this file. The format foll
 
 ### Fixed
 
-- An intended URL with control characters no longer counts as internal after sign-in.
+- On a tenant's host, signing in, the two-factor challenge, confirming a password and verifying an email return to the page that was asked for instead of the dashboard, and an invitee who has to sign in comes back to the team invitation. Inside a tenant only its own host counts as internal, and on the central level the central domain counts instead of `app.url`.
+- An intended URL with control characters or a backslash no longer counts as internal after sign-in: `https://evil.test\@example.com` reads as `example.com` to PHP and as `evil.test` to a browser.
 - `headless:install` and `headless:add` edit a `User.php` with Windows line endings, and keep them.
 - A crafted request can no longer log out the current browser session through the single-session route.
 - A failed save no longer leaves the new avatar file behind.

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 use Ssdev\Headless\Features\Roles\RoleGuard;
 use Ssdev\Headless\Features\Roles\RolesModule;
@@ -14,6 +15,7 @@ use Workbench\App\Models\TenantUser;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertAuthenticatedAs;
+use function Pest\Laravel\get;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\post;
 
@@ -63,6 +65,24 @@ it('challenges a tenant account with two-factor authentication on the tenant\'s 
     post(tenantUrl($acme, 'two-factor-challenge'), ['code' => currentOtp($ada)])->assertRedirect(tenantUrl($acme, DashboardController::PATH));
 
     assertAuthenticatedAs($ada);
+});
+
+it('returns to the page asked for after the two-factor challenge on the tenant\'s host', function () {
+    Route::get('/reports', fn () => 'reports')->middleware(['web', 'auth']);
+    $acme = makeTenant('acme');
+    $ada = tenantUser($acme);
+    $acme->execute(function () use ($ada): void {
+        app(TwoFactorService::class)->enable($ada);
+        app(TwoFactorService::class)->confirm($ada, currentOtp($ada));
+        // Confirming used up the current code in the tenant's cache.
+        Cache::flush();
+    });
+    $ada = $ada->fresh();
+
+    get(tenantUrl($acme, 'reports'))->assertRedirect(tenantUrl($acme, 'login'));
+    post(tenantUrl($acme, 'login'), ['email' => $ada->email, 'password' => 'password'])->assertRedirect(tenantUrl($acme, 'two-factor-challenge'));
+
+    post(tenantUrl($acme, 'two-factor-challenge'), ['code' => currentOtp($ada)])->assertRedirect(tenantUrl($acme, 'reports'));
 });
 
 it('keeps an owner\'s users, roles and teams inside the tenant', function () {

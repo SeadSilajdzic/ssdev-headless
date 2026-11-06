@@ -2,7 +2,6 @@
 
 namespace Ssdev\Headless\Auth;
 
-use Illuminate\Contracts\Config\Repository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -10,7 +9,7 @@ final class SafeRedirect
 {
     private const INTENDED_KEY = 'url.intended';
 
-    public function __construct(private Repository $config) {}
+    public function __construct(private RedirectHost $host) {}
 
     public function intended(Request $request, string $fallback): RedirectResponse
     {
@@ -21,20 +20,19 @@ final class SafeRedirect
 
     private function isInternal(string $url): bool
     {
-        // Browsers strip control characters, which would turn "/\t/evil.test" into "//evil.test".
-        if (preg_match('/[\x00-\x1F\x7F]/', $url) === 1) {
+        // Browsers strip control characters and read a backslash as a slash, so "https://evil.test\@app.test" goes to evil.test.
+        if (preg_match('/[\x00-\x1F\x7F\\\\]/', $url) === 1) {
             return false;
         }
 
         if (str_starts_with($url, '/')) {
-            return ! str_starts_with($url, '//') && ! str_starts_with($url, '/\\');
+            return ! str_starts_with($url, '//');
         }
 
-        // Compared with the configured app URL, never the request Host header, which a client controls.
         $host = parse_url($url, PHP_URL_HOST);
-        $appHost = parse_url((string) $this->config->get('app.url'), PHP_URL_HOST);
+        $trustedHost = $this->host->current();
 
-        return is_string($host) && is_string($appHost) && strcasecmp($host, $appHost) === 0
+        return is_string($host) && $trustedHost !== null && strcasecmp($host, $trustedHost) === 0
             && in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true);
     }
 }
