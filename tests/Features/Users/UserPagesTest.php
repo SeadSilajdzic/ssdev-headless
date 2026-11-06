@@ -163,6 +163,29 @@ it('throttles invitations', function () {
     actingAs($admin)->post(route('headless.users.store'), ['name' => 'User 3', 'email' => 'user3@example.com'])->assertTooManyRequests();
 });
 
+it('throttles password reset links', function () {
+    Notification::fake();
+    config(['headless.rate_limits.invitations' => 1]);
+    $admin = usersAdmin();
+    $user = User::factory()->create();
+
+    actingAs($admin)->post(route('headless.users.password-reset.store', $user->id))->assertRedirect();
+
+    actingAs($admin)->post(route('headless.users.password-reset.store', $user->id))->assertTooManyRequests();
+});
+
+it('throttles changes to a user, because a new email sends mail', function () {
+    Notification::fake();
+    config(['headless.rate_limits.invitations' => 1]);
+    $admin = usersAdmin();
+    $user = User::factory()->create();
+
+    actingAs($admin)->put(route('headless.users.update', $user->id), ['name' => 'Ada', 'email' => 'first@example.com'])->assertRedirect();
+
+    actingAs($admin)->put(route('headless.users.update', $user->id), ['name' => 'Ada', 'email' => 'second@example.com'])->assertTooManyRequests();
+    expect($user->fresh()->email)->toBe('first@example.com');
+});
+
 it('answers not found for a deleted user', function () {
     $user = User::factory()->create();
     $user->delete();

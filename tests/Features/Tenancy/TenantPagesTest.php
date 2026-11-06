@@ -141,6 +141,16 @@ it('throttles owner invitations', function () {
     actingAs($admin)->post(route('headless.tenants.owner-invitation.store', $tenant->id))->assertTooManyRequests();
 });
 
+it('throttles creating tenants, because each one mails its owner', function () {
+    config(['headless.rate_limits.owner_invitations' => 1]);
+    $admin = tenantsManager();
+
+    actingAs($admin)->post(route('headless.tenants.store'), ['name' => 'Acme', 'subdomain' => 'acme', 'owner_email' => 'owner@acme.test'])->assertRedirect();
+
+    actingAs($admin)->post(route('headless.tenants.store'), ['name' => 'Globex', 'subdomain' => 'globex', 'owner_email' => 'owner@globex.test'])->assertTooManyRequests();
+    expect(Tenant::query()->count())->toBe(1);
+});
+
 it('hides the pages on tenant hosts', function () {
     app(PermissionSynchronizer::class)->sync();
     $acme = makeTenant('acme');

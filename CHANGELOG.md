@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Changed
+
+- The package archive no longer contains the `phpstan/` directory, which only the package's own analysis uses.
+
+### Fixed
+
+- On the pages, changing a user and sending them a password reset link count towards `rate_limits.invitations`, and creating a tenant towards `rate_limits.owner_invitations`. Each sends mail, and a new email on an invited user sent a new invitation past the limit.
+
 ## [0.5.2] - 2026-11-06
 
 ### Added

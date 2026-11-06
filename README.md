@@ -1,6 +1,6 @@
 # Laravel Headless
 
-An installable Laravel foundation: authentication, user management, roles and permissions, teams, two-factor authentication and multi-tenancy — each shipped with a Vue + Inertia UI, a JSON API and tests.
+An installable Laravel foundation: authentication, user management, roles and permissions, teams, two-factor authentication and multi-tenancy — each shipped with a Vue + Inertia UI and a JSON API, plus contract tests for that API in your project.
 
 The code stays in the package, so security fixes and improvements reach your app through `composer update`. Anything you want to change, you publish and own.
 
@@ -217,7 +217,7 @@ Select it in `headless:install` or add it later with `php artisan headless:add u
 | `users.block` | block and unblock |
 | `users.delete` | delete |
 
-- **Invitations.** An admin enters a name and an email; the person gets a link to choose their own password, so nobody else ever knows it. The link works once, only for that email, and expires after `users.invitation_expire_minutes` (a week); sending it again replaces the old one. Invitations are limited by `rate_limits.invitations` per minute.
+- **Invitations.** An admin enters a name and an email; the person gets a link to choose their own password, so nobody else ever knows it. The link works once, only for that email, and expires after `users.invitation_expire_minutes` (a week); sending it again replaces the old one. Invitations are limited by `rate_limits.invitations` per minute; on the pages, changing a user and sending a password reset link count towards the same limit, because each can send mail.
 - **Blocking** signs the person out everywhere at once, revokes their API tokens and ends "remember me". They cannot sign in again, on the web or over the API, until someone unblocks them.
 - **Deleting** is a soft delete: the account stays in the database, cannot sign in and keeps its email taken. Deleting your own account from the profile page still removes it for good.
 - Nobody can block or delete themselves. The last active user with `users.block` cannot be deleted, and with roles on, neither can the last member of the last role that manages roles.
@@ -298,7 +298,7 @@ Platform admins manage tenants on the central domain under **Administration → 
 | `tenants.manage` | create, rename, suspend, resume and delete tenants, and send the owner's invitation again |
 
 - **Creating** takes a name, a subdomain and the owner's email. The subdomain is 3 to 63 lowercase letters, digits and hyphens, not starting or ending with a hyphen and not one of `tenancy.reserved_subdomains` (`www`, `admin`, `api`…). It never changes afterwards; only the name does.
-- **The owner** is the tenant's first account. It holds every permission of the tenant except `tenants.*`, through the tenant's `Administrator` role when roles are on, so it manages everyone else. It gets an invitation to choose a name and a password on the tenant's subdomain; the link works once, only for that email, and expires after `tenancy.owner_invitation_expire_minutes` (a week). Sending it again replaces the old link, at most `rate_limits.owner_invitations` times a minute.
+- **The owner** is the tenant's first account. It holds every permission of the tenant except `tenants.*`, through the tenant's `Administrator` role when roles are on, so it manages everyone else. It gets an invitation to choose a name and a password on the tenant's subdomain; the link works once, only for that email, and expires after `tenancy.owner_invitation_expire_minutes` (a week). Sending it again replaces the old link, at most `rate_limits.owner_invitations` times a minute; on the panel, creating a tenant counts towards the same limit.
 - **Suspending** closes the tenant's site and API until it is resumed.
 - **Deleting** is permanent and needs the subdomain typed again. It removes the tenant's accounts with their API tokens, sessions, role assignments and reset links, its roles and teams, and the tenant's directory (`tenants/{id}/`) on the avatars disk, the default disk and the disks listed in `tenancy.disks`. Delete your own rows on `TenantDeleting`, which runs inside the tenant and the deletion's transaction, so a model with `BelongsToTenant` sees only that tenant's rows:
 

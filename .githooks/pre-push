@@ -1,0 +1,11 @@
+#!/bin/sh
+# Blocks a push when an API response no longer matches its contract snapshot.
+
+# Herd installs php as a .bat on Windows, which sh cannot start by name.
+if command -v php >/dev/null 2>&1; then
+    PHP=php
+else
+    PHP="cmd //c php"
+fi
+
+exec $PHP vendor/bin/pest tests/Feature/Api/ContractTest.php tests/Features/*/ContractTest.php

@@ -7,7 +7,10 @@ Thanks for helping out! Bug reports, fixes and new features are all welcome.
 ```bash
 composer install
 npm install
+git config core.hooksPath .githooks
 ```
+
+The last line turns on a hook that runs the API contract tests before every push.
 
 ## Checks
 

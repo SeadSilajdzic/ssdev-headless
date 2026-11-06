@@ -18,7 +18,9 @@ Route::middleware([EnsureCentralLevel::class, 'auth', RequireVerifiedEmail::clas
 
         Route::middleware('can:'.TenantPermission::Manage->value)->group(function () {
             Route::get('create', [TenantController::class, 'create'])->name('headless.tenants.create');
-            Route::post('/', [TenantController::class, 'store'])->name('headless.tenants.store');
+            Route::post('/', [TenantController::class, 'store'])
+                ->middleware('throttle:'.OwnerInvitationRateLimit::NAME)
+                ->name('headless.tenants.store');
             Route::put('{tenant}', [TenantController::class, 'update'])->whereNumber('tenant')->name('headless.tenants.update');
             Route::delete('{tenant}', [TenantController::class, 'destroy'])->whereNumber('tenant')->name('headless.tenants.destroy');
             Route::post('{tenant}/suspension', [TenantSuspensionController::class, 'store'])->whereNumber('tenant')->name('headless.tenants.suspension.store');

@@ -9,6 +9,8 @@ use Ssdev\Headless\Features\Roles\RolesModule;
 use Ssdev\Headless\Features\Tenancy\Tenant;
 use Ssdev\Headless\Features\Tenancy\TenantOwnerService;
 use Ssdev\Headless\Features\Tenancy\TenantPermission;
+use Ssdev\Headless\Features\Users\Notifications\UserInvitationNotification;
+use Ssdev\Headless\Features\Users\UserInvitationService;
 use Ssdev\Headless\Features\Users\UserPermission;
 use Ssdev\Headless\Permissions\PermissionRegistry;
 use Ssdev\Headless\Permissions\PermissionSynchronizer;
@@ -16,6 +18,7 @@ use Workbench\App\Models\TenantUser;
 
 use function Pest\Laravel\deleteJson;
 use function Pest\Laravel\getJson;
+use function Pest\Laravel\post;
 use function Pest\Laravel\putJson;
 
 beforeEach(fn () => app(PermissionSynchronizer::class)->sync());
@@ -60,6 +63,32 @@ it('lists and manages only the tenant\'s users', function () {
     deleteJson(tenantUrl($acme, "api/v1/users/{$globex->id}"))->assertNotFound();
 
     expect(DB::table('users')->whereIn('id', [$central->id, $globex->id])->count())->toBe(2);
+});
+
+it('keeps user invitations of the same email apart per tenant', function () {
+    Notification::fake();
+    $acme = makeTenant('acme');
+    $globex = makeTenant('globex');
+    $invite = fn (Tenant $tenant): TenantUser => $tenant->execute(fn () => app(UserInvitationService::class)->invite(tenantUser($tenant), 'Ada Lovelace', 'ada@example.com'));
+    $acmeAda = $invite($acme);
+    $globexAda = $invite($globex);
+    $token = '';
+    Notification::assertSentTo($acmeAda, UserInvitationNotification::class, function (UserInvitationNotification $notification) use (&$token): bool {
+        $token = $notification->token;
+
+        return true;
+    });
+    $accept = fn (Tenant $tenant) => post(tenantUrl($tenant, 'invitation'), ['token' => $token, 'email' => 'ada@example.com', 'password' => 'N3w-password!', 'password_confirmation' => 'N3w-password!']);
+    $password = fn (TenantUser $user) => DB::table('users')->where('id', $user->getKey())->value('password');
+    $globexPassword = $password($globexAda);
+    $acmePassword = $password($acmeAda);
+
+    $accept($globex)->assertSessionHasErrors('email');
+    expect($password($globexAda))->toBe($globexPassword);
+
+    $accept($acme)->assertSessionHasNoErrors();
+    expect($password($acmeAda))->not->toBe($acmePassword)
+        ->and($password($globexAda))->toBe($globexPassword);
 });
 
 it('keeps the last user manager per tenant', function () {

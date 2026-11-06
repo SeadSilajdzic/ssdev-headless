@@ -40,8 +40,14 @@ Route::middleware(['auth', RequireVerifiedEmail::class, 'password.confirm'])->pr
     Route::get('{user}', [UserController::class, 'show'])->whereNumber('user')->middleware($canView)->name('headless.users.show');
 
     Route::middleware([$canView, 'can:'.UserPermission::Update->value])->group(function () {
-        Route::put('{user}', [UserController::class, 'update'])->whereNumber('user')->name('headless.users.update');
-        Route::post('{user}/password-reset', [UserPasswordResetController::class, 'store'])->whereNumber('user')->name('headless.users.password-reset.store');
+        Route::put('{user}', [UserController::class, 'update'])
+            ->whereNumber('user')
+            ->middleware('throttle:'.InvitationRateLimit::NAME)
+            ->name('headless.users.update');
+        Route::post('{user}/password-reset', [UserPasswordResetController::class, 'store'])
+            ->whereNumber('user')
+            ->middleware('throttle:'.InvitationRateLimit::NAME)
+            ->name('headless.users.password-reset.store');
         Route::delete('{user}/sessions', [UserSessionController::class, 'destroy'])->whereNumber('user')->name('headless.users.sessions.destroy');
     });
 
