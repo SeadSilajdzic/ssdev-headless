@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-09
+
 ### Fixed
 
 - `headless:install` and `headless:add` link `public/storage` when it is missing and the avatars disk is local. Nothing created that link before, so on a fresh install uploaded profile photos did not load and the pages showed initials instead.
@@ -158,7 +160,8 @@ The first stable release. From here on, breaking changes to the API, the config 
 - App, auth and settings layouts, dashboard page and error pages for 403, 404, 419, 429, 500 and 503.
 - Shared Inertia props: authenticated user, navigation, enabled features, translations and flash messages.
 
-[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.2...v1.0.0
 [0.5.2]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/SeadSilajdzic/ssdev-headless/compare/v0.5.0...v0.5.1
