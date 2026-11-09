@@ -9,6 +9,7 @@ use Ssdev\Headless\Installation\Steps\ConfigureExceptionRendering;
 use Ssdev\Headless\Installation\Steps\InstallApiContracts;
 use Ssdev\Headless\Installation\Steps\InstallFrontendScaffolding;
 use Ssdev\Headless\Installation\Steps\InstallInertiaMiddleware;
+use Ssdev\Headless\Installation\Steps\LinkPublicStorage;
 use Ssdev\Headless\Installation\Steps\PrepareUserModel;
 use Ssdev\Headless\Installation\Steps\PublishConfig;
 use Ssdev\Headless\Installation\Steps\PublishMigrations;
@@ -25,6 +26,7 @@ final class Installer
         ConfigureExceptionRendering::class,
         InstallFrontendScaffolding::class,
         AddNpmDependencies::class,
+        LinkPublicStorage::class,
         InstallApiContracts::class,
     ];
 

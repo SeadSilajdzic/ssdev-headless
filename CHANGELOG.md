@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Fixed
+
+- `headless:install` and `headless:add` link `public/storage` when it is missing and the avatars disk is local. Nothing created that link before, so on a fresh install uploaded profile photos did not load and the pages showed initials instead.
+
 ## [1.0.0] - 2026-11-06
 
 The first stable release. From here on, breaking changes to the API, the config and the swappable classes wait for a major version.

@@ -23,7 +23,9 @@ php artisan headless:install
 
 The installer asks which features you want, wires up Inertia, Vue, Tailwind and the error pages, and never overwrites a file you changed without asking first. It is safe to run again.
 
-It also publishes the migrations, adds `HasRoles` (and `MustVerifyEmail` when email verification is on) to `app/Models/User.php`, checks your session settings, and offers to run the migrations and create the first admin account.
+It also publishes the migrations, adds `HasRoles` (and `MustVerifyEmail` when email verification is on) to `app/Models/User.php`, checks your session settings, links `public/storage` for profile photos, and offers to run the migrations and create the first admin account.
+
+Laravel's `.gitignore` leaves `public/storage` out, so run `php artisan storage:link` as part of each deploy, or uploaded profile photos will not load on the server.
 
 Non-interactive installs (CI, scripts):
 

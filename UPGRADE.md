@@ -11,6 +11,10 @@ npm run build
 
 `headless:upgrade` publishes the migrations a new version added and leaves the ones you already have alone. Anything else that needs your attention is listed below, per version.
 
+## Upgrading to 1.0.1
+
+Profile photos load through the `public/storage` link, which `headless:install` and `headless:add` now create when it is missing. If your project shows initials instead of uploaded photos, run `php artisan storage:link` once, and add it to your deploy if it is not there yet.
+
 ## Upgrading to 1.0 from 0.5
 
 ```bash

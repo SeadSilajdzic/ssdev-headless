@@ -37,6 +37,17 @@ final class ProjectFiles
         $this->filesystem->delete($this->path($relative));
     }
 
+    public function link(string $targetRelative, string $linkRelative): void
+    {
+        // mklink on Windows needs native separators, and a missing target would leave a dangling link.
+        $target = str_replace('/', DIRECTORY_SEPARATOR, $this->path($targetRelative));
+        $link = str_replace('/', DIRECTORY_SEPARATOR, $this->path($linkRelative));
+
+        $this->filesystem->ensureDirectoryExists($target);
+        $this->filesystem->ensureDirectoryExists(dirname($link));
+        $this->filesystem->link($target, $link);
+    }
+
     /**
      * @return list<string> paths relative to the project root
      */
