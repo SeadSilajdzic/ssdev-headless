@@ -295,7 +295,7 @@ Tests are named `file › test`, relative to `tests/`.
 | Avoid abandoned packages | Covered | `lucide-vue-next` was replaced by `@lucide/vue` |
 | Avoid suspicious packages | Covered | |
 | Watch for typosquatting | Covered | |
-| Monitor dependency vulnerabilities | Partial | Composer audits on `composer update` and `composer require`; the repository has Dependabot alerts but no `composer.lock`, so each application still audits the versions it resolves |
+| Monitor dependency vulnerabilities | Partial | Composer audits on `composer update` and `composer require`; the repository's CI runs `composer audit` and `npm audit`, Dependabot watches the Composer, npm and GitHub Actions dependencies, and CodeQL scans the TypeScript and the workflows. The package ships no `composer.lock`, so each application still audits the versions it resolves |
 | Do not modify unrelated dependencies | Covered | |
 | Never commit .env files | Covered | |
 | Never commit API keys | Covered | |
